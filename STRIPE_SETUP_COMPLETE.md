@@ -10,8 +10,8 @@ Add these to your Vercel project under Settings → Environment Variables:
 STRIPE_SECRET_KEY=sk_test_[Click "Reveal test key" in Stripe Dashboard]
 STRIPE_PUBLISHABLE_KEY=pk_test_[Copy from Stripe Dashboard]
 
-# Webhook Secret (from test webhook we created)
-STRIPE_WEBHOOK_SECRET=whsec_9fb0aac9fddea4ea5a143869d2955043f883bb93f7beaba93a9cba4501efdb9c
+# Webhook Secret (get from Stripe Dashboard > Webhooks > Your endpoint > Signing secret)
+STRIPE_WEBHOOK_SECRET=whsec_[click "Reveal" in Stripe Dashboard to get your webhook secret]
 
 # Price IDs (get these from each product page)
 STRIPE_PRICE_STARTER=price_[Click on Starter Plan product to get ID]
