@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Product Description & Image Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .new-badge {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Sticky Video CTA Header */
+        .sticky-video-cta {
+            position: fixed;
+            top: -100px;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            padding: 15px 20px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: top 0.3s ease-in-out;
+        }
+
+        .sticky-video-cta.active {
+            top: 0;
+        }
+
+        .sticky-video-cta-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .sticky-video-cta-text {
+            flex: 1;
+            color: white;
+        }
+
+        .sticky-video-cta-text h3 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .sticky-video-cta-text p {
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+
+        .sticky-video-cta-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .sticky-video-cta-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .sticky-video-cta-btn.primary {
+            background: white;
+            color: #ff6b6b;
+        }
+
+        .sticky-video-cta-btn.primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+        }
+
+        .sticky-video-cta-btn.dismiss {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .sticky-video-cta-btn.dismiss:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .sticky-video-cta-close {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 10px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .sticky-video-cta-close:hover {
+            opacity: 1;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .input-section {
+            padding: 20px;
+        }
+
+        .output-section {
+            padding: 20px;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+        }
+
+        .image-upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: #f9f9ff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .image-upload-area:hover {
+            background: #f0f0ff;
+            border-color: #764ba2;
+        }
+
+        .image-upload-area.has-image {
+            border-style: solid;
+            background: white;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 150px;
+            margin: 10px auto;
+            display: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .image-preview.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group.optional {
+            opacity: 0.8;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: border-color 0.3s;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .pricing-tiers {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tier-card {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .tier-card.selected {
+            border-color: #667eea;
+            background: #f7f9ff;
+        }
+
+        .tier-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 3px 0;
+        }
+
+        .tier-features {
+            font-size: 10px;
+            color: #666;
+            margin-top: 3px;
+            line-height: 1.3;
+        }
+
+        .generate-images-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f0f9ff;
+            border-radius: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .output-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .output-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .output-tab:hover {
+            color: #667eea;
+        }
+
+        .output-tab.active {
+            color: #667eea;
+        }
+
+        .output-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+
+        .output-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .output-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .variations-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .variation-tab {
+            padding: 6px 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+
+        .variation-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .description-box {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .image-info {
+            padding: 10px;
+        }
+
+        .image-style {
+            font-size: 12px;
+            color: #666;
+            text-transform: capitalize;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .image-btn {
+            flex: 1;
+            padding: 5px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .image-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            animation: fadeIn 0.3s;
+        }
+
+        .image-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #667eea;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .video-generator {
+            padding: 20px;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .avatar-option {
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .avatar-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .avatar-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .avatar-option img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 5px;
+        }
+
+        .voice-selection {
+            margin: 20px 0;
+        }
+
+        .voice-selection select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .script-editor {
+            margin: 20px 0;
+        }
+
+        .script-editor textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .video-results {
+            margin-top: 20px;
+        }
+
+        .video-player {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .video-player video {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Video Upsell Modal Styles */
+        #videoUpsellModal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            animation: fadeIn 0.3s;
+        }
+
+        #videoUpsellModal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-upsell-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .video-upsell-container {
+            color: white;
+            text-align: center;
+        }
+
+        .video-upsell-container h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .upsell-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            margin-bottom: 30px;
+        }
+
+        .video-benefits {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px;
+            backdrop-filter: blur(10px);
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .benefit-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        .benefit-item h4 {
+            margin: 0;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .benefit-item p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .video-pricing {
+            margin: 30px 0;
+        }
+
+        .price-tag {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .currency {
+            font-size: 2rem;
+            vertical-align: super;
+        }
+
+        .period {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .discount-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        .video-preview {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+            min-height: 100px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .create-video-btn {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .create-video-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .skip-btn {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 15px 40px;
+            font-size: 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .skip-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sticky Video CTA Header -->
+    <div id="stickyVideoCTA" class="sticky-video-cta">
+        <div class="sticky-video-cta-content">
+            <div class="sticky-video-cta-text">
+                <h3>🔥 Limited Time: Turn Your Product into a Viral Video!</h3>
+                <p>AI-powered videos get 12x more engagement. Create yours in 60 seconds!</p>
+            </div>
+            <div class="sticky-video-cta-buttons">
+                <button class="sticky-video-cta-btn primary" onclick="showVideoUpsellFromSticky()">
+                    🎬 Create Video Now - Save 50%
+                </button>
+                <button class="sticky-video-cta-btn dismiss" onclick="dismissStickyHeader()">
+                    Not Interested
+                </button>
+            </div>
+            <button class="sticky-video-cta-close" onclick="dismissStickyHeader()">
+                ×
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>AI Product Description & Image Generator</h1>
+            <p class="subtitle">
+                Generate descriptions with AI-created product images
+                <span class="new-badge">NEW: AI Images!</span>
+            </p>
+            <div style="margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
+                <a href="/bulk.html" style="display: inline-block; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 20px; transition: background 0.3s;">
+                    📁 Bulk CSV Upload
+                </a>
+                <a href="/" style="display: inline-block; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 20px; transition: background 0.3s;">
+                    🔄 Classic Version
+                </a>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h3 style="margin-bottom: 15px;">Product Details</h3>
+                
+                <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('productImage').click()">
+                    <div class="upload-icon">📸</div>
+                    <p><strong>Upload product image (optional)</strong></p>
+                    <p style="font-size: 11px; color: #666; margin-top: 5px;">
+                        AI will analyze and enhance your product
+                    </p>
+                    <img id="imagePreview" class="image-preview">
+                    <input type="file" id="productImage" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                </div>
+
+                <div class="form-group" id="productNameGroup">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" placeholder="e.g., Wireless Bluetooth Headphones">
+                </div>
+
+                <div class="form-group" id="categoryGroup">
+                    <label for="category">Category</label>
+                    <select id="category">
+                        <option value="">Select category</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="fashion">Fashion</option>
+                        <option value="home">Home & Garden</option>
+                        <option value="beauty">Beauty & Personal Care</option>
+                        <option value="sports">Sports & Outdoors</option>
+                        <option value="toys">Toys & Games</option>
+                        <option value="food">Food & Beverage</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="featuresGroup">
+                    <label for="features">Key Features</label>
+                    <textarea id="features" placeholder="One feature per line"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="targetAudience">Target Audience</label>
+                    <input type="text" id="targetAudience" placeholder="e.g., Young professionals">
+                </div>
+
+                <div class="form-group">
+                    <label for="tone">Tone</label>
+                    <select id="tone">
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual</option>
+                        <option value="luxury">Luxury</option>
+                        <option value="playful">Playful</option>
+                        <option value="technical">Technical</option>
+                    </select>
+                </div>
+
+                <div class="generate-images-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="generateImages" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <div>
+                        <strong>Generate AI Images</strong>
+                        <div style="font-size: 11px; color: #666;">Create product images in multiple styles</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Pricing Tier</label>
+                    <div class="pricing-tiers">
+                        <div class="tier-card" data-tier="basic">
+                            <div class="tier-name">Basic</div>
+                            <div class="tier-price">$5</div>
+                            <div class="tier-features">150 words<br>2 variations<br>1 AI image</div>
+                        </div>
+                        <div class="tier-card selected" data-tier="standard">
+                            <div class="tier-name">Standard</div>
+                            <div class="tier-price">$15</div>
+                            <div class="tier-features">300 words<br>3 variations<br>3 AI images</div>
+                        </div>
+                        <div class="tier-card" data-tier="premium">
+                            <div class="tier-name">Premium</div>
+                            <div class="tier-price">$25</div>
+                            <div class="tier-features">500+ words<br>5 variations<br>5 AI images</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="generate-btn" onclick="generateDescription()">Generate Content</button>
+            </div>
+
+            <div class="output-section">
+                <div>
+                    <div class="output-tabs">
+                        <button class="output-tab active" onclick="showTab('descriptions')">📝 Descriptions</button>
+                        <button class="output-tab" onclick="showTab('images')">🖼️ Generated Images</button>
+                    </div>
+
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <h3>Generating content...</h3>
+                        <p>Creating descriptions and images</p>
+                    </div>
+
+                    <div id="descriptionsContent" class="output-content active">
+                        <div class="variations-tabs" id="variationTabs" style="display: none;">
+                            <!-- Variation tabs will be added dynamically -->
+                        </div>
+                        <div class="description-box" id="descriptionOutput">
+                            Your generated descriptions will appear here...
+                        </div>
+                    </div>
+
+                    <div id="imagesContent" class="output-content">
+                        <div class="image-gallery" id="imageGallery">
+                            <!-- Generated images will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Video content removed - now handled by upsell -->
+                    <!-- <div id="videosContent" class="output-content">
+                        <div class="video-generator" id="videoGenerator">
+                            <h3>Generate UGC Product Videos</h3>
+                            <div class="avatar-selection">
+                                <label>Select Avatar:</label>
+                                <div class="avatar-grid">
+                                    <div class="avatar-option selected" data-avatar="amy-jcwCkr1grs">
+                                        <img src="https://via.placeholder.com/100x100?text=Amy" alt="Amy">
+                                        <span>Amy</span>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="josh-z3EqOMZKFH">
+                                        <img src="https://via.placeholder.com/100x100?text=Josh" alt="Josh">
+                                        <span>Josh</span>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="emilia-lXvtTJxGgFs">
+                                        <img src="https://via.placeholder.com/100x100?text=Emilia" alt="Emilia">
+                                        <span>Emilia</span>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="will-ZjdM0tGz0ic">
+                                        <img src="https://via.placeholder.com/100x100?text=Will" alt="Will">
+                                        <span>Will</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="voice-selection">
+                                <label for="voiceSelect">Voice:</label>
+                                <select id="voiceSelect">
+                                    <option value="en-US-JennyNeural">Jenny (US Female)</option>
+                                    <option value="en-US-GuyNeural">Guy (US Male)</option>
+                                    <option value="en-GB-SoniaNeural">Sonia (UK Female)</option>
+                                    <option value="en-GB-RyanNeural">Ryan (UK Male)</option>
+                                </select>
+                            </div>
+                            <div class="script-editor">
+                                <label for="videoScript">Video Script:</label>
+                                <textarea id="videoScript" rows="6" placeholder="Script will be auto-generated from your product description..."></textarea>
+                            </div>
+                            <button class="generate-btn" onclick="generateVideo()">Generate Video</button>
+                            <div class="video-results" id="videoResults" style="display: none;">
+                                <!-- Video results will appear here -->
+                            </div>
+                        </div>
+                    </div> -->
+
+                    <!-- Metrics removed - we're creating content not tracking it -->
+                    <!-- <div id="metricsContent" class="output-content">
+                        <div class="metrics" id="metrics">
+                            <div class="metric-card">
+                                <div class="metric-value" id="wordCount">0</div>
+                                <div class="metric-label">Words</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="seoScore">0</div>
+                                <div class="metric-label">SEO Score</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="readabilityScore">0</div>
+                                <div class="metric-label">Readability</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="variationCount">0</div>
+                                <div class="metric-label">Variations</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="imageCount">0</div>
+                                <div class="metric-label">Images</div>
+                            </div>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="image-modal" onclick="closeModal()">
+        <span class="modal-close">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <!-- Video Upsell Popup Modal -->
+    <div id="videoUpsellModal" class="modal">
+        <div class="modal-content video-upsell-content">
+            <span class="modal-close" onclick="closeVideoUpsellModal()">&times;</span>
+            <div class="video-upsell-container">
+                <h2>🎬 Transform Your Product Into a Video!</h2>
+                <p class="upsell-subtitle">Bring your product to life with AI-powered video creation</p>
+                
+                <div class="video-benefits">
+                    <div class="benefit-item">
+                        <span class="benefit-icon">📹</span>
+                        <div>
+                            <h4>Professional Quality</h4>
+                            <p>Studio-quality videos with AI avatars</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">🎯</span>
+                        <div>
+                            <h4>Higher Conversion</h4>
+                            <p>Videos increase sales by up to 80%</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">⚡</span>
+                        <div>
+                            <h4>Ready in Minutes</h4>
+                            <p>AI-generated in under 5 minutes</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-pricing">
+                    <div class="price-tag">
+                        <span class="currency">$</span>
+                        <span class="amount">29</span>
+                        <span class="period">/video</span>
+                    </div>
+                    <div class="discount-badge">Limited Time: 50% OFF</div>
+                </div>
+
+                <div class="video-preview" id="videoPreviewContent">
+                    <!-- Preview will be inserted here -->
+                </div>
+
+                <div class="action-buttons">
+                    <button class="create-video-btn" onclick="proceedToVideoCreation()">
+                        🎥 Create Video Now
+                    </button>
+                    <button class="skip-btn" onclick="handleMaybeLater()">
+                        Maybe Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedTier = 'standard';
+        let currentVariations = [];
+        let currentVariationIndex = 0;
+        let generatedImages = [];
+
+        document.querySelectorAll('.tier-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedTier = this.dataset.tier;
+            });
+        });
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreview').classList.add('active');
+                    document.getElementById('imageUploadArea').classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showTab(tabName) {
+            // Update tabs
+            document.querySelectorAll('.output-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.output-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + 'Content').classList.add('active');
+        }
+
+        async function generateDescription() {
+            const productName = document.getElementById('productName').value;
+            const category = document.getElementById('category').value;
+            const features = document.getElementById('features').value;
+            const targetAudience = document.getElementById('targetAudience').value;
+            const tone = document.getElementById('tone').value;
+            const imageFile = document.getElementById('productImage').files[0];
+            const generateImages = document.getElementById('generateImages').checked;
+
+            if (!productName) {
+                alert('Please provide a product name');
+                return;
+            }
+
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('variationTabs').style.display = 'none';
+            document.querySelector('.generate-btn').disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('productName', productName);
+                formData.append('category', category);
+                formData.append('features', features);
+                formData.append('targetAudience', targetAudience);
+                formData.append('tone', tone);
+                formData.append('tier', selectedTier);
+                formData.append('generateImages', generateImages);
+                
+                if (imageFile) {
+                    formData.append('productImage', imageFile);
+                }
+
+                const response = await fetch('/api/generate-description', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Store data
+                    currentVariations = data.variations || [data.description];
+                    generatedImages = data.generatedImages || [];
+                    
+                    // Display variations
+                    displayVariations();
+                    
+                    // Display images
+                    displayImages();
+                    
+                    // Store data for video upsell
+                    sessionStorage.setItem('productName', productName);
+                    sessionStorage.setItem('productDescription', currentVariations[0]);
+                    sessionStorage.setItem('generatedImages', JSON.stringify(generatedImages));
+                    sessionStorage.setItem('features', features);
+                    sessionStorage.setItem('targetAudience', targetAudience);
+                    sessionStorage.setItem('tier', selectedTier);
+                    
+                    // Show video upsell popup after 1 minute
+                    setTimeout(() => {
+                        showVideoUpsellPopup(productName, currentVariations[0], generatedImages);
+                    }, 60000); // 60000ms = 1 minute
+                } else {
+                    alert('Error generating content: ' + (data.details || 'Please try again.'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error connecting to server.');
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.querySelector('.generate-btn').disabled = false;
+            }
+        }
+
+        function displayVariations() {
+            const tabsContainer = document.getElementById('variationTabs');
+            tabsContainer.innerHTML = '';
+            
+            currentVariations.forEach((variation, index) => {
+                const tab = document.createElement('button');
+                tab.className = 'variation-tab' + (index === 0 ? ' active' : '');
+                tab.textContent = `V${index + 1}`;
+                tab.onclick = () => showVariation(index);
+                tabsContainer.appendChild(tab);
+            });
+
+            if (currentVariations.length > 1) {
+                tabsContainer.style.display = 'flex';
+            }
+
+            document.getElementById('descriptionOutput').textContent = currentVariations[0];
+        }
+
+        function showVariation(index) {
+            currentVariationIndex = index;
+            document.getElementById('descriptionOutput').textContent = currentVariations[index];
+            
+            document.querySelectorAll('.variation-tab').forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+        }
+
+        function displayImages() {
+            const gallery = document.getElementById('imageGallery');
+            gallery.innerHTML = '';
+
+            if (generatedImages.length === 0) {
+                gallery.innerHTML = '<p style="text-align: center; color: #666;">No images generated</p>';
+                return;
+            }
+
+            generatedImages.forEach((image, index) => {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                card.innerHTML = `
+                    <img src="${image.url}" alt="Generated Image ${index + 1}" onclick="openModal('${image.url}')">
+                    <div class="image-info">
+                        <div class="image-style">Style: ${image.style || 'Default'}</div>
+                        <div class="image-actions">
+                            <button class="image-btn" onclick="downloadImage('${image.url}', 'product_${index + 1}.png')">
+                                💾 Download
+                            </button>
+                            <button class="image-btn" onclick="copyImageUrl('${image.url}')">
+                                📋 Copy URL
+                            </button>
+                        </div>
+                    </div>
+                `;
+                gallery.appendChild(card);
+            });
+        }
+
+        function openModal(imageUrl) {
+            document.getElementById('modalImage').src = imageUrl;
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // Video Upsell Modal Functions
+        function showVideoUpsellPopup(productName, description, images) {
+            const modal = document.getElementById('videoUpsellModal');
+            const previewContent = document.getElementById('videoPreviewContent');
+            
+            // Create preview content
+            let previewHTML = `
+                <h4 style="color: white; margin-bottom: 15px;">Your Video Preview</h4>
+                <p style="color: rgba(255,255,255,0.9); margin-bottom: 15px;">
+                    <strong>Product:</strong> ${productName}
+                </p>
+                <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.5;">
+                    ${description.substring(0, 150)}...
+                </p>
+            `;
+            
+            if (images && images.length > 0) {
+                previewHTML += `
+                    <div style="margin-top: 15px;">
+                        <small style="color: rgba(255,255,255,0.7);">
+                            ✨ Will include ${images.length} product image${images.length > 1 ? 's' : ''} in video
+                        </small>
+                    </div>
+                `;
+            }
+            
+            previewContent.innerHTML = previewHTML;
+            modal.classList.add('active');
+        }
+
+        function closeVideoUpsellModal() {
+            document.getElementById('videoUpsellModal').classList.remove('active');
+        }
+
+        function handleMaybeLater() {
+            // Close the modal
+            closeVideoUpsellModal();
+            
+            // Show sticky header after a short delay
+            setTimeout(() => {
+                document.getElementById('stickyVideoCTA').classList.add('active');
+            }, 500);
+        }
+
+        function showVideoUpsellFromSticky() {
+            // Hide sticky header
+            document.getElementById('stickyVideoCTA').classList.remove('active');
+            
+            // Get stored product data
+            const productName = sessionStorage.getItem('productName');
+            const description = sessionStorage.getItem('productDescription');
+            const images = JSON.parse(sessionStorage.getItem('generatedImages') || '[]');
+            
+            // Show video upsell popup
+            showVideoUpsellPopup(productName, description, images);
+        }
+
+        function dismissStickyHeader() {
+            document.getElementById('stickyVideoCTA').classList.remove('active');
+            
+            // Optional: Set a flag to not show it again during this session
+            sessionStorage.setItem('videoCtaDismissed', 'true');
+        }
+
+        function proceedToVideoCreation() {
+            // Store data for video creation page
+            const productName = sessionStorage.getItem('productName');
+            const description = sessionStorage.getItem('productDescription');
+            const images = sessionStorage.getItem('generatedImages');
+            
+            // Close modal
+            closeVideoUpsellModal();
+            
+            // Redirect to video creation page
+            window.location.href = '/video-creation.html';
+        }
+
+        function downloadImage(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function copyImageUrl(url) {
+            const fullUrl = window.location.origin + url;
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                alert('Image URL copied to clipboard!');
+            });
+        }
+
+        // Avatar selection handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show video tab for premium+ and enterprise tiers
+            document.querySelectorAll('.tier-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const tier = this.dataset.tier;
+                    if (tier === 'premiumPlus' || tier === 'enterprise') {
+                        document.getElementById('videoTab').style.display = 'inline-block';
+                    } else {
+                        document.getElementById('videoTab').style.display = 'none';
+                    }
+                });
+            });
+
+            // Avatar selection
+            document.querySelectorAll('.avatar-option').forEach(avatar => {
+                avatar.addEventListener('click', function() {
+                    document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+        });
+
+        async function generateVideo() {
+            const selectedTier = document.querySelector('.tier-card.selected').dataset.tier;
+            if (selectedTier !== 'premiumPlus' && selectedTier !== 'enterprise') {
+                alert('Video generation is only available with Premium+ or Enterprise tiers');
+                return;
+            }
+
+            const selectedAvatar = document.querySelector('.avatar-option.selected').dataset.avatar;
+            const voiceId = document.getElementById('voiceSelect').value;
+            let script = document.getElementById('videoScript').value;
+            
+            // If no custom script, generate from description
+            if (!script) {
+                const currentDescription = document.querySelector('.variation-tab.active')?.nextElementSibling?.textContent;
+                if (!currentDescription) {
+                    alert('Please generate a product description first');
+                    return;
+                }
+                // Create a shortened script from the description
+                script = `Hi there! Let me tell you about this amazing product. ${currentDescription.substring(0, 300)}... Try it today and see the difference for yourself!`;
+                document.getElementById('videoScript').value = script;
+            }
+
+            const productName = document.getElementById('productName').value;
+            const firstImage = generatedImages[0] || '/generated-images/placeholder.jpg';
+
+            try {
+                const response = await fetch('/api/generate-video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        script,
+                        avatarId: selectedAvatar,
+                        voiceId,
+                        productName,
+                        imageUrl: firstImage
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayVideoResult(data);
+                } else {
+                    alert('Error generating video: ' + (data.details || 'Please try again.'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error connecting to server.');
+            }
+        }
+
+        function displayVideoResult(videoData) {
+            const resultsDiv = document.getElementById('videoResults');
+            resultsDiv.style.display = 'block';
+            
+            if (videoData.demo) {
+                resultsDiv.innerHTML = `
+                    <div class="video-player">
+                        <div style="padding: 20px; background: #f8f9fa; border-radius: 10px; text-align: center;">
+                            <h4>Video Preview (Demo Mode)</h4>
+                            <p>${videoData.message}</p>
+                            <div style="margin: 20px 0; padding: 40px; background: #e0e0e0; border-radius: 10px;">
+                                <span style="font-size: 48px;">🎬</span>
+                                <p>Your UGC video would appear here</p>
+                                <p style="font-size: 12px; color: #666;">Avatar: ${videoData.avatarUsed}<br>Voice: ${videoData.voiceUsed}</p>
+                            </div>
+                            <button class="generate-btn" style="margin-top: 10px;" onclick="downloadVideo('${videoData.videoUrl}')">Download Demo Video</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="video-player">
+                        <video controls>
+                            <source src="${videoData.videoUrl}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div style="margin-top: 10px; text-align: center;">
+                            <button class="generate-btn" onclick="downloadVideo('${videoData.videoUrl}')">Download Video</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function downloadVideo(url) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `product_video_${Date.now()}.mp4`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+
+    <!-- Footer with Legal Links -->
+    <footer style="margin-top: 60px; padding: 30px 0; background: rgba(0,0,0,0.1); text-align: center;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div style="margin-bottom: 20px;">
+                <a href="/terms.html" style="color: white; text-decoration: none; margin: 0 15px; opacity: 0.9; transition: opacity 0.3s;">Terms of Service</a>
+                <span style="color: white; opacity: 0.5;">|</span>
+                <a href="/privacy.html" style="color: white; text-decoration: none; margin: 0 15px; opacity: 0.9; transition: opacity 0.3s;">Privacy Policy</a>
+                <span style="color: white; opacity: 0.5;">|</span>
+                <a href="/refund.html" style="color: white; text-decoration: none; margin: 0 15px; opacity: 0.9; transition: opacity 0.3s;">Refund Policy</a>
+            </div>
+            <p style="color: white; opacity: 0.7; font-size: 0.9rem; margin: 10px 0;">
+                © 2025 AI Product Description Generator. All rights reserved.
+            </p>
+            <p style="color: white; opacity: 0.6; font-size: 0.85rem;">
+                Powered by OpenAI, Google Gemini, D-ID, and Loops.so
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
