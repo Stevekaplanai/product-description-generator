@@ -1590,24 +1590,23 @@
             document.querySelector('.generate-btn').disabled = true;
 
             try {
-                const formData = new FormData();
-                formData.append('productName', productName);
-                formData.append('category', category);
-                formData.append('features', features);
-                formData.append('targetAudience', targetAudience);
-                formData.append('tone', tone);
-                // Tier is determined by subscription status
-                const tier = userSubscription?.plan?.toLowerCase() || 'free';
-                formData.append('tier', tier);
-                formData.append('generateImages', generateImages);
-                
-                if (imageFile) {
-                    formData.append('productImage', imageFile);
-                }
+                // Prepare data as JSON
+                const requestData = {
+                    productName: productName,
+                    productCategory: category,
+                    targetAudience: targetAudience,
+                    keyFeatures: features,
+                    tone: tone,
+                    tier: userSubscription?.plan?.toLowerCase() || 'free',
+                    generateImages: generateImages
+                };
 
                 const response = await fetch('/api/generate-description', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
                 });
 
                 const data = await response.json();
