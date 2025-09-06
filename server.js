@@ -1259,14 +1259,20 @@ function calculateReadabilityScore(text) {
   return 60;
 }
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Enhanced Product Description Generator with AI Image Generation`);
-  console.log(`📍 Running on port ${PORT}`);
-  console.log(`✨ Features:`);
-  console.log(`   - Multiple description variations`);
-  console.log(`   - AI image generation (DALL-E 3 / Mock)`);
-  console.log(`   - Image analysis with Google Gemini`);
-  console.log(`   - CSV bulk upload with batch image generation`);
-  console.log(`   - Multiple image styles per product`);
-});
+// Export for Vercel
+module.exports = app;
+
+// Only start server if not in Vercel environment
+if (process.env.VERCEL !== '1') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Enhanced Product Description Generator with AI Image Generation`);
+    console.log(`📍 Running on port ${PORT}`);
+    console.log(`✨ Features:`);
+    console.log(`   - Multiple description variations`);
+    console.log(`   - AI image generation (DALL-E 3 / Mock)`);
+    console.log(`   - Image analysis with Google Gemini`);
+    console.log(`   - CSV bulk upload with batch image generation`);
+    console.log(`   - Multiple image styles per product`);
+  });
+}
