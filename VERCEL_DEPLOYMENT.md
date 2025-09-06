@@ -14,10 +14,10 @@ Add these in Vercel Dashboard → Settings → Environment Variables:
 ```
 OPENAI_API_KEY=your_openai_api_key
 GEMINI_API_KEY=your_gemini_api_key
-CLOUDINARY_CLOUD_NAME=dhup1riab
-CLOUDINARY_API_KEY=635329558989426
-CLOUDINARY_API_SECRET=tIG28CyJRfbGfVsmMPM1KZPOiic
-D_ID_API_KEY=c3RldmVAZ3RtdnAuY29t:hdHqXeft2jBog8Sy5KDVC
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+D_ID_API_KEY=your_did_api_key
 NODE_ENV=production
 ```
 

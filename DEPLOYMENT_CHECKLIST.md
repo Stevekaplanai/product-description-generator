@@ -42,10 +42,10 @@ Add in Vercel Dashboard → Settings → Environment Variables:
 |----------|-------|-------|
 | `OPENAI_API_KEY` | Your key | Required for DALL-E 3 |
 | `GEMINI_API_KEY` | Your key | Required for descriptions |
-| `CLOUDINARY_CLOUD_NAME` | dhup1riab | ✅ Provided |
-| `CLOUDINARY_API_KEY` | 635329558989426 | ✅ Provided |
-| `CLOUDINARY_API_SECRET` | tIG28CyJRfbGfVsmMPM1KZPOiic | ✅ Provided |
-| `D_ID_API_KEY` | c3RldmVAZ3RtdnAuY29t:hdHqXeft2jBog8Sy5KDVC | ✅ Provided |
+| `CLOUDINARY_CLOUD_NAME` | Your cloud name | Required for media storage |
+| `CLOUDINARY_API_KEY` | Your API key | Required for media storage |
+| `CLOUDINARY_API_SECRET` | Your API secret | Required for media storage |
+| `D_ID_API_KEY` | Your D-ID key | Required for video generation |
 
 ### Step 3: Domain Configuration
 
