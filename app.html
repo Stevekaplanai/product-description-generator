@@ -1612,9 +1612,9 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Store data
-                    currentVariations = data.variations || [data.description];
-                    generatedImages = data.generatedImages || [];
+                    // Store data - handle both 'variations' and 'descriptions' keys
+                    currentVariations = data.variations || data.descriptions || [data.description];
+                    generatedImages = data.generatedImages || data.images || [];
                     
                     // Display variations
                     displayVariations();
