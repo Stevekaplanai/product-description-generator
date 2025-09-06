@@ -211,6 +211,30 @@
         .image-preview.active {
             display: block;
         }
+        
+        .analyze-btn {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .analyze-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         .form-group {
             margin-bottom: 15px;
@@ -1056,21 +1080,24 @@
                 
                 <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('productImage').click()">
                     <div class="upload-icon">📸</div>
-                    <p><strong>Upload product image (optional)</strong></p>
+                    <p><strong>Upload product image for AI analysis</strong></p>
                     <p style="font-size: 11px; color: #666; margin-top: 5px;">
-                        AI will analyze and enhance your product
+                        AI will identify your product and auto-fill details
                     </p>
                     <img id="imagePreview" class="image-preview">
                     <input type="file" id="productImage" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                    <div id="analyzeButton" style="display: none; margin-top: 10px;">
+                        <button class="analyze-btn" onclick="analyzeImage(event)" style="background: #10b981; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;">🔍 Analyze Image</button>
+                    </div>
                 </div>
 
                 <div class="form-group" id="productNameGroup">
-                    <label for="productName">Product Name</label>
+                    <label for="productName">Product Name <span id="productNameOptional" style="color: #10b981; font-size: 12px; display: none;">(auto-detected)</span></label>
                     <input type="text" id="productName" placeholder="e.g., Wireless Bluetooth Headphones">
                 </div>
 
                 <div class="form-group" id="categoryGroup">
-                    <label for="category">Category</label>
+                    <label for="category">Category <span id="categoryOptional" style="color: #10b981; font-size: 12px; display: none;">(auto-detected)</span></label>
                     <select id="category">
                         <option value="">Select category</option>
                         <option value="electronics">Electronics</option>
@@ -1085,7 +1112,7 @@
                 </div>
 
                 <div class="form-group" id="featuresGroup">
-                    <label for="features">Key Features</label>
+                    <label for="features">Key Features <span id="featuresOptional" style="color: #10b981; font-size: 12px; display: none;">(auto-detected)</span></label>
                     <textarea id="features" placeholder="One feature per line"></textarea>
                 </div>
 
@@ -1582,16 +1609,126 @@
         let currentVariationIndex = 0;
         let generatedImages = [];
 
+        let uploadedImageBase64 = null;
+        
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('imagePreview').src = e.target.result;
+                    const result = e.target.result;
+                    document.getElementById('imagePreview').src = result;
                     document.getElementById('imagePreview').classList.add('active');
                     document.getElementById('imageUploadArea').classList.add('has-image');
+                    document.getElementById('analyzeButton').style.display = 'block';
+                    
+                    // Store base64 for analysis
+                    uploadedImageBase64 = result.split(',')[1];
                 };
                 reader.readAsDataURL(file);
+            }
+        }
+        
+        async function analyzeImage(event) {
+            event.stopPropagation();
+            
+            if (!uploadedImageBase64) {
+                alert('Please upload an image first');
+                return;
+            }
+            
+            const analyzeBtn = event.target;
+            const originalText = analyzeBtn.textContent;
+            analyzeBtn.textContent = '⏳ Analyzing...';
+            analyzeBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/analyze-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        imageBase64: uploadedImageBase64,
+                        preferredApi: 'openai' // Can be 'openai' or 'gemini'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to analyze image');
+                }
+                
+                const data = await response.json();
+                
+                // Auto-populate fields with analyzed data
+                if (data.productName && data.productName !== 'Not visible') {
+                    document.getElementById('productName').value = data.productName;
+                    document.getElementById('productNameOptional').style.display = 'inline';
+                }
+                
+                if (data.category && data.category !== 'Not visible') {
+                    const categorySelect = document.getElementById('category');
+                    // Try to match category
+                    const categoryLower = data.category.toLowerCase();
+                    for (let option of categorySelect.options) {
+                        if (option.value && categoryLower.includes(option.value)) {
+                            categorySelect.value = option.value;
+                            document.getElementById('categoryOptional').style.display = 'inline';
+                            break;
+                        }
+                    }
+                    if (!categorySelect.value) {
+                        categorySelect.value = 'other';
+                        document.getElementById('categoryOptional').style.display = 'inline';
+                    }
+                }
+                
+                if (data.features && Array.isArray(data.features)) {
+                    document.getElementById('features').value = data.features.join('\n');
+                    document.getElementById('featuresOptional').style.display = 'inline';
+                }
+                
+                if (data.targetAudience && data.targetAudience !== 'Not visible') {
+                    document.getElementById('targetAudience').value = data.targetAudience;
+                }
+                
+                if (data.suggestedTone && data.suggestedTone !== 'Not visible') {
+                    const toneSelect = document.getElementById('tone');
+                    const toneLower = data.suggestedTone.toLowerCase();
+                    for (let option of toneSelect.options) {
+                        if (option.value === toneLower) {
+                            toneSelect.value = option.value;
+                            break;
+                        }
+                    }
+                }
+                
+                // Store additional data for enhanced description generation
+                window.imageAnalysisData = data;
+                
+                // Show success message
+                analyzeBtn.textContent = '✓ Analysis Complete!';
+                analyzeBtn.style.background = '#10b981';
+                
+                // Update field labels to show they're optional now
+                const fieldsToMakeOptional = ['productName', 'category', 'features'];
+                fieldsToMakeOptional.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field && field.value) {
+                        field.placeholder = field.placeholder + ' (optional - auto-detected)';
+                    }
+                });
+                
+                setTimeout(() => {
+                    analyzeBtn.textContent = originalText;
+                    analyzeBtn.disabled = false;
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Image analysis error:', error);
+                alert('Failed to analyze image. Please try again or fill in details manually.');
+                analyzeBtn.textContent = originalText;
+                analyzeBtn.disabled = false;
             }
         }
 
@@ -1615,17 +1752,39 @@
                 return;
             }
 
-            const productName = document.getElementById('productName').value;
-            const category = document.getElementById('category').value;
-            const features = document.getElementById('features').value;
-            const targetAudience = document.getElementById('targetAudience').value;
+            let productName = document.getElementById('productName').value;
+            let category = document.getElementById('category').value;
+            let features = document.getElementById('features').value;
+            let targetAudience = document.getElementById('targetAudience').value;
             const tone = document.getElementById('tone').value;
             const imageFile = document.getElementById('productImage').files[0];
             const generateImages = document.getElementById('generateImages').checked;
 
-            if (!productName) {
-                alert('Please provide a product name');
+            // Use image analysis data if available and fields are empty
+            if (window.imageAnalysisData) {
+                if (!productName && window.imageAnalysisData.productName) {
+                    productName = window.imageAnalysisData.productName;
+                }
+                if (!category && window.imageAnalysisData.category) {
+                    category = window.imageAnalysisData.category.toLowerCase();
+                }
+                if (!features && window.imageAnalysisData.features) {
+                    features = window.imageAnalysisData.features.join('\n');
+                }
+                if (!targetAudience && window.imageAnalysisData.targetAudience) {
+                    targetAudience = window.imageAnalysisData.targetAudience;
+                }
+            }
+
+            // Only require product name if no image was analyzed
+            if (!productName && !window.imageAnalysisData) {
+                alert('Please provide a product name or upload an image for analysis');
                 return;
+            }
+            
+            // If we have image analysis data but still no product name, use a description
+            if (!productName && window.imageAnalysisData) {
+                productName = window.imageAnalysisData.productType || 'Product';
             }
 
             document.getElementById('loading').classList.add('active');
@@ -1641,7 +1800,10 @@
                     keyFeatures: features,
                     tone: tone,
                     tier: userSubscription?.plan?.toLowerCase() || 'free',
-                    generateImages: generateImages
+                    generateImages: generateImages,
+                    // Include image analysis data for enhanced description
+                    imageAnalysis: window.imageAnalysisData || null,
+                    hasUploadedImage: !!uploadedImageBase64
                 };
 
                 const response = await fetch('/api/generate-description', {

@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { productName, productCategory, targetAudience, keyFeatures, tone } = req.body;
+    const { productName, productCategory, targetAudience, keyFeatures, tone, imageAnalysis, hasUploadedImage } = req.body;
 
     if (!productName) {
       return res.status(400).json({ error: 'Product name is required' });
@@ -37,10 +37,21 @@ module.exports = async (req, res) => {
     if (gemini) {
       const model = gemini.getGenerativeModel({ model: 'gemini-pro' });
       
+      // Enhanced prompts if we have image analysis data
+      let enhancedContext = '';
+      if (imageAnalysis) {
+        enhancedContext = `\nAdditional product details from image analysis:
+        - Colors: ${imageAnalysis.colors?.join(', ') || 'various'}
+        - Materials: ${imageAnalysis.materials?.join(', ') || 'premium materials'}
+        - Style: ${imageAnalysis.style || 'modern'}
+        - Key selling points: ${imageAnalysis.keySellingPoints?.join(', ') || 'quality and design'}
+        - Suggested description: ${imageAnalysis.suggestedDescription || ''}`;
+      }
+      
       const prompts = [
-        `Write a compelling product description for ${productName}. Category: ${productCategory || 'general'}. Target audience: ${targetAudience || 'general consumers'}. Key features: ${keyFeatures || 'high quality'}. Tone: ${tone || 'professional'}. Keep it under 150 words.`,
-        `Create an SEO-optimized product description for ${productName} that highlights its benefits. Focus on ${keyFeatures || 'quality and value'}. Target: ${targetAudience || 'online shoppers'}.`,
-        `Write a persuasive product description for ${productName} that converts browsers into buyers. Emphasize ${keyFeatures || 'unique selling points'}.`
+        `Write a compelling product description for ${productName}. Category: ${productCategory || 'general'}. Target audience: ${targetAudience || 'general consumers'}. Key features: ${keyFeatures || 'high quality'}. Tone: ${tone || 'professional'}.${enhancedContext} Keep it under 150 words.`,
+        `Create an SEO-optimized product description for ${productName} that highlights its benefits. Focus on ${keyFeatures || 'quality and value'}. Target: ${targetAudience || 'online shoppers'}.${enhancedContext}`,
+        `Write a persuasive product description for ${productName} that converts browsers into buyers. Emphasize ${keyFeatures || 'unique selling points'}.${enhancedContext}`
       ];
 
       for (const prompt of prompts) {
