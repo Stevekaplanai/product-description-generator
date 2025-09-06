@@ -7,7 +7,7 @@
 
 const STRIPE_CONFIG = {
   // Test mode public key (this is correct and can be shared publicly)
-  publicKey: 'pk_test_51PvWE9033zrJmRoAqJPelFPJnQBaUo51KRhEfJCRc3RXEQ8VGJYRxkNfvEzUo8Q1Y8Y9qwbNNRj6cQEh0hnHqZOg00cxrfKqTU',
+  publicKey: 'pk_test_51P9AaXRrVb92Q7hgLRRfCrqlJkjJa8AB6l8UZckgsHSC1RrBBaT7Az1OKK1jvAdsVnalL0n1uhF2TosZPK3O5ZD400GaYSBvSg',
   
   // Price IDs - These are the actual Stripe price IDs from your account
   prices: {
