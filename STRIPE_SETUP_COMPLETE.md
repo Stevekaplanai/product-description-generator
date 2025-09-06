@@ -36,7 +36,7 @@ STRIPE_PUBLISHABLE_KEY=pk_live_51P9AaXRrVb92Q7hgRtrOFO9EFMxdc6WYNrcKzUCZxnTI0OzY
 3. **Enterprise Plan** - $149/month
 
 ### ✅ Webhook Configured
-- **Endpoint URL**: https://productdescriptions.com/api/stripe-webhook
+- **Endpoint URL**: https://productdescriptions.io/api/stripe-webhook
 - **Events listening for**:
   - checkout.session.completed
   - customer.subscription.created
@@ -75,7 +75,7 @@ STRIPE_PUBLISHABLE_KEY=pk_live_51P9AaXRrVb92Q7hgRtrOFO9EFMxdc6WYNrcKzUCZxnTI0OzY
    - Create products in live mode
    - Set up live webhook
    - Switch to live API keys
-   - Update DNS for productdescriptions.com
+   - Update DNS for productdescriptions.io
 
 ## Testing Cards
 - **Success**: 4242 4242 4242 4242

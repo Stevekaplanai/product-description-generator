@@ -1,4 +1,4 @@
-# 🚀 productdescriptions.com Deployment Checklist
+# 🚀 productdescriptions.io Deployment Checklist
 
 ## Pre-Deployment Setup
 
@@ -50,8 +50,8 @@ Add in Vercel Dashboard → Settings → Environment Variables:
 ### Step 3: Domain Configuration
 
 #### At Vercel Dashboard → Domains:
-1. Add domain: `productdescriptions.com`
-2. Add subdomain: `www.productdescriptions.com`
+1. Add domain: `productdescriptions.io`
+2. Add subdomain: `www.productdescriptions.io`
 
 #### At Your Domain Registrar:
 Update DNS records:
@@ -71,7 +71,7 @@ vercel --prod
 ## Post-Deployment Tasks
 
 ### Immediate Actions
-- [ ] Test homepage loads at productdescriptions.com
+- [ ] Test homepage loads at productdescriptions.io
 - [ ] Verify API endpoints work (`/api/health`)
 - [ ] Test image generation
 - [ ] Test video generation
@@ -80,7 +80,7 @@ vercel --prod
 ### D-ID Webhook Update
 - [ ] Update webhook URL in D-ID dashboard to:
   ```
-  https://productdescriptions.com/api/webhook/d-id
+  https://productdescriptions.io/api/webhook/d-id
   ```
 
 ### Security Hardening
@@ -185,4 +185,4 @@ vercel rollback [deployment-url]
 
 ---
 
-**Ready to Deploy?** Start with Step 1 and work through systematically. Good luck with productdescriptions.com! 🎉
+**Ready to Deploy?** Start with Step 1 and work through systematically. Good luck with productdescriptions.io! 🎉

@@ -61,7 +61,7 @@ STRIPE_PRICE_ENTERPRISE=price_[copy from Stripe Dashboard]
 
 1. Go to https://dashboard.stripe.com/test/webhooks
 2. Click "Add endpoint"
-3. Endpoint URL: `https://productdescriptions.com/api/stripe-webhook`
+3. Endpoint URL: `https://productdescriptions.io/api/stripe-webhook`
 4. Select events:
    - `checkout.session.completed`
    - `customer.subscription.created`

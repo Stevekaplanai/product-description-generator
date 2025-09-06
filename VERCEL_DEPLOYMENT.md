@@ -1,11 +1,11 @@
-# Vercel Deployment Guide for productdescriptions.com
+# Vercel Deployment Guide for productdescriptions.io
 
 ## 🚀 Deployment Steps
 
 ### 1. Prerequisites
 - [ ] Vercel account created
 - [ ] Git repository (GitHub/GitLab/Bitbucket) 
-- [ ] Domain purchased (productdescriptions.com ✅)
+- [ ] Domain purchased (productdescriptions.io ✅)
 
 ### 2. Environment Variables Setup
 
@@ -32,13 +32,13 @@ vercel --prod
 #### Option B: Via GitHub Integration
 1. Push code to GitHub
 2. Import project in Vercel Dashboard
-3. Connect to productdescriptions.com
+3. Connect to productdescriptions.io
 
 ### 4. Domain Configuration
 
 In Vercel Dashboard → Domains:
-1. Add `productdescriptions.com`
-2. Add `www.productdescriptions.com`
+1. Add `productdescriptions.io`
+2. Add `www.productdescriptions.io`
 3. Update DNS records at your registrar:
 
 ```
@@ -51,13 +51,13 @@ CNAME: www → cname.vercel-dns.com
 #### Webhook URL Update
 Update D-ID webhook to production URL:
 ```
-https://productdescriptions.com/api/webhook/d-id
+https://productdescriptions.io/api/webhook/d-id
 ```
 
 #### CORS Settings
 Ensure CORS allows your domain:
-- productdescriptions.com
-- www.productdescriptions.com
+- productdescriptions.io
+- www.productdescriptions.io
 
 ## ⚠️ Important Considerations
 
