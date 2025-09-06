@@ -15,11 +15,12 @@ const cloudinary = require('cloudinary').v2;
 const fetch = require('node-fetch');
 require('dotenv').config();
 
-// Import email service
-const emailService = require('./email-service');
+// Import email service - commented out as file doesn't exist
+// const emailService = require('./email-service');
 
-// Import video composer for hybrid UGC videos
-const videoComposer = require('./video-composer');
+// Import video composer for hybrid UGC videos - disabled for Vercel (FFmpeg not supported)
+// const videoComposer = require('./src/video-composer');
+const videoComposer = null; // Placeholder for Vercel
 
 const app = express();
 
@@ -1054,6 +1055,9 @@ app.post('/api/generate-video', async (req, res) => {
             hybridVideoPath = path.join('generated-videos', hybridFilename);
             
             // Create hybrid video with split-screen style by default
+            if (!videoComposer) {
+              throw new Error('Video composition not available in Vercel environment');
+            }
             const hybridResult = await videoComposer.createHybridUGCVideo({
               avatarVideoPath: localVideoPath,
               productImages: images,
