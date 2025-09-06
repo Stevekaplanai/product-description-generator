@@ -1102,24 +1102,11 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Select Pricing Tier</label>
-                    <div class="pricing-tiers">
-                        <div class="tier-card" data-tier="basic">
-                            <div class="tier-name">Basic</div>
-                            <div class="tier-price">$5</div>
-                            <div class="tier-features">150 words<br>2 variations<br>1 AI image</div>
-                        </div>
-                        <div class="tier-card selected" data-tier="standard">
-                            <div class="tier-name">Standard</div>
-                            <div class="tier-price">$15</div>
-                            <div class="tier-features">300 words<br>3 variations<br>3 AI images</div>
-                        </div>
-                        <div class="tier-card" data-tier="premium">
-                            <div class="tier-name">Premium</div>
-                            <div class="tier-price">$25</div>
-                            <div class="tier-features">500+ words<br>5 variations<br>5 AI images</div>
-                        </div>
+                <!-- Subscription tier affects features automatically -->
+                <div class="form-group" id="subscriptionInfo" style="display: none;">
+                    <div style="background: #f7f9ff; padding: 15px; border-radius: 8px; border: 1px solid #667eea;">
+                        <div style="font-weight: bold; color: #667eea; margin-bottom: 10px;" id="planName">Your Plan</div>
+                        <div style="font-size: 14px; color: #666;" id="planFeatures">Plan features will be shown here</div>
                     </div>
                 </div>
 
@@ -1360,14 +1347,34 @@
         }
 
         function updateUIForSubscription() {
-            // Show subscription status
+            // Show subscription status with plan name
+            const planName = userSubscription?.plan || 'Premium';
             const statusDiv = document.createElement('div');
             statusDiv.className = 'subscription-status premium';
             statusDiv.innerHTML = `
-                <span>✨ Premium Active</span>
+                <span>✨ ${planName} Plan Active</span>
                 <button onclick="openCustomerPortal()">Manage Subscription</button>
             `;
             document.querySelector('header').appendChild(statusDiv);
+            
+            // Show subscription info in the form
+            const subscriptionInfo = document.getElementById('subscriptionInfo');
+            if (subscriptionInfo) {
+                subscriptionInfo.style.display = 'block';
+                document.getElementById('planName').textContent = `${planName} Plan Features`;
+                
+                let features = '';
+                if (planName.toLowerCase().includes('starter')) {
+                    features = '• 100 product descriptions/month<br>• Advanced AI descriptions<br>• 3 images per product<br>• 10 AI videos/month';
+                } else if (planName.toLowerCase().includes('professional')) {
+                    features = '• 500 product descriptions/month<br>• Premium AI features<br>• Unlimited images<br>• 50 AI videos/month<br>• Bulk upload';
+                } else if (planName.toLowerCase().includes('enterprise')) {
+                    features = '• Unlimited descriptions<br>• Custom AI training<br>• API access<br>• Unlimited images & videos<br>• Dedicated support';
+                } else {
+                    features = '• Premium features enabled<br>• Generate unlimited content';
+                }
+                document.getElementById('planFeatures').innerHTML = features;
+            }
         }
 
         function showFreeTierUI() {
@@ -1375,10 +1382,18 @@
             const statusDiv = document.createElement('div');
             statusDiv.className = 'subscription-status free';
             statusDiv.innerHTML = `
-                <span>Free Plan: ${5 - monthlyUsage.descriptions}/5 descriptions remaining</span>
-                <button onclick="showPricingModal()">Upgrade to Premium</button>
+                <span>Free Plan: ${5 - monthlyUsage.descriptions}/5 descriptions remaining this month</span>
+                <button onclick="showPricingModal()">View Plans</button>
             `;
             document.querySelector('header').appendChild(statusDiv);
+            
+            // Show free tier info in the form
+            const subscriptionInfo = document.getElementById('subscriptionInfo');
+            if (subscriptionInfo) {
+                subscriptionInfo.style.display = 'block';
+                document.getElementById('planName').textContent = 'Free Plan Limits';
+                document.getElementById('planFeatures').innerHTML = `• 5 product descriptions/month<br>• Basic AI features<br>• 1 image per product<br>• ${5 - monthlyUsage.descriptions} descriptions remaining`;
+            }
         }
 
         function resetMonthlyUsage() {
@@ -1520,18 +1535,9 @@
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', checkSubscription);
 
-        let selectedTier = 'standard';
         let currentVariations = [];
         let currentVariationIndex = 0;
         let generatedImages = [];
-
-        document.querySelectorAll('.tier-card').forEach(card => {
-            card.addEventListener('click', function() {
-                document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedTier = this.dataset.tier;
-            });
-        });
 
         function handleImageUpload(event) {
             const file = event.target.files[0];
@@ -1590,7 +1596,9 @@
                 formData.append('features', features);
                 formData.append('targetAudience', targetAudience);
                 formData.append('tone', tone);
-                formData.append('tier', selectedTier);
+                // Tier is determined by subscription status
+                const tier = userSubscription?.plan?.toLowerCase() || 'free';
+                formData.append('tier', tier);
                 formData.append('generateImages', generateImages);
                 
                 if (imageFile) {
@@ -1621,7 +1629,8 @@
                     sessionStorage.setItem('generatedImages', JSON.stringify(generatedImages));
                     sessionStorage.setItem('features', features);
                     sessionStorage.setItem('targetAudience', targetAudience);
-                    sessionStorage.setItem('tier', selectedTier);
+                    // Store tier from subscription
+                    sessionStorage.setItem('tier', userSubscription?.plan?.toLowerCase() || 'free');
                     
                     // Show video upsell popup after 1 minute
                     setTimeout(() => {
@@ -1801,17 +1810,7 @@
 
         // Avatar selection handling
         document.addEventListener('DOMContentLoaded', function() {
-            // Show video tab for premium+ and enterprise tiers
-            document.querySelectorAll('.tier-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    const tier = this.dataset.tier;
-                    if (tier === 'premiumPlus' || tier === 'enterprise') {
-                        document.getElementById('videoTab').style.display = 'inline-block';
-                    } else {
-                        document.getElementById('videoTab').style.display = 'none';
-                    }
-                });
-            });
+            // Video tab visibility is now based on subscription
 
             // Avatar selection
             document.querySelectorAll('.avatar-option').forEach(avatar => {
@@ -1823,9 +1822,10 @@
         });
 
         async function generateVideo() {
-            const selectedTier = document.querySelector('.tier-card.selected').dataset.tier;
-            if (selectedTier !== 'premiumPlus' && selectedTier !== 'enterprise') {
-                alert('Video generation is only available with Premium+ or Enterprise tiers');
+            // Check subscription tier for video access
+            const plan = userSubscription?.plan?.toLowerCase() || 'free';
+            if (plan !== 'professional' && plan !== 'enterprise') {
+                alert('Video generation is only available with Professional or Enterprise plans');
                 return;
             }
 
