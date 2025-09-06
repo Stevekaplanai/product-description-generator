@@ -799,5 +799,105 @@
             </div>
         </div>
     </section>
+    
+    <!-- Stripe Integration Script -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Initialize Stripe (using test key)
+        const stripe = Stripe('pk_test_51PvWE9033zrJmRoAqJPelFPJnQBaUo51KRhEfJCRc3RXEQ8VGJYRxkNfvEzUo8Q1Y8Y9qwbNNRj6cQEh0hnHqZOg00cxrfKqTU');
+        
+        // Price IDs for different tiers
+        const STRIPE_PRICES = {
+            starter: 'price_1PvWKf033zrJmRoAbV7hjrGd',
+            professional: 'price_1PvWLQ033zrJmRoA8QKfPUez',
+            enterprise: 'price_1PvWLv033zrJmRoAsZmyGSte'
+        };
+        
+        // Function to create checkout session
+        async function createCheckoutSession(priceId, tierName) {
+            try {
+                // Show loading state
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Loading...';
+                button.disabled = true;
+                
+                // Create checkout session
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        priceId: priceId,
+                        tierName: tierName,
+                        successUrl: window.location.origin + '/app.html?subscription=success',
+                        cancelUrl: window.location.origin + '/index.html'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to create checkout session');
+                }
+                
+                const session = await response.json();
+                
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.sessionId
+                });
+                
+                if (result.error) {
+                    alert(result.error.message);
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error creating checkout session:', error);
+                alert('Unable to start checkout process. Please try again later.');
+                if (event.target) {
+                    event.target.textContent = 'Get Started';
+                    event.target.disabled = false;
+                }
+            }
+        }
+        
+        // Update the pricing buttons to use onclick handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all pricing cards
+            const pricingCards = document.querySelectorAll('.pricing-card');
+            
+            pricingCards.forEach(card => {
+                const tierElement = card.querySelector('.pricing-tier');
+                const button = card.querySelector('.btn-primary');
+                
+                if (tierElement && button) {
+                    const tier = tierElement.textContent.toLowerCase();
+                    
+                    // Only add checkout for paid tiers
+                    if (tier === 'starter') {
+                        button.href = '#';
+                        button.onclick = (e) => {
+                            e.preventDefault();
+                            createCheckoutSession(STRIPE_PRICES.starter, 'Starter');
+                        };
+                    } else if (tier === 'professional') {
+                        button.href = '#';
+                        button.onclick = (e) => {
+                            e.preventDefault();
+                            createCheckoutSession(STRIPE_PRICES.professional, 'Professional');
+                        };
+                    } else if (tier === 'enterprise') {
+                        button.href = '#';
+                        button.onclick = (e) => {
+                            e.preventDefault();
+                            createCheckoutSession(STRIPE_PRICES.enterprise, 'Enterprise');
+                        };
+                    }
+                    // Free tier keeps the direct link to /app.html
+                }
+            });
+        });
+    </script>
 </body>
 </html>
