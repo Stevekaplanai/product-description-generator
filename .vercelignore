@@ -1,0 +1,13 @@
+node_modules
+.git
+.env
+*.log
+server*.js
+start-server.js
+email-service.js
+nul
+tests
+docs
+*.md
+.gitignore
+package-lock.json
