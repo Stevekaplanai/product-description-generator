@@ -842,6 +842,159 @@
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
+        /* Subscription Status Styles */
+        .subscription-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .subscription-status.premium {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .subscription-status button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .subscription-status.free button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        /* Pricing Modal Styles */
+        .pricing-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 1000px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-content .close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .price-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .price-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .price-card.popular {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .price-card .badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 20px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+
+        .price-card h3 {
+            margin-bottom: 20px;
+        }
+
+        .price-card .price {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .price-card ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+
+        .price-card li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .price-card.popular li {
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .price-card button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .price-card.popular button {
+            background: white;
+            color: #667eea;
+        }
+
+        .price-card button:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -1140,6 +1293,233 @@
     </div>
 
     <script>
+        // Subscription and Authentication Management
+        let userSubscription = null;
+        let monthlyUsage = {
+            descriptions: 0,
+            images: 0,
+            videos: 0
+        };
+
+        // Check subscription on page load
+        async function checkSubscription() {
+            // Check URL params for session ID (from Stripe checkout)
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session_id');
+            
+            // Check localStorage for customer ID (returning user)
+            const customerId = localStorage.getItem('stripe_customer_id');
+            
+            if (sessionId || customerId) {
+                try {
+                    const response = await fetch('/api/verify-subscription', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ sessionId, customerId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.active) {
+                        userSubscription = data;
+                        localStorage.setItem('stripe_customer_id', data.customerId);
+                        
+                        // Update UI to show premium features
+                        updateUIForSubscription();
+                        
+                        // Clear session_id from URL
+                        if (sessionId) {
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                    } else {
+                        // Show free tier limitations
+                        showFreeTierUI();
+                    }
+                } catch (error) {
+                    console.error('Subscription check failed:', error);
+                    showFreeTierUI();
+                }
+            } else {
+                showFreeTierUI();
+            }
+            
+            // Load usage from localStorage
+            const savedUsage = localStorage.getItem('monthly_usage');
+            if (savedUsage) {
+                const usage = JSON.parse(savedUsage);
+                const currentMonth = new Date().getMonth();
+                if (usage.month === currentMonth) {
+                    monthlyUsage = usage;
+                } else {
+                    // Reset usage for new month
+                    resetMonthlyUsage();
+                }
+            }
+        }
+
+        function updateUIForSubscription() {
+            // Show subscription status
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'subscription-status premium';
+            statusDiv.innerHTML = `
+                <span>✨ Premium Active</span>
+                <button onclick="openCustomerPortal()">Manage Subscription</button>
+            `;
+            document.querySelector('header').appendChild(statusDiv);
+        }
+
+        function showFreeTierUI() {
+            // Show free tier limitations
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'subscription-status free';
+            statusDiv.innerHTML = `
+                <span>Free Plan: ${5 - monthlyUsage.descriptions}/5 descriptions remaining</span>
+                <button onclick="showPricingModal()">Upgrade to Premium</button>
+            `;
+            document.querySelector('header').appendChild(statusDiv);
+        }
+
+        function resetMonthlyUsage() {
+            monthlyUsage = {
+                descriptions: 0,
+                images: 0,
+                videos: 0,
+                month: new Date().getMonth()
+            };
+            localStorage.setItem('monthly_usage', JSON.stringify(monthlyUsage));
+        }
+
+        function incrementUsage(type) {
+            monthlyUsage[type]++;
+            monthlyUsage.month = new Date().getMonth();
+            localStorage.setItem('monthly_usage', JSON.stringify(monthlyUsage));
+        }
+
+        function checkUsageLimits(type) {
+            if (!userSubscription) {
+                // Free tier limits
+                const limits = {
+                    descriptions: 5,
+                    images: 1,
+                    videos: 0
+                };
+                
+                if (monthlyUsage[type] >= limits[type]) {
+                    showPricingModal();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        async function openCustomerPortal() {
+            const customerId = localStorage.getItem('stripe_customer_id');
+            if (!customerId) return;
+            
+            try {
+                const response = await fetch('/api/create-portal-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        customerId,
+                        returnUrl: window.location.href
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                }
+            } catch (error) {
+                console.error('Portal session failed:', error);
+            }
+        }
+
+        function showPricingModal() {
+            // Show pricing modal
+            const modal = document.createElement('div');
+            modal.className = 'pricing-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                    <h2>Choose Your Plan</h2>
+                    <div class="pricing-grid">
+                        <div class="price-card">
+                            <h3>Starter</h3>
+                            <div class="price">$19/mo</div>
+                            <ul>
+                                <li>100 descriptions/month</li>
+                                <li>Image generation</li>
+                                <li>10 AI videos/month</li>
+                            </ul>
+                            <button onclick="checkout('starter')">Get Started</button>
+                        </div>
+                        <div class="price-card popular">
+                            <div class="badge">Most Popular</div>
+                            <h3>Professional</h3>
+                            <div class="price">$49/mo</div>
+                            <ul>
+                                <li>500 descriptions/month</li>
+                                <li>Unlimited images</li>
+                                <li>50 AI videos/month</li>
+                                <li>Bulk upload</li>
+                            </ul>
+                            <button onclick="checkout('professional')">Get Started</button>
+                        </div>
+                        <div class="price-card">
+                            <h3>Enterprise</h3>
+                            <div class="price">$149/mo</div>
+                            <ul>
+                                <li>Unlimited everything</li>
+                                <li>API access</li>
+                                <li>Custom AI training</li>
+                                <li>Priority support</li>
+                            </ul>
+                            <button onclick="checkout('enterprise')">Get Started</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function checkout(plan) {
+            const priceIds = {
+                starter: process.env.STRIPE_PRICE_STARTER || 'price_1QSxxxxxxxxxxxxxxxT',
+                professional: process.env.STRIPE_PRICE_PROFESSIONAL || 'price_1QSxxxxxxxxxxxxxxxU', 
+                enterprise: process.env.STRIPE_PRICE_ENTERPRISE || 'price_1QSxxxxxxxxxxxxxxxV'
+            };
+            
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        priceId: priceIds[plan],
+                        successUrl: window.location.href,
+                        cancelUrl: window.location.href
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                }
+            } catch (error) {
+                console.error('Checkout failed:', error);
+                alert('Checkout failed. Please try again.');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', checkSubscription);
+
         let selectedTier = 'standard';
         let currentVariations = [];
         let currentVariationIndex = 0;
@@ -1181,6 +1561,11 @@
         }
 
         async function generateDescription() {
+            // Check usage limits before generating
+            if (!checkUsageLimits('descriptions')) {
+                return;
+            }
+
             const productName = document.getElementById('productName').value;
             const category = document.getElementById('category').value;
             const features = document.getElementById('features').value;
