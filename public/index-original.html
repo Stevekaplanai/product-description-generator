@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Product Description Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .input-section, .output-section {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .pricing-tiers {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tier-card {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .tier-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .tier-card.selected {
+            border-color: #667eea;
+            background: #f7f9ff;
+        }
+
+        .tier-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 5px 0;
+        }
+
+        .tier-features {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .output-box {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .pricing-tiers {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Product Description Generator</h1>
+            <p class="subtitle">Create compelling, SEO-optimized product descriptions in seconds</p>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2>Product Details</h2>
+                
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" placeholder="e.g., Wireless Bluetooth Headphones">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category">
+                        <option value="">Select category</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="fashion">Fashion</option>
+                        <option value="home">Home & Garden</option>
+                        <option value="beauty">Beauty & Personal Care</option>
+                        <option value="sports">Sports & Outdoors</option>
+                        <option value="toys">Toys & Games</option>
+                        <option value="food">Food & Beverage</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="features">Key Features (one per line)</label>
+                    <textarea id="features" placeholder="Noise cancellation&#10;30-hour battery life&#10;Premium sound quality"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="targetAudience">Target Audience</label>
+                    <input type="text" id="targetAudience" placeholder="e.g., Young professionals, Music lovers">
+                </div>
+
+                <div class="form-group">
+                    <label for="tone">Tone</label>
+                    <select id="tone">
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual</option>
+                        <option value="luxury">Luxury</option>
+                        <option value="playful">Playful</option>
+                        <option value="technical">Technical</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="keywords">SEO Keywords (comma-separated)</label>
+                    <input type="text" id="keywords" placeholder="wireless, bluetooth, noise cancelling">
+                </div>
+
+                <div class="form-group">
+                    <label>Select Pricing Tier</label>
+                    <div class="pricing-tiers">
+                        <div class="tier-card" data-tier="basic">
+                            <div class="tier-name">Basic</div>
+                            <div class="tier-price">$5</div>
+                            <div class="tier-features">150 words<br>Basic SEO</div>
+                        </div>
+                        <div class="tier-card selected" data-tier="standard">
+                            <div class="tier-name">Standard</div>
+                            <div class="tier-price">$15</div>
+                            <div class="tier-features">300 words<br>Advanced SEO</div>
+                        </div>
+                        <div class="tier-card" data-tier="premium">
+                            <div class="tier-name">Premium</div>
+                            <div class="tier-price">$25</div>
+                            <div class="tier-features">500+ words<br>Multiple variations</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="generate-btn" onclick="generateDescription()">Generate Description</button>
+            </div>
+
+            <div class="output-section">
+                <h2>Generated Description</h2>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Generating your product description...</p>
+                </div>
+
+                <div class="output-box" id="output">
+                    Your generated product description will appear here...
+                </div>
+
+                <div class="metrics" id="metrics" style="display: none;">
+                    <div class="metric-card">
+                        <div class="metric-value" id="wordCount">0</div>
+                        <div class="metric-label">Words</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="seoScore">0</div>
+                        <div class="metric-label">SEO Score</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="readabilityScore">0</div>
+                        <div class="metric-label">Readability</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedTier = 'standard';
+
+        document.querySelectorAll('.tier-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedTier = this.dataset.tier;
+            });
+        });
+
+        async function generateDescription() {
+            const productName = document.getElementById('productName').value;
+            const category = document.getElementById('category').value;
+            const features = document.getElementById('features').value;
+            const targetAudience = document.getElementById('targetAudience').value;
+            const tone = document.getElementById('tone').value;
+            const keywords = document.getElementById('keywords').value.split(',').map(k => k.trim()).filter(k => k);
+
+            if (!productName || !category || !features) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('output').style.display = 'none';
+            document.getElementById('metrics').style.display = 'none';
+            document.querySelector('.generate-btn').disabled = true;
+
+            try {
+                const response = await fetch('/api/generate-description', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        productName,
+                        category,
+                        features,
+                        targetAudience,
+                        tone,
+                        tier: selectedTier,
+                        keywords
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('output').textContent = data.description;
+                    document.getElementById('wordCount').textContent = data.metadata.wordCount;
+                    document.getElementById('seoScore').textContent = data.metadata.seoScore;
+                    document.getElementById('readabilityScore').textContent = data.metadata.readabilityScore;
+                    
+                    document.getElementById('output').style.display = 'block';
+                    document.getElementById('metrics').style.display = 'grid';
+                } else {
+                    alert('Error generating description. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error connecting to server. Please check your connection.');
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.querySelector('.generate-btn').disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

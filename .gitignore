@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Generated files
+public/uploads/*
+public/generated-images/*
+public/generated-videos/*
+generated-images/
+generated-videos/
+uploads/
+*.mp4
+*.webm
+*.avi
+
+# Test files
+test-output/
+*.test.js
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vercel
+.vercel
+.now
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build outputs
+dist/
+build/
+
+# Keep directory structure
+!public/uploads/.gitkeep
+!public/generated-images/.gitkeep
+!public/generated-videos/.gitkeep
