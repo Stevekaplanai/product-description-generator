@@ -14,8 +14,19 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Check if Stripe is properly configured
+  if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_replace_with_real_key') {
+    console.error('Stripe secret key not configured properly');
+    return res.status(500).json({ 
+      error: 'Payment system not configured',
+      message: 'The payment system is not properly configured. Please contact support at hello@gtmvp.com'
+    });
+  }
+
   try {
-    const { priceId, successUrl, cancelUrl, customerEmail } = req.body;
+    const { priceId, successUrl, cancelUrl, customerEmail, tierName } = req.body;
+    
+    console.log('Creating checkout session for:', { priceId, tierName });
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({

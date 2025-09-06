@@ -1547,11 +1547,13 @@
                     })
                 });
                 
+                const data = await response.json();
+                
                 if (!response.ok) {
-                    throw new Error('Failed to create checkout session');
+                    throw new Error(data.message || data.error || 'Failed to create checkout session');
                 }
                 
-                const session = await response.json();
+                const session = data;
                 
                 // Redirect to Stripe Checkout
                 const result = await stripe.redirectToCheckout({
@@ -1565,7 +1567,7 @@
                 }
             } catch (error) {
                 console.error('Checkout failed:', error);
-                showErrorMessage('Unable to start checkout process. Please try again later.');
+                showErrorMessage(error.message || 'Unable to start checkout process. Please try again later.');
                 if (event.target) {
                     event.target.textContent = 'Get Started';
                     event.target.disabled = false;
