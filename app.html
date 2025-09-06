@@ -1517,13 +1517,23 @@
         }
 
         async function checkout(plan) {
+            // Initialize Stripe
+            const stripe = Stripe('pk_test_51PvWE9033zrJmRoAqJPelFPJnQBaUo51KRhEfJCRc3RXEQ8VGJYRxkNfvEzUo8Q1Y8Y9qwbNNRj6cQEh0hnHqZOg00cxrfKqTU');
+            
+            // Correct price IDs from your Stripe account
             const priceIds = {
-                starter: process.env.STRIPE_PRICE_STARTER || 'price_1QSxxxxxxxxxxxxxxxT',
-                professional: process.env.STRIPE_PRICE_PROFESSIONAL || 'price_1QSxxxxxxxxxxxxxxxU', 
-                enterprise: process.env.STRIPE_PRICE_ENTERPRISE || 'price_1QSxxxxxxxxxxxxxxxV'
+                starter: 'price_1PvWKf033zrJmRoAbV7hjrGd',
+                professional: 'price_1PvWLQ033zrJmRoA8QKfPUez',
+                enterprise: 'price_1PvWLv033zrJmRoAsZmyGSte'
             };
             
             try {
+                // Show loading state
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Loading...';
+                button.disabled = true;
+                
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
                     headers: {
@@ -1531,18 +1541,35 @@
                     },
                     body: JSON.stringify({
                         priceId: priceIds[plan],
-                        successUrl: window.location.href,
+                        tierName: plan.charAt(0).toUpperCase() + plan.slice(1),
+                        successUrl: window.location.origin + '/app.html?subscription=success',
                         cancelUrl: window.location.href
                     })
                 });
                 
-                const data = await response.json();
-                if (data.url) {
-                    window.location.href = data.url;
+                if (!response.ok) {
+                    throw new Error('Failed to create checkout session');
+                }
+                
+                const session = await response.json();
+                
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.sessionId
+                });
+                
+                if (result.error) {
+                    showErrorMessage(result.error.message);
+                    button.textContent = originalText;
+                    button.disabled = false;
                 }
             } catch (error) {
                 console.error('Checkout failed:', error);
-                alert('Checkout failed. Please try again.');
+                showErrorMessage('Unable to start checkout process. Please try again later.');
+                if (event.target) {
+                    event.target.textContent = 'Get Started';
+                    event.target.disabled = false;
+                }
             }
         }
 
@@ -1969,5 +1996,8 @@
             </p>
         </div>
     </footer>
+    
+    <!-- Stripe Integration -->
+    <script src="https://js.stripe.com/v3/"></script>
 </body>
 </html>
