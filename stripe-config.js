@@ -9,16 +9,16 @@ const STRIPE_CONFIG = {
   // Test mode public key (this is correct and can be shared publicly)
   publicKey: 'pk_test_51PvWE9033zrJmRoAqJPelFPJnQBaUo51KRhEfJCRc3RXEQ8VGJYRxkNfvEzUo8Q1Y8Y9qwbNNRj6cQEh0hnHqZOg00cxrfKqTU',
   
-  // Price IDs - UPDATE THESE WITH YOUR ACTUAL STRIPE PRICE IDs
+  // Price IDs - These are the actual Stripe price IDs from your account
   prices: {
     // Starter Plan - $19/month
-    starter: 'price_REPLACE_WITH_YOUR_STARTER_PRICE_ID',
+    starter: 'price_1S4MT6RrVb92Q7hgzaHZojsJ',
     
     // Professional Plan - $49/month  
-    professional: 'price_REPLACE_WITH_YOUR_PROFESSIONAL_PRICE_ID',
+    professional: 'price_1S4MTtRrVb92Q7hgw5QpbjTb',
     
     // Enterprise Plan - $149/month
-    enterprise: 'price_REPLACE_WITH_YOUR_ENTERPRISE_PRICE_ID'
+    enterprise: 'price_1S4MUVRrVb92Q7hgTXYQSFpB'
   }
 };
 
