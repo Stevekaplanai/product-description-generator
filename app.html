@@ -425,6 +425,25 @@
             display: block;
         }
 
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .images-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -675,6 +694,31 @@
             
             .metric-card {
                 padding: 12px;
+            }
+            
+            /* Combined view mobile optimization */
+            #results .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            #results .images-section {
+                margin-top: 20px !important;
+            }
+            
+            #results .images-section h3 {
+                font-size: 1.1rem;
+                margin-bottom: 15px;
+            }
+            
+            #results .description-box {
+                font-size: 14px;
+                line-height: 1.6;
+            }
+            
+            #results .image-gallery {
+                grid-template-columns: 1fr;
             }
             
             /* Video Upsell Modal Mobile Styles */
@@ -1299,6 +1343,66 @@
         .price-card button:hover {
             opacity: 0.9;
         }
+
+        /* Mobile fixes for sticky video header */
+        @media (max-width: 768px) {
+            .sticky-video-cta {
+                padding: 10px;
+            }
+
+            .sticky-video-cta-content {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .sticky-video-cta-text h3 {
+                font-size: 1rem;
+            }
+
+            .sticky-video-cta-text p {
+                font-size: 0.8rem;
+                display: none; /* Hide description on mobile for space */
+            }
+
+            .sticky-video-cta-buttons {
+                width: 100%;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .sticky-video-cta-btn {
+                width: 100%;
+                padding: 12px 20px;
+                font-size: 0.9rem;
+                /* Fix touch targets */
+                min-height: 44px;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+                position: relative;
+                z-index: 10;
+            }
+
+            .sticky-video-cta-btn.dismiss {
+                background: rgba(255,255,255,0.2);
+            }
+
+            .sticky-video-cta-close {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                font-size: 1.8rem;
+                padding: 10px;
+                min-width: 44px;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+                z-index: 11;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1422,29 +1526,31 @@
 
             <div class="output-section">
                 <div>
-                    <div class="output-tabs">
-                        <button class="output-tab active" onclick="showTab('descriptions')">📝 Descriptions</button>
-                        <button class="output-tab" onclick="showTab('images')">🖼️ Generated Images</button>
-                    </div>
-
+                    <!-- Single combined view - no tabs needed -->
                     <div class="loading" id="loading">
                         <div class="spinner"></div>
                         <h3>Generating content...</h3>
                         <p>Creating descriptions and images</p>
                     </div>
 
-                    <div id="descriptionsContent" class="output-content active">
-                        <div class="variations-tabs" id="variationTabs" style="display: none;">
-                            <!-- Variation tabs will be added dynamically -->
+                    <div id="results" class="output-content" style="display: none;">
+                        <!-- Descriptions Section -->
+                        <div class="section-header">
+                            <h3>📝 Generated Descriptions</h3>
+                            <div class="variations-tabs" id="variationTabs" style="display: none;">
+                                <!-- Variation tabs will be added dynamically -->
+                            </div>
                         </div>
                         <div class="description-box" id="descriptionOutput">
                             Your generated descriptions will appear here...
                         </div>
-                    </div>
-
-                    <div id="imagesContent" class="output-content">
-                        <div class="image-gallery" id="imageGallery">
-                            <!-- Generated images will appear here -->
+                        
+                        <!-- Images Section (appears below descriptions) -->
+                        <div class="images-section" style="margin-top: 30px;">
+                            <h3>🖼️ Generated Images</h3>
+                            <div class="image-gallery" id="imageGallery">
+                                <!-- Generated images will appear here -->
+                            </div>
                         </div>
                     </div>
 
@@ -1996,18 +2102,13 @@
             }
         }
 
-        function showTab(tabName) {
-            // Update tabs
-            document.querySelectorAll('.output-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-
-            // Update content
-            document.querySelectorAll('.output-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(tabName + 'Content').classList.add('active');
+        // Tab switching no longer needed - everything is in one view
+        function showResults() {
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        function hideResults() {
+            document.getElementById('results').style.display = 'none';
         }
 
         async function generateDescription() {
@@ -2085,6 +2186,9 @@
                     currentVariations = data.variations || data.descriptions || [data.description];
                     generatedImages = data.generatedImages || data.images || [];
                     
+                    // Show the results section
+                    showResults();
+                    
                     // Display variations
                     displayVariations();
                     
@@ -2100,10 +2204,10 @@
                     // Store tier from subscription
                     sessionStorage.setItem('tier', userSubscription?.plan?.toLowerCase() || 'free');
                     
-                    // Show video upsell popup after 1 minute
+                    // Show video upsell popup after 1.5 minutes
                     setTimeout(() => {
                         showVideoUpsellPopup(productName, currentVariations[0], generatedImages);
-                    }, 60000); // 60000ms = 1 minute
+                    }, 90000); // 90000ms = 1.5 minutes
                 } else {
                     showErrorMessage('Error generating content: ' + (data.details || 'Please try again.'));
                 }
@@ -2247,17 +2351,44 @@
             }, 5000);
         }
 
-        function proceedToVideoCreation() {
+        async function proceedToVideoCreation() {
             // Store data for video creation page
-            const productName = sessionStorage.getItem('productName');
-            const description = sessionStorage.getItem('productDescription');
+            const productName = sessionStorage.getItem('productName') || document.getElementById('productName').value;
+            const description = sessionStorage.getItem('productDescription') || currentVariations[0];
             const images = sessionStorage.getItem('generatedImages');
             
             // Close modal
             closeVideoUpsellModal();
             
-            // Redirect to video creation page
-            window.location.href = '/video-creation.html';
+            // Get customer email (could prompt for it)
+            const customerEmail = sessionStorage.getItem('customerEmail') || '';
+            
+            try {
+                // Create checkout session for single video
+                const response = await fetch('/api/create-video-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        videoType: 'single',
+                        customerEmail: customerEmail,
+                        productName: productName,
+                        productDescription: description
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.url) {
+                    // Redirect to Stripe checkout
+                    window.location.href = data.url;
+                } else {
+                    console.error('No checkout URL received');
+                    alert('Unable to start checkout process. Please try again.');
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('Unable to process payment. Please try again.');
+            }
         }
 
         function downloadImage(url, filename) {

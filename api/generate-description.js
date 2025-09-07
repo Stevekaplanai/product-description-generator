@@ -65,11 +65,21 @@ module.exports = async (req, res) => {
         }
       }
     } else {
-      // Fallback descriptions
+      // Enhanced fallback descriptions when Gemini isn't available
+      const features = keyFeatures ? keyFeatures.split(',').map(f => f.trim()) : ['premium quality', 'innovative design', 'exceptional value'];
+      const audience = targetAudience || 'discerning customers';
+      const category = productCategory || 'product';
+      
+      // Generate three varied, comprehensive descriptions
       descriptions.push(
-        `Introducing ${productName} - The perfect ${productCategory || 'solution'} for ${targetAudience || 'you'}.`,
-        `Experience the quality of ${productName}. ${keyFeatures || 'Premium design and exceptional performance'}.`,
-        `${productName} - Where ${tone || 'innovation'} meets excellence.`
+        // Description 1: Feature-focused
+        `Discover the exceptional ${productName}, a premium ${category} designed specifically for ${audience}. ${features.length > 0 ? `Featuring ${features.slice(0, 2).join(' and ')}, this remarkable product delivers unmatched performance and reliability.` : ''} Every detail has been carefully crafted to exceed expectations, from its sophisticated design to its intuitive functionality. Whether you're a professional or an enthusiast, ${productName} provides the perfect combination of quality, innovation, and value that sets it apart from the competition.`,
+        
+        // Description 2: Benefits-focused
+        `Transform your experience with ${productName}, the ultimate ${category} that redefines excellence. ${features.length > 0 ? `Built with ${features.join(', ')}, it's engineered to deliver superior results every time.` : ''} Designed for ${audience} who demand the best, this exceptional product combines cutting-edge technology with timeless elegance. Experience the difference that true quality makes - from enhanced productivity to unparalleled satisfaction. With ${productName}, you're not just buying a product; you're investing in a solution that grows with your needs.`,
+        
+        // Description 3: Story-driven
+        `Meet ${productName} - where innovation meets perfection. Created for ${audience} who refuse to compromise, this outstanding ${category} represents the pinnacle of modern design and engineering. ${features.length > 0 ? `Every feature, from ${features[0]} to ${features[features.length - 1]}, has been meticulously developed to provide an unmatched user experience.` : ''} Join thousands of satisfied customers who have discovered the perfect blend of style, functionality, and durability. ${productName} isn't just a purchase - it's a statement of quality that speaks to your discerning taste and high standards.`
       );
     }
 
