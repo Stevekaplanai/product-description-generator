@@ -36,8 +36,8 @@ module.exports = async (req, res) => {
     if (gemini) {
       try {
         console.log('Gemini API key found, attempting to use Gemini');
-        // Use gemini-1.5-flash which is the latest stable model
-        const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        // Use gemini-2.0-flash-exp which is the latest model
+        const model = gemini.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
         console.log('Gemini model initialized successfully');
         
         // Enhanced prompts if we have image analysis data

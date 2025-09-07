@@ -20,6 +20,15 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Check if Stripe is configured
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('STRIPE_SECRET_KEY is not configured');
+    return res.status(500).json({ 
+      error: 'Payment system not configured',
+      message: 'Stripe API key is missing'
+    });
+  }
+
   try {
     const { videoType, customerEmail, productName, productDescription } = req.body;
     
@@ -56,9 +65,31 @@ module.exports = async (req, res) => {
     });
   } catch (error) {
     console.error('Checkout session error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      type: error.type,
+      statusCode: error.statusCode,
+      raw: error.raw
+    });
+    
+    // Check for specific Stripe errors
+    if (error.type === 'StripeAuthenticationError') {
+      return res.status(500).json({ 
+        error: 'Authentication with payment provider failed',
+        message: 'Invalid API key configuration'
+      });
+    } else if (error.type === 'StripeInvalidRequestError') {
+      return res.status(400).json({ 
+        error: 'Invalid request to payment provider',
+        message: error.message,
+        details: 'Check if price IDs are correct'
+      });
+    }
+    
     res.status(500).json({ 
       error: 'Failed to create checkout session',
-      message: error.message 
+      message: error.message,
+      type: error.type || 'Unknown error'
     });
   }
 };

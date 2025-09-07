@@ -27,17 +27,32 @@ To restore full context in a new Claude conversation, read these files:
 
 ## 🎯 Core Features
 
-### 1. AI Product Analysis (Image Upload)
-- Upload product image → AI identifies product
-- Auto-populates form fields from image analysis
-- Uses OpenAI Vision or Gemini Vision API
-- Makes all form fields optional when image uploaded
+### 1. AI Product Analysis (Image Upload) ✨
+- **Smart Product Recognition**: Upload any product image for instant AI analysis
+- **Auto-Population**: Automatically fills form fields:
+  - Product Name (becomes optional - shows green "auto-detected" badge)
+  - Category (intelligently matched to dropdown options)
+  - Key Features (extracted as bullet points, marked optional)
+  - Target Audience (identified from product type)
+  - Suggested Tone (professional/casual/luxury based on product)
+- **Deep Analysis Captures**:
+  - Visible colors and materials
+  - Brand identification (if visible)
+  - Style classification (modern/classic/minimalist)
+  - Key selling points
+  - Price range estimation
+  - Auto-generated product description suggestion
+- **Vision Models**: Uses OpenAI Vision API (gpt-4o-mini) primary, Gemini Vision fallback
+- **Enhanced UX**: Fields become optional after image analysis, reducing manual input
 
 ### 2. Description Generation
-- **Model**: Gemini 1.5 Flash (gemini-1.5-flash)
-- Generates 3 variations (100-150 words each)
-- SEO-optimized with different tones
-- Enhanced with image analysis data if available
+- **Model**: Gemini 2.0 Flash (gemini-2.0-flash-exp) - Latest model for superior quality
+- Generates 3 unique variations (100-150 words each)
+- SEO-optimized with different tones and approaches
+- **Context-Aware**: Leverages image analysis data for accuracy:
+  - Incorporates detected colors, materials, and style
+  - Uses identified key selling points
+  - Adapts tone to match product type
 
 ### 3. Image Generation  
 - **Model**: DALL-E 3
@@ -120,7 +135,7 @@ git push origin main
 ### 1. Gemini Not Generating
 - **Issue**: Fallback descriptions instead of AI
 - **Fix**: Check both `GEMINI_API_KEY` and `GOOGLE_GEMINI_API_KEY` in Vercel
-- **Model**: Must use `gemini-1.5-flash`
+- **Model**: Using `gemini-2.0-flash-exp` for best results
 
 ### 2. Mobile Popup Issues  
 - **Issue**: White text on white background
@@ -140,11 +155,13 @@ npm test
 
 ## 🎯 Recent Updates
 
+- **NEW**: Upgraded to Gemini 2.0 Flash (gemini-2.0-flash-exp) for superior descriptions
+- **Enhanced Image Recognition**: Full product analysis with auto-field population
+- Smart field detection - marks fields as optional when image-detected
 - Combined descriptions & images view (no tabs)
 - Mobile-optimized video popup with delayed trigger
-- Image upload with AI product identification
-- Enhanced 100-150 word descriptions
-- Fixed Gemini API integration
+- Context-aware descriptions using visual analysis data
+- Enhanced 100-150 word descriptions with image context
 
 ---
 
