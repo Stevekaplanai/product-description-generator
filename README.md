@@ -1,261 +1,151 @@
-# AI-Powered Product Description & UGC Video Generator
+# AI Product Description Generator
 
-An advanced platform for generating SEO-optimized product descriptions, AI-generated product images, and authentic UGC-style video demonstrations at scale.
+**Live Application**: https://productdescriptions.io
 
-## 🚀 Features
+Complete AI-powered e-commerce content generation platform with product descriptions (Gemini), images (DALL-E 3), and UGC videos (D-ID).
 
-### Core Capabilities
-- **AI Product Descriptions**: Generate multiple SEO-optimized variations using Google Gemini
-- **AI Image Generation**: Create professional product images with DALL-E 3
-- **UGC Video Creation**: Generate authentic product demonstration videos with AI avatars
-- **Hybrid Video Composition**: Combine avatar videos with product images
-- **Bulk Processing**: CSV upload for batch product content generation
-- **Cloud Storage**: Automatic upload to Cloudinary CDN
+## 🚀 Quick Context Restoration
 
-### Video Generation Features
-- **D-ID Integration**: AI-powered talking avatars for product pitches
-- **Multiple Video Styles**:
-  - Split-screen (avatar + product images)
-  - Picture-in-Picture overlay
-  - Product slideshow with narration
-- **Authentic UGC Scripts**: Natural product pitches without false claims
-- **FFmpeg Video Processing**: Professional video composition and editing
+To restore full context in a new Claude conversation, read these files:
+1. This README.md - Complete project overview
+2. `/api/generate-description.js` - Main AI generation logic
+3. `/app.html` - Frontend application
 
-## 📋 Prerequisites
+## 📋 Current Configuration
 
-- Node.js 18+ 
-- FFmpeg (automatically installed via npm)
-- API Keys for:
-  - OpenAI (DALL-E 3)
-  - Google Gemini
-  - Cloudinary
-  - D-ID (for video generation)
+### Deployment
+- **Platform**: Vercel (auto-deploys from GitHub)
+- **Domain**: productdescriptions.io (via AWS Route 53 → Vercel)
+- **Repository**: Connected to GitHub (push to deploy)
 
-## 🛠️ Installation
+### API Keys (All configured in Vercel Environment Variables)
+- `GEMINI_API_KEY` / `GOOGLE_GEMINI_API_KEY` - Google Gemini 1.5 Flash
+- `OPENAI_API_KEY` - DALL-E 3 & Vision API
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+- `D_ID_API_KEY` - Video generation
+- `STRIPE_SECRET_KEY`, `STRIPE_PRICE_VIDEO_SINGLE`, `STRIPE_PRICE_VIDEO_TRIPLE`
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd product-description-generator
-```
+## 🎯 Core Features
 
-2. Install dependencies:
-```bash
-npm install
-```
+### 1. AI Product Analysis (Image Upload)
+- Upload product image → AI identifies product
+- Auto-populates form fields from image analysis
+- Uses OpenAI Vision or Gemini Vision API
+- Makes all form fields optional when image uploaded
 
-3. Configure environment variables:
-```bash
-cp .env.example .env
-```
+### 2. Description Generation
+- **Model**: Gemini 1.5 Flash (gemini-1.5-flash)
+- Generates 3 variations (100-150 words each)
+- SEO-optimized with different tones
+- Enhanced with image analysis data if available
 
-4. Add your API keys to `.env`:
-```env
-OPENAI_API_KEY=your_openai_key
-GEMINI_API_KEY=your_gemini_key
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-D_ID_API_KEY=your_did_key
-PORT=3000
-```
+### 3. Image Generation  
+- **Model**: DALL-E 3
+- Professional product photography style
+- White background e-commerce format
+- Auto-uploads to Cloudinary CDN
 
-## 🚦 Quick Start
+### 4. Video Upsell System
+- Delayed popup (1-2 minutes after generation)
+- Two pricing tiers: $29 single, $69 triple pack
+- Stripe checkout integration
+- Mobile-optimized popup design
 
-1. Start the server:
-```bash
-npm start
-```
-
-2. Open your browser:
-```
-http://localhost:3000
-```
-
-3. Generate your first product:
-   - Enter product details
-   - Select description variations
-   - Choose image styles
-   - Enable video generation (optional)
-   - Click "Generate"
+### 5. Combined View (No Tabs)
+- Descriptions and images display together
+- Streamlined mobile experience
+- No tab switching required
 
 ## 📁 Project Structure
 
 ```
 product-description-generator/
-├── src/                    # Source code
-│   └── video-composer.js   # Video composition module
-├── tests/                  # Test files
-│   ├── test-cloudinary-video-upload.js
-│   ├── test-video-generation.js
-│   └── test-hybrid-ugc-video.js
-├── public/                 # Static files and uploads
-│   ├── uploads/           # Uploaded files
-│   ├── generated-images/  # AI-generated images
-│   └── generated-videos/  # Generated videos
-├── config/                # Configuration files
-├── docs/                  # Documentation
-├── server.js             # Main server file
-├── index.html            # Frontend interface
-├── package.json          # Dependencies
-└── .env                  # Environment variables
-```
-
-## 🎥 Video Generation
-
-### Basic UGC Video
-```javascript
-POST /api/generate-video
-{
-  "productName": "Smart Watch",
-  "productDescription": "Advanced fitness tracker",
-  "features": "Heart rate, GPS, Waterproof",
-  "avatar": "sophia",
-  "language": "en-US"
-}
-```
-
-### Hybrid Product Showcase
-```javascript
-POST /api/generate-video
-{
-  "productName": "Smart Watch",
-  "generateProductShowcase": true,
-  "images": [
-    {"url": "image1.jpg"},
-    {"url": "image2.jpg"}
-  ]
-}
+├── api/                         # Vercel serverless functions
+│   ├── generate-description.js # Main AI generation (Gemini + DALL-E)
+│   ├── analyze-image.js        # Image analysis (Vision APIs)  
+│   ├── create-video-checkout.js # Stripe video checkout
+│   ├── generate-video.js       # D-ID video generation
+│   └── debug.js                # API configuration check
+├── src/
+│   └── video-composer.js       # FFmpeg video composition
+├── tests/                      # Test suites
+│   └── playwright/            # E2E tests
+├── app.html                   # Main application (single-page)
+├── index.html                 # Landing page
+├── bulk.html                  # CSV bulk upload
+├── privacy.html               # Legal pages
+├── terms.html
+├── refund.html
+├── package.json              # Dependencies
+├── vercel.json              # Deployment config
+└── .env.example            # Environment template
 ```
 
 ## 🔧 API Endpoints
 
-### Product Generation
-- `POST /api/generate` - Generate product descriptions and images
-- `POST /api/analyze-image` - Analyze uploaded product images
-- `POST /api/upload-csv` - Bulk generate from CSV
+### Main Endpoints
+- `POST /api/generate-description` - Generate descriptions & images
+- `POST /api/analyze-image` - AI product identification
+- `POST /api/create-video-checkout` - Stripe video purchase
+- `POST /api/generate-video` - D-ID video creation
+- `GET /api/debug` - Check API configuration
 
-### Video Generation  
-- `POST /api/generate-video` - Create UGC video
-- `POST /api/webhook/d-id` - D-ID webhook callback
+## 💻 Local Development
 
-### Health Check
-- `GET /api/health` - Server status
+**Note**: This app is designed for Vercel deployment. Local development requires:
 
-## 🎨 Customization
-
-### Video Styles
-Modify `src/video-composer.js` to customize:
-- Split-screen layouts
-- Overlay positions
-- Transition effects
-- Text overlays
-
-### Script Templates
-Edit script generation in `server.js`:
-- Tone and personality
-- Product pitch styles
-- Call-to-action phrases
-
-## 🚀 Production Deployment
-
-### Environment Setup
+1. Install dependencies:
 ```bash
-NODE_ENV=production
+npm install
 ```
 
-### Performance Optimization
-- Enable Redis caching for API responses
-- Use CDN for static assets
-- Implement rate limiting
-- Set up webhook queues for video processing
+2. Set environment variables in Vercel dashboard
+3. Use Vercel CLI for local testing:
+```bash
+vercel dev
+```
 
-### Monitoring
-- Track API usage and costs
-- Monitor video generation success rates
-- Log errors to external service
+## 🚀 Deployment
 
-## 🔄 Future Integrations
+Push to GitHub main branch → Auto-deploys to Vercel
 
-### Planned: Arcads.ai Integration
-Replace D-ID with Arcads.ai for more realistic UGC videos:
-- 300+ diverse AI avatars
-- Superior lipsync technology  
-- Product demonstration capabilities
+```bash
+git add .
+git commit -m "Update"
+git push origin main
+```
 
-Request API access: r@arcads.ai
+## 🐛 Known Issues & Fixes
 
-## 📊 API Usage & Limits
+### 1. Gemini Not Generating
+- **Issue**: Fallback descriptions instead of AI
+- **Fix**: Check both `GEMINI_API_KEY` and `GOOGLE_GEMINI_API_KEY` in Vercel
+- **Model**: Must use `gemini-1.5-flash`
 
-### D-ID Credits
-- Each video generation uses 1 credit
-- Monitor usage in D-ID dashboard
-- Consider batch processing for efficiency
+### 2. Mobile Popup Issues  
+- **Issue**: White text on white background
+- **Fix**: Gradient backgrounds implemented in app.html
 
-### Cloudinary Storage
-- Free tier: 25GB storage
-- Automatic image optimization
-- Video transformation capabilities
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Video URLs Expiring (403 Error)**
-   - D-ID URLs expire after ~1 hour
-   - Videos are automatically downloaded to Cloudinary
-
-2. **FFmpeg Not Found**
-   - Automatically installed via npm
-   - Manual install: `npm install @ffmpeg-installer/ffmpeg`
-
-3. **API Rate Limits**
-   - Implement exponential backoff
-   - Use webhook callbacks for async processing
+### 3. Video Checkout Errors
+- **Fix**: Hardcoded price IDs in `/api/create-video-checkout.js`:
+  - Single: `price_1QfxqBRrVb92Q7hgKmQNqFkH` ($29)
+  - Triple: `price_1QfxqwRrVb92Q7hgXGa9yYMT` ($69)
 
 ## 📝 Testing
 
-Run test scripts:
+Run Playwright tests:
 ```bash
-# Test video generation
-node tests/test-video-generation.js
-
-# Test hybrid UGC video
-node tests/test-hybrid-ugc-video.js
-
-# Test D-ID directly
-node tests/test-did-direct.js
+npm test
 ```
 
-## 🤝 Contributing
+## 🎯 Recent Updates
 
-1. Fork the repository
-2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Open pull request
-
-## 📄 License
-
-MIT License - See LICENSE file for details
-
-## 🆘 Support
-
-For issues or questions:
-- Open GitHub issue
-- Check documentation in `/docs`
-- Review test files for examples
-
-## 🎯 Roadmap
-
-- [ ] Arcads.ai integration for realistic UGC
-- [ ] A/B testing for generated content
-- [ ] Analytics dashboard
-- [ ] Multi-language support expansion
-- [ ] Custom avatar training
-- [ ] Real-time preview generation
-- [ ] Shopify/WooCommerce plugins
+- Combined descriptions & images view (no tabs)
+- Mobile-optimized video popup with delayed trigger
+- Image upload with AI product identification
+- Enhanced 100-150 word descriptions
+- Fixed Gemini API integration
 
 ---
 
-Built with ❤️ for modern e-commerce content creation
+**Quick Start**: Visit https://productdescriptions.io
