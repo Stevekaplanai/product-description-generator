@@ -34,12 +34,15 @@ module.exports = async (req, res) => {
     }
 
     const videoCount = Math.min(products.length, 10); // Max 10 videos per bundle
-    const bundlePrice = 19900; // $199 in cents
+    
+    // Use the environment variable for bulk video price
+    const BULK_VIDEO_PRICE = process.env.STRIPE_PRICE_BULK_VIDEO || 'price_1S4akoRrVb92Q7hgOLGjeHiH';
 
     console.log('Creating bulk video checkout for:', { 
       videoCount, 
       products: products.length,
-      email: customerEmail 
+      email: customerEmail,
+      priceId: BULK_VIDEO_PRICE
     });
 
     // Create Stripe checkout session for bulk video purchase
@@ -47,15 +50,7 @@ module.exports = async (req, res) => {
       payment_method_types: ['card'],
       line_items: [
         {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `Bulk Video Bundle - ${videoCount} Videos`,
-              description: `Professional AI-generated product videos for ${videoCount} products. Includes voiceover, animations, and HD rendering.`,
-              images: ['https://productdescriptions.io/images/video-bundle.png']
-            },
-            unit_amount: bundlePrice,
-          },
+          price: BULK_VIDEO_PRICE,
           quantity: 1,
         },
       ],
@@ -74,7 +69,7 @@ module.exports = async (req, res) => {
       sessionId: session.id,
       url: session.url,
       videoCount,
-      totalPrice: bundlePrice / 100
+      totalPrice: 199
     });
   } catch (error) {
     console.error('Bulk video checkout error:', error);
