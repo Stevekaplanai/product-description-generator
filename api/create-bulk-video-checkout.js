@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
     });
 
     // Create Stripe checkout session for bulk video purchase
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig = {
       payment_method_types: ['card'],
       line_items: [
         {
@@ -57,13 +57,19 @@ module.exports = async (req, res) => {
       mode: 'payment',
       success_url: `${req.headers.origin || 'https://productdescriptions.io'}/bulk-video-success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.origin || 'https://productdescriptions.io'}/bulk.html`,
-      customer_email: customerEmail,
       metadata: {
         type: 'bulk_video',
         videoCount: videoCount.toString(),
         productIds: products.slice(0, 10).map(p => p.product_name || p.id).join(',')
       }
-    });
+    };
+    
+    // Only add customer_email if it's provided and valid
+    if (customerEmail && customerEmail.includes('@')) {
+      sessionConfig.customer_email = customerEmail;
+    }
+    
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     res.status(200).json({ 
       sessionId: session.id,
