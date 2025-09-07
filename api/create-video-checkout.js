@@ -1,9 +1,9 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-// Hardcoded video price IDs for productdescriptions.io
+// Video price IDs - use environment variables (they override the defaults)
 const VIDEO_PRICES = {
-  single: process.env.STRIPE_PRICE_VIDEO_SINGLE || 'price_1QfxqBRrVb92Q7hgKmQNqFkH', // $29 single video
-  triple: process.env.STRIPE_PRICE_VIDEO_TRIPLE || 'price_1QfxqwRrVb92Q7hgXGa9yYMT'  // $69 triple pack
+  single: process.env.STRIPE_PRICE_VIDEO_SINGLE || 'price_1S4X3ERrVb92Q7hgEGJQNVDh', // $29 single video
+  triple: process.env.STRIPE_PRICE_VIDEO_TRIPLE || 'price_1S4X4BRrVb92Q7hg460AjSu4'  // $69 triple pack
 };
 
 module.exports = async (req, res) => {
