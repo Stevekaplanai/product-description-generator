@@ -1,0 +1,93 @@
+<mjml>
+  <mj-head>
+    <mj-title>Payment Failed - Action Required</mj-title>
+    <mj-attributes>
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" />
+      <mj-button background-color="#dc3545" border-radius="5px" font-size="16px" font-weight="bold" />
+      <mj-text font-size="16px" line-height="1.6" color="#333333" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f5f5f5">
+    
+    <!-- Header -->
+    <mj-section background-color="#dc3545" padding="40px 20px">
+      <mj-column>
+        <mj-text align="center" color="#ffffff" font-size="32px" font-weight="bold">
+          Payment Failed ⚠️
+        </mj-text>
+        <mj-text align="center" color="#ffffff" font-size="16px">
+          Action required to maintain access
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Content -->
+    <mj-section background-color="#ffffff" padding="40px 20px">
+      <mj-column>
+        <mj-text>
+          Hi {{customerName}},
+        </mj-text>
+        <mj-text>
+          We were unable to process your payment of <strong>${{amount}}</strong> for your ProductDescriptions.io subscription.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Alert Box -->
+    <mj-section background-color="#ffffff" padding="0 20px">
+      <mj-column>
+        <mj-wrapper background-color="#fff3cd" border="1px solid #ffc107" border-radius="8px" padding="20px">
+          <mj-text font-size="18px" font-weight="bold" padding-bottom="10px">
+            ⏰ What happens next?
+          </mj-text>
+          <mj-text>
+            • We'll automatically retry on <strong>{{nextAttempt}}</strong><br/>
+            • Your access remains active during the retry period<br/>
+            • Update your payment method to avoid interruption
+          </mj-text>
+        </mj-wrapper>
+      </mj-column>
+    </mj-section>
+    
+    <!-- CTA -->
+    <mj-section background-color="#ffffff" padding="30px 20px">
+      <mj-column>
+        <mj-button href="https://productdescriptions.io/billing">
+          Update Payment Method →
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Help Section -->
+    <mj-section background-color="#ffffff" padding="0 20px 40px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="bold" padding-bottom="10px">
+          Common reasons for failure:
+        </mj-text>
+        <mj-text>
+          • Insufficient funds<br/>
+          • Card expired or cancelled<br/>
+          • Bank declined the transaction<br/>
+          • Incorrect billing information
+        </mj-text>
+        <mj-text padding-top="20px">
+          Need help? Reply to this email and we'll assist you immediately.
+        </mj-text>
+        <mj-text padding-top="20px">
+          Best regards,<br/>
+          <strong>The ProductDescriptions.io Team</strong>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Footer -->
+    <mj-section background-color="#f8f9fa" padding="20px">
+      <mj-column>
+        <mj-text align="center" font-size="12px" color="#666666">
+          © 2024 ProductDescriptions.io | <a href="https://productdescriptions.io/help" style="color: #667eea;">Get Help</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+  </mj-body>
+</mjml>

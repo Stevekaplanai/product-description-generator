@@ -115,7 +115,6 @@
     </script>
     
     <!-- Performance Optimizations -->
-    <script src="/performance-config.js" defer></script>
     <script>
         // Register Service Worker for offline support and caching
         if ('serviceWorker' in navigator) {
@@ -749,7 +748,7 @@
                         <li><span class="check-icon">✓</span> 10 AI videos per month</li>
                         <li><span class="check-icon">✓</span> Email support</li>
                     </ul>
-                    <a href="/app.html" class="btn btn-primary" style="width: 100%;">Get Started</a>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="event.preventDefault(); createCheckoutSession('starter', 'Starter'); return false;">Get Started - $19/mo</button>
                 </div>
                 
                 <div class="pricing-card featured">
@@ -765,7 +764,7 @@
                         <li><span class="check-icon">✓</span> Bulk upload (CSV)</li>
                         <li><span class="check-icon">✓</span> Priority support</li>
                     </ul>
-                    <a href="/app.html" class="btn btn-primary" style="width: 100%;">Get Started</a>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="event.preventDefault(); createCheckoutSession('professional', 'Professional'); return false;">Get Started - $49/mo</button>
                 </div>
                 
                 <div class="pricing-card">
@@ -781,7 +780,7 @@
                         <li><span class="check-icon">✓</span> Dedicated support</li>
                         <li><span class="check-icon">✓</span> SLA guarantee</li>
                     </ul>
-                    <a href="/app.html" class="btn btn-primary" style="width: 100%;">Get Started</a>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="event.preventDefault(); createCheckoutSession('enterprise', 'Enterprise'); return false;">Get Started - $149/mo</button>
                 </div>
             </div>
             
@@ -915,6 +914,7 @@
             <div class="cta-buttons">
                 <a href="/app.html" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">Start Free Trial</a>
                 <a href="/bulk.html" class="btn btn-secondary" style="border-color: #667eea; color: #667eea;">Try Bulk Upload</a>
+                <a href="/auth.html" class="btn btn-secondary" style="border-color: #667eea; color: #667eea;">Login / Sign Up</a>
             </div>
             
             <div class="guarantee-badge">
@@ -942,24 +942,96 @@
     <!-- Stripe Integration Script -->
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-        // Initialize Stripe (using test key)
-        const stripe = Stripe('pk_test_51P9AaXRrVb92Q7hgLRRfCrqlJkjJa8AB6l8UZckgsHSC1RrBBaT7Az1OKK1jvAdsVnalL0n1uhF2TosZPK3O5ZD400GaYSBvSg');
+        // Global Stripe variables
+        let stripe = null;
+        let STRIPE_PRICES = {};
+        let stripeInitPromise = null;
         
-        // Price IDs for different tiers
-        const STRIPE_PRICES = {
-            starter: 'price_1S4MT6RrVb92Q7hgzaHZojsJ',
-            professional: 'price_1S4MTtRrVb92Q7hgw5QpbjTb',
-            enterprise: 'price_1S4MUVRrVb92Q7hgTXYQSFpB'
-        };
+        // Initialize Stripe with dynamic configuration
+        async function initializeStripe() {
+            // Return existing promise if already initializing
+            if (stripeInitPromise) return stripeInitPromise;
+            
+            // Create new initialization promise
+            stripeInitPromise = _initializeStripe();
+            return stripeInitPromise;
+        }
+        
+        async function _initializeStripe() {
+            try {
+                const response = await fetch('/api/stripe-config');
+                const config = await response.json();
+                
+                if (!config.isConfigured) {
+                    console.error('Stripe is not properly configured');
+                    return false;
+                }
+                
+                stripe = Stripe(config.publishableKey);
+                
+                // Map price IDs from config
+                STRIPE_PRICES = {
+                    starter: config.prices.starter,
+                    professional: config.prices.professional,
+                    enterprise: config.prices.enterprise
+                };
+                
+                console.log(`Stripe initialized in ${config.mode} mode`);
+                
+                // Show test mode indicator if applicable
+                if (config.mode === 'TEST') {
+                    const indicator = document.createElement('div');
+                    indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: orange; color: white; padding: 5px 10px; border-radius: 5px; z-index: 10000; font-size: 12px;';
+                    indicator.textContent = '🧪 TEST MODE';
+                    document.body.appendChild(indicator);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize Stripe:', error);
+                return false;
+            }
+        }
+        
+        // Initialize on page load
+        initializeStripe();
         
         // Function to create checkout session
-        async function createCheckoutSession(priceId, tierName) {
+        async function createCheckoutSession(plan, tierName) {
             try {
-                // Show loading state
-                const button = event.target;
-                const originalText = button.textContent;
-                button.textContent = 'Loading...';
-                button.disabled = true;
+                console.log('Starting checkout for plan:', plan, 'tier:', tierName);
+                
+                // Ensure Stripe is initialized
+                if (!stripe || Object.keys(STRIPE_PRICES).length === 0) {
+                    console.log('Stripe not ready, initializing...');
+                    await initializeStripe();
+                    
+                    // Double check after initialization
+                    if (!stripe || Object.keys(STRIPE_PRICES).length === 0) {
+                        alert('Payment system is not available. Please try again later.');
+                        return;
+                    }
+                }
+                
+                // Get the price ID for the plan
+                const priceId = STRIPE_PRICES[plan];
+                console.log('Plan:', plan, 'Price ID:', priceId, 'All prices:', STRIPE_PRICES);
+                
+                if (!priceId || priceId === 'undefined') {
+                    console.error('Invalid price ID for plan:', plan);
+                    alert('Invalid plan selected. Please refresh the page and try again.');
+                    return;
+                }
+                
+                // Show loading state if we have the event
+                let button = null;
+                let originalText = '';
+                if (typeof event !== 'undefined' && event.target) {
+                    button = event.target;
+                    originalText = button.textContent;
+                    button.textContent = 'Loading...';
+                    button.disabled = true;
+                }
                 
                 // Create checkout session
                 const response = await fetch('/api/create-checkout-session', {
@@ -976,67 +1048,43 @@
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Failed to create checkout session');
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('API Error:', errorData);
+                    throw new Error(errorData.message || 'Failed to create checkout session');
                 }
                 
                 const session = await response.json();
+                console.log('Checkout session created:', session);
                 
-                // Redirect to Stripe Checkout
-                const result = await stripe.redirectToCheckout({
-                    sessionId: session.sessionId
-                });
-                
-                if (result.error) {
-                    alert(result.error.message);
-                    button.textContent = originalText;
-                    button.disabled = false;
+                // Redirect to Stripe Checkout using the URL directly
+                if (session.url) {
+                    // Direct redirect using the session URL
+                    window.location.href = session.url;
+                } else if (session.sessionId) {
+                    // Fallback to redirectToCheckout if we only have sessionId
+                    const result = await stripe.redirectToCheckout({
+                        sessionId: session.sessionId
+                    });
+                    
+                    if (result.error) {
+                        alert(result.error.message);
+                        if (button) {
+                            button.textContent = originalText;
+                            button.disabled = false;
+                        }
+                    }
+                } else {
+                    throw new Error('No session URL or ID received');
                 }
             } catch (error) {
                 console.error('Error creating checkout session:', error);
                 alert('Unable to start checkout process. Please try again later.');
-                if (event.target) {
-                    event.target.textContent = 'Get Started';
-                    event.target.disabled = false;
+                if (button) {
+                    button.textContent = originalText;
+                    button.disabled = false;
                 }
             }
         }
-        
-        // Update the pricing buttons to use onclick handlers
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get all pricing cards
-            const pricingCards = document.querySelectorAll('.pricing-card');
-            
-            pricingCards.forEach(card => {
-                const tierElement = card.querySelector('.pricing-tier');
-                const button = card.querySelector('.btn-primary');
-                
-                if (tierElement && button) {
-                    const tier = tierElement.textContent.toLowerCase();
-                    
-                    // Only add checkout for paid tiers
-                    if (tier === 'starter') {
-                        button.href = '#';
-                        button.onclick = (e) => {
-                            e.preventDefault();
-                            createCheckoutSession(STRIPE_PRICES.starter, 'Starter');
-                        };
-                    } else if (tier === 'professional') {
-                        button.href = '#';
-                        button.onclick = (e) => {
-                            e.preventDefault();
-                            createCheckoutSession(STRIPE_PRICES.professional, 'Professional');
-                        };
-                    } else if (tier === 'enterprise') {
-                        button.href = '#';
-                        button.onclick = (e) => {
-                            e.preventDefault();
-                            createCheckoutSession(STRIPE_PRICES.enterprise, 'Enterprise');
-                        };
-                    }
-                    // Free tier keeps the direct link to /app.html
-                }
-            });
-        });
     </script>
 </body>
 </html>

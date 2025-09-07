@@ -1,4 +1,6 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripeConfig = require('./config/stripe');
+const stripe = require('stripe')(stripeConfig.secretKey, stripeConfig.options);
+const { sendEmail } = require('./send-email');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -6,7 +8,7 @@ module.exports = async (req, res) => {
   }
 
   const sig = req.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = stripeConfig.webhookSecret;
 
   let event;
 
@@ -27,10 +29,10 @@ module.exports = async (req, res) => {
     case 'checkout.session.completed':
       const session = event.data.object;
       console.log('Checkout completed:', session.id);
-      // Here you would typically:
-      // 1. Save customer info to database
-      // 2. Grant access to premium features
-      // 3. Send welcome email
+      
+      // Loops.so will handle the welcome email automatically
+      // We just track for our internal usage system
+      console.log('New subscription for:', session.customer_email);
       break;
 
     case 'customer.subscription.created':
@@ -46,7 +48,19 @@ module.exports = async (req, res) => {
     case 'customer.subscription.deleted':
       const canceledSubscription = event.data.object;
       console.log('Subscription canceled:', canceledSubscription.id);
-      // Revoke access to premium features
+      
+      // Get customer email and send cancellation email
+      try {
+        const customer = await stripe.customers.retrieve(canceledSubscription.customer);
+        if (customer.email) {
+          await sendEmail(customer.email, 'subscriptionCancelled', {
+            customerName: customer.name || 'Valued Customer',
+            subscriptionEndDate: new Date(canceledSubscription.current_period_end * 1000).toLocaleDateString()
+          });
+        }
+      } catch (err) {
+        console.error('Error sending cancellation email:', err);
+      }
       break;
 
     case 'invoice.payment_succeeded':
@@ -57,7 +71,18 @@ module.exports = async (req, res) => {
     case 'invoice.payment_failed':
       const failedInvoice = event.data.object;
       console.log('Payment failed for invoice:', failedInvoice.id);
-      // Send email to customer about failed payment
+      
+      // Send payment failed email
+      if (failedInvoice.customer_email) {
+        await sendEmail(failedInvoice.customer_email, 'paymentFailed', {
+          customerName: failedInvoice.customer_name || 'Valued Customer',
+          amount: (failedInvoice.amount_due / 100).toFixed(2),
+          currency: failedInvoice.currency.toUpperCase(),
+          nextAttempt: failedInvoice.next_payment_attempt 
+            ? new Date(failedInvoice.next_payment_attempt * 1000).toLocaleDateString()
+            : 'Contact support'
+        });
+      }
       break;
 
     default:

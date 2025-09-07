@@ -44,6 +44,17 @@ yarn-error.log*
 .vercel
 .now
 
+# Sensitive configuration files
+.env.production.new
+VERCEL_ENV_VARIABLES.txt
+setup-stripe-live.js
+stripe-env-production.txt
+stripe-setup-automation.md
+STRIPE_LIVE_SETUP.md
+API_SETUP_GUIDE.md
+STRIPE_PRODUCTION_CHECKLIST.md
+check-stripe-products.js
+
 # Temporary files
 tmp/
 temp/
@@ -57,3 +68,5 @@ build/
 !public/uploads/.gitkeep
 !public/generated-images/.gitkeep
 !public/generated-videos/.gitkeep
+.vercel
+.env*.local

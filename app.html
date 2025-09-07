@@ -44,7 +44,6 @@
     </script>
     
     <!-- Performance Optimizations -->
-    <script src="/performance-config.js" defer></script>
     <script>
         // Register Service Worker
         if ('serviceWorker' in navigator) {
@@ -915,6 +914,7 @@
         @media (max-width: 768px) {
             body {
                 padding: 10px;
+                padding-top: 60px; /* Space for fixed header */
             }
             
             .container {
@@ -922,11 +922,25 @@
             }
             
             header {
-                padding: 15px 10px;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 10px;
+                margin-bottom: 0;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             }
             
             header h1 {
-                font-size: 1.5rem;
+                font-size: 1.2rem;
+                margin-bottom: 5px;
+            }
+            
+            .subtitle {
+                font-size: 0.8rem;
+                display: none; /* Hide subtitle on mobile to save space */
             }
             
             .main-content {
@@ -1732,12 +1746,12 @@
 
                 <div class="form-group" id="productNameGroup">
                     <label for="productName">Product Name <span id="productNameOptional" style="color: #10b981; font-size: 12px; display: none;">(auto-detected)</span></label>
-                    <input type="text" id="productName" placeholder="e.g., Wireless Bluetooth Headphones">
+                    <input type="text" id="productName" placeholder="e.g., Wireless Bluetooth Headphones" required>
                 </div>
 
                 <div class="form-group" id="categoryGroup">
                     <label for="category">Category <span id="categoryOptional" style="color: #10b981; font-size: 12px; display: none;">(auto-detected)</span></label>
-                    <select id="category">
+                    <select id="category" required>
                         <option value="">Select category</option>
                         <option value="electronics">Electronics</option>
                         <option value="fashion">Fashion</option>
@@ -1752,7 +1766,7 @@
 
                 <div class="form-group" id="featuresGroup">
                     <label for="features">Key Features <span id="featuresOptional" style="color: #10b981; font-size: 12px; display: none;">(auto-detected)</span></label>
-                    <textarea id="features" placeholder="One feature per line"></textarea>
+                    <textarea id="features" placeholder="One feature per line" required></textarea>
                 </div>
 
                 <div class="form-group">
@@ -2213,15 +2227,245 @@
             document.body.appendChild(modal);
         }
 
-        async function checkout(plan) {
-            // Initialize Stripe
-            const stripe = Stripe('pk_test_51P9AaXRrVb92Q7hgLRRfCrqlJkjJa8AB6l8UZckgsHSC1RrBBaT7Az1OKK1jvAdsVnalL0n1uhF2TosZPK3O5ZD400GaYSBvSg');
+        // Global variables for subscription and usage tracking
+        let stripe = null;
+        let stripeConfig = null;
+        let currentSubscription = null;
+        let currentUsage = null;
+        let userEmail = null;
+        
+        // Get user email from localStorage or prompt
+        function getUserEmail() {
+            if (!userEmail) {
+                userEmail = localStorage.getItem('userEmail');
+                if (!userEmail) {
+                    userEmail = prompt('Please enter your email to continue:');
+                    if (userEmail) {
+                        localStorage.setItem('userEmail', userEmail);
+                    }
+                }
+            }
+            return userEmail;
+        }
+        
+        // Check subscription status
+        async function checkSubscription() {
+            const email = getUserEmail();
+            if (!email) return null;
             
-            // Correct price IDs from your Stripe account
+            try {
+                const response = await fetch('/api/check-subscription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                if (response.ok) {
+                    currentSubscription = await response.json();
+                    updateUIForSubscription();
+                    return currentSubscription;
+                }
+            } catch (error) {
+                console.error('Error checking subscription:', error);
+            }
+            return null;
+        }
+        
+        // Track usage
+        async function trackUsage(action, count = 1) {
+            const email = getUserEmail();
+            if (!email) return;
+            
+            try {
+                const response = await fetch('/api/track-usage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, action, count })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUsage = data.usage;
+                    updateUsageDisplay();
+                    return data;
+                } else if (response.status === 403) {
+                    const errorData = await response.json();
+                    showUpgradeModal(errorData);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error tracking usage:', error);
+            }
+        }
+        
+        // Get current usage
+        async function getUsage() {
+            const email = getUserEmail();
+            if (!email) return null;
+            
+            try {
+                const response = await fetch('/api/track-usage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, action: 'get' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUsage = data;
+                    updateUsageDisplay();
+                    return data;
+                }
+            } catch (error) {
+                console.error('Error getting usage:', error);
+            }
+            return null;
+        }
+        
+        // Update UI based on subscription
+        function updateUIForSubscription() {
+            if (!currentSubscription) return;
+            
+            // Add subscription badge
+            const badge = document.getElementById('subscriptionBadge') || createSubscriptionBadge();
+            badge.textContent = `${currentSubscription.plan.toUpperCase()} PLAN`;
+            badge.className = `subscription-badge ${currentSubscription.plan}`;
+            
+            // Update feature availability
+            const features = currentSubscription.features;
+            if (features.bulkUpload === false) {
+                const bulkBtn = document.querySelector('[onclick*="showBulkUpload"]');
+                if (bulkBtn) bulkBtn.style.display = 'none';
+            }
+        }
+        
+        // Create subscription badge
+        function createSubscriptionBadge() {
+            const badge = document.createElement('div');
+            badge.id = 'subscriptionBadge';
+            badge.style.cssText = 'position: fixed; top: 10px; right: 10px; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 1000;';
+            document.body.appendChild(badge);
+            return badge;
+        }
+        
+        // Update usage display
+        function updateUsageDisplay() {
+            if (!currentUsage || !currentSubscription) return;
+            
+            const usageBar = document.getElementById('usageBar') || createUsageBar();
+            const features = currentSubscription.features;
+            
+            let usageText = [];
+            if (features.descriptionsPerMonth !== -1) {
+                usageText.push(`Descriptions: ${currentUsage.descriptionsGenerated}/${features.descriptionsPerMonth}`);
+            }
+            if (features.videosPerMonth !== -1) {
+                usageText.push(`Videos: ${currentUsage.videosGenerated}/${features.videosPerMonth}`);
+            }
+            
+            if (usageText.length > 0) {
+                usageBar.innerHTML = usageText.join(' | ');
+                usageBar.style.display = 'block';
+            }
+        }
+        
+        // Create usage bar
+        function createUsageBar() {
+            const bar = document.createElement('div');
+            bar.id = 'usageBar';
+            bar.style.cssText = 'position: fixed; bottom: 10px; right: 10px; padding: 10px 20px; background: rgba(0,0,0,0.8); color: white; border-radius: 5px; font-size: 12px; z-index: 1000; display: none;';
+            document.body.appendChild(bar);
+            return bar;
+        }
+        
+        // Show upgrade modal
+        function showUpgradeModal(limitData) {
+            const modal = document.createElement('div');
+            modal.className = 'upgrade-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2>Upgrade Required</h2>
+                    <p>You've reached your ${currentSubscription.plan} plan limits:</p>
+                    <ul>${limitData.exceeded.map(e => `<li>${e}</li>`).join('')}</ul>
+                    <button onclick="showPricingModal()">View Upgrade Options</button>
+                    <button onclick="this.parentElement.parentElement.remove()">Close</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        // Open customer portal
+        async function openCustomerPortal() {
+            const email = getUserEmail();
+            if (!email) return;
+            
+            try {
+                const response = await fetch('/api/create-portal-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                if (response.ok) {
+                    const { url } = await response.json();
+                    window.location.href = url;
+                } else {
+                    alert('No subscription found for this email');
+                }
+            } catch (error) {
+                console.error('Error opening portal:', error);
+            }
+        }
+        
+        // Initialize Stripe on page load
+        async function initializeStripe() {
+            try {
+                const response = await fetch('/api/stripe-config');
+                const config = await response.json();
+                
+                if (!config.isConfigured) {
+                    console.error('Stripe is not properly configured');
+                    return false;
+                }
+                
+                stripe = Stripe(config.publishableKey);
+                stripeConfig = config;
+                
+                console.log(`Stripe initialized in ${config.mode} mode`);
+                
+                // Update UI to show mode if in test mode
+                if (config.mode === 'TEST') {
+                    const modeIndicator = document.createElement('div');
+                    modeIndicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: orange; color: white; padding: 5px 10px; border-radius: 5px; z-index: 10000;';
+                    modeIndicator.textContent = '🧪 TEST MODE';
+                    document.body.appendChild(modeIndicator);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize Stripe:', error);
+                return false;
+            }
+        }
+        
+        // Call initialization
+        initializeStripe();
+        
+        async function checkout(plan) {
+            // Check if Stripe is initialized
+            if (!stripe || !stripeConfig) {
+                await initializeStripe();
+                if (!stripe) {
+                    showNotification('Payment system is not available. Please try again later.', 'error');
+                    return;
+                }
+            }
+            
+            // Use dynamic price IDs from config
             const priceIds = {
-                starter: 'price_1S4MT6RrVb92Q7hgzaHZojsJ',
-                professional: 'price_1S4MTtRrVb92Q7hgw5QpbjTb',
-                enterprise: 'price_1S4MUVRrVb92Q7hgTXYQSFpB'
+                starter: stripeConfig.prices.starter,
+                professional: stripeConfig.prices.professional,
+                enterprise: stripeConfig.prices.enterprise
             };
             
             try {
@@ -2425,19 +2669,23 @@
             // Clear any previous errors
             hideError();
             
-            try {
-                // Check usage limits before generating
-                if (!checkUsageLimits('descriptions')) {
-                    throw new Error('Usage limit reached. Please upgrade your plan to continue.');
-                }
+            // Track usage for this generation
+            const usageResult = await trackUsage('description');
+            if (!usageResult) {
+                // Usage limit exceeded, modal will be shown by trackUsage
+                generateBtn.disabled = false;
+                btnText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                return;
+            }
 
-                let productName = document.getElementById('productName').value;
-                let category = document.getElementById('category').value;
-                let features = document.getElementById('features').value;
-                let targetAudience = document.getElementById('targetAudience').value;
-                const tone = document.getElementById('tone').value;
-                const imageFile = document.getElementById('productImage').files[0];
-                const generateImages = document.getElementById('generateImages').checked;
+            let productName = document.getElementById('productName').value;
+            let category = document.getElementById('category').value;
+            let features = document.getElementById('features').value;
+            let targetAudience = document.getElementById('targetAudience').value;
+            const tone = document.getElementById('tone').value;
+            const imageFile = document.getElementById('productImage').files[0];
+            const generateImages = document.getElementById('generateImages').checked;
 
             // Use image analysis data if available and fields are empty
             if (window.imageAnalysisData) {
@@ -2455,9 +2703,30 @@
                 }
             }
 
-            // Only require product name if no image was analyzed
+            // Validate required fields
             if (!productName && !window.imageAnalysisData) {
-                alert('Please provide a product name or upload an image for analysis');
+                showErrorMessage('Please provide a product name or upload an image for analysis');
+                generateBtn.disabled = false;
+                btnText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                return;
+            }
+            
+            // Validate category selection
+            if (!category || category === '') {
+                showErrorMessage('Please select a product category');
+                generateBtn.disabled = false;
+                btnText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                return;
+            }
+            
+            // Validate features (at least one feature required)
+            if (!features || features.trim() === '') {
+                showErrorMessage('Please provide at least one key feature');
+                generateBtn.disabled = false;
+                btnText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
                 return;
             }
             
@@ -2495,13 +2764,39 @@
                     hasUploadedImage: !!uploadedImageBase64
                 };
 
-                const response = await fetch('/api/generate-description', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
-                });
+                // Add retry logic for better reliability
+                let response;
+                let retries = 0;
+                const maxRetries = 2;
+                
+                while (retries <= maxRetries) {
+                    try {
+                        response = await fetch('/api/generate-description', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(requestData),
+                            signal: AbortSignal.timeout(30000) // 30 second timeout
+                        });
+                        
+                        if (response.ok || response.status < 500) {
+                            break; // Success or client error (no retry needed)
+                        }
+                        
+                        if (retries < maxRetries) {
+                            console.log(`Retry attempt ${retries + 1} after server error`);
+                            await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1))); // Exponential backoff
+                        }
+                    } catch (fetchError) {
+                        if (retries === maxRetries) {
+                            throw fetchError;
+                        }
+                        console.log(`Retry attempt ${retries + 1} after network error`);
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)));
+                    }
+                    retries++;
+                }
 
                 const data = await response.json();
 
@@ -2537,7 +2832,27 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showErrorMessage(error.message || 'Unable to connect to server. Please check your connection and try again.');
+                
+                // More specific error messages based on error type
+                let errorMessage = 'Unable to generate content. ';
+                
+                if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                    errorMessage = '❌ Network Error: Unable to connect to server. Please check your internet connection and try again.';
+                } else if (error.message.includes('500')) {
+                    errorMessage = '⚠️ Server Error: Our servers are experiencing issues. Please try again in a few moments.';
+                } else if (error.message.includes('429')) {
+                    errorMessage = '⏰ Rate Limit: Too many requests. Please wait a moment before trying again.';
+                } else if (error.message.includes('401') || error.message.includes('403')) {
+                    errorMessage = '🔒 Authentication Error: Please check your subscription status or contact support.';
+                } else if (error.message.includes('timeout')) {
+                    errorMessage = '⏱️ Request Timeout: The request took too long. Please try again with simpler inputs.';
+                } else if (error.message.includes('usage limit')) {
+                    errorMessage = '📊 ' + error.message;
+                } else {
+                    errorMessage += error.message || 'Please try again or contact support if the issue persists.';
+                }
+                
+                showErrorMessage(errorMessage);
             } finally {
                 // Reset button state
                 generateBtn.disabled = false;
@@ -2929,6 +3244,41 @@
             a.click();
             document.body.removeChild(a);
         }
+        
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', async function() {
+            // Initialize Stripe
+            await initializeStripe();
+            
+            // Check subscription status
+            await checkSubscription();
+            
+            // Get current usage
+            await getUsage();
+            
+            // Add manage subscription button
+            const header = document.querySelector('.header-nav') || document.querySelector('header');
+            if (header) {
+                const manageBtn = document.createElement('button');
+                manageBtn.textContent = 'Manage Subscription';
+                manageBtn.style.cssText = 'margin-left: 10px; padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;';
+                manageBtn.onclick = openCustomerPortal;
+                header.appendChild(manageBtn);
+            }
+            
+            // Check for subscription success/cancel in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('subscription') === 'success') {
+                alert('Subscription successful! Welcome to your new plan.');
+                // Refresh subscription status
+                await checkSubscription();
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (urlParams.get('subscription') === 'cancelled') {
+                alert('Subscription cancelled. You can try again anytime.');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
     </script>
 
     <!-- Footer with Legal Links -->

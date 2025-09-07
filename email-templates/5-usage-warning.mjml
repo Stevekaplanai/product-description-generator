@@ -1,0 +1,111 @@
+<mjml>
+  <mj-head>
+    <mj-title>Usage Alert</mj-title>
+    <mj-attributes>
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" />
+      <mj-button background-color="#667eea" border-radius="5px" font-size="16px" font-weight="bold" />
+      <mj-text font-size="16px" line-height="1.6" color="#333333" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f5f5f5">
+    
+    <!-- Header -->
+    <mj-section background-color="#ffc107" padding="40px 20px">
+      <mj-column>
+        <mj-text align="center" color="#333333" font-size="32px" font-weight="bold">
+          Usage Alert: {{percentUsed}}% Used 📊
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Content -->
+    <mj-section background-color="#ffffff" padding="40px 20px">
+      <mj-column>
+        <mj-text>
+          Hi there!
+        </mj-text>
+        <mj-text>
+          You're approaching your monthly usage limit for your <strong>{{plan}}</strong> plan.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Usage Visual -->
+    <mj-section background-color="#ffffff" padding="0 20px">
+      <mj-column>
+        <mj-text align="center" font-size="48px" font-weight="bold" color="#ffc107">
+          {{percentUsed}}%
+        </mj-text>
+        <mj-divider border-color="#e0e0e0" border-width="2px" />
+      </mj-column>
+    </mj-section>
+    
+    <!-- Stats Box -->
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-wrapper background-color="#f8f9fa" border-radius="8px" padding="20px">
+          <mj-text font-size="18px" font-weight="bold" padding-bottom="15px">
+            Current Usage:
+          </mj-text>
+          <mj-text>
+            <strong>Generated:</strong> {{usage}} / {{limit}} descriptions<br/>
+            <strong>Percentage:</strong> {{percentUsed}}%<br/>
+            <strong>Remaining:</strong> {{remaining}} descriptions
+          </mj-text>
+        </mj-wrapper>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Upgrade Section -->
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="bold" padding-bottom="10px">
+          Need more capacity?
+        </mj-text>
+        <mj-text>
+          Upgrade your plan for higher limits and more features:
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <!-- CTA -->
+    <mj-section background-color="#ffffff" padding="0 20px 30px">
+      <mj-column>
+        <mj-button href="https://productdescriptions.io/pricing">
+          View Upgrade Options →
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Tips -->
+    <mj-section background-color="#ffffff" padding="0 20px 40px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="bold" padding-bottom="10px">
+          💡 Pro Tips:
+        </mj-text>
+        <mj-text>
+          • Use bulk upload for multiple products at once<br/>
+          • Save templates for similar products<br/>
+          • Optimize prompts for better first-time results
+        </mj-text>
+        <mj-text padding-top="20px">
+          Questions? Just reply to this email!
+        </mj-text>
+        <mj-text padding-top="20px">
+          Best regards,<br/>
+          <strong>The ProductDescriptions.io Team</strong>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Footer -->
+    <mj-section background-color="#f8f9fa" padding="20px">
+      <mj-column>
+        <mj-text align="center" font-size="12px" color="#666666">
+          © 2024 ProductDescriptions.io | Limits reset on your billing date
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+  </mj-body>
+</mjml>

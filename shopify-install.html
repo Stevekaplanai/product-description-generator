@@ -92,11 +92,13 @@
         
         input {
             width: 100%;
-            padding: 12px 15px;
+            padding: 14px 15px;
             border: 2px solid #e1e3e5;
             border-radius: 8px;
             font-size: 16px;
             transition: border-color 0.3s;
+            min-height: 48px; /* Mobile touch target */
+            -webkit-appearance: none; /* Prevent iOS styling */
         }
         
         input:focus {
@@ -124,6 +126,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.3s, box-shadow 0.3s;
+            min-height: 48px; /* Mobile touch target */
         }
         
         .install-btn:hover {
@@ -256,6 +259,11 @@
                        id="shopInput" 
                        placeholder="your-store-name" 
                        pattern="[a-zA-Z0-9-]+"
+                       autocomplete="off"
+                       autocapitalize="off"
+                       autocorrect="off"
+                       spellcheck="false"
+                       inputmode="url"
                        onkeypress="handleEnter(event)">
                 <span class="input-suffix">.myshopify.com</span>
             </div>

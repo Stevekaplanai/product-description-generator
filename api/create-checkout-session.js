@@ -1,10 +1,12 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripeConfig = require('./config/stripe');
+const stripe = require('stripe')(stripeConfig.secretKey, stripeConfig.options);
 
 module.exports = async (req, res) => {
-  // Enable CORS
+  // Enable CORS with proper headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -15,8 +17,8 @@ module.exports = async (req, res) => {
   }
 
   // Check if Stripe is properly configured
-  if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_replace_with_real_key') {
-    console.error('Stripe secret key not configured properly');
+  if (!stripeConfig.isConfigured()) {
+    console.error('Stripe not configured properly:', stripeConfig.getStatus());
     return res.status(500).json({ 
       error: 'Payment system not configured',
       message: 'The payment system is not properly configured. Please contact support at hello@gtmvp.com'
@@ -38,8 +40,8 @@ module.exports = async (req, res) => {
         },
       ],
       mode: 'subscription',
-      success_url: successUrl || `${req.headers.origin}/app.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${req.headers.origin}/`,
+      success_url: successUrl || stripeConfig.urls.successUrl,
+      cancel_url: cancelUrl || stripeConfig.urls.cancelUrl,
       customer_email: customerEmail,
       allow_promotion_codes: true,
       billing_address_collection: 'required',
