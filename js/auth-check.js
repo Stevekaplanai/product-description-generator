@@ -97,6 +97,7 @@ function showUserDashboard() {
         border-radius: 10px;
         padding: 10px 20px;
         margin-top: 20px;
+        margin-bottom: 10px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -135,6 +136,14 @@ function showUserDashboard() {
     const existingDashboard = document.getElementById('userDashboard');
     if (!existingDashboard) {
         header.appendChild(userSection);
+        
+        // Adjust body padding on mobile to account for header height
+        if (window.innerWidth <= 768) {
+            setTimeout(() => {
+                const headerHeight = header.offsetHeight;
+                document.body.style.paddingTop = (headerHeight + 10) + 'px';
+            }, 100);
+        }
     }
 }
 
@@ -172,6 +181,19 @@ function logout() {
 // Initialize auth check on page load
 if (typeof window !== 'undefined') {
     window.addEventListener('DOMContentLoaded', checkAuth);
+    
+    // Handle window resize and orientation changes
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            const header = document.querySelector('header');
+            if (header && window.innerWidth <= 768) {
+                const headerHeight = header.offsetHeight;
+                document.body.style.paddingTop = (headerHeight + 10) + 'px';
+            }
+        }, 250);
+    });
 }
 
 // Export for use in other scripts
