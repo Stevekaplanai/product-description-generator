@@ -68,14 +68,10 @@ function showLoginPrompt() {
                 <a href="/auth.html" style="display: block; padding: 14px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 16px;">
                     Sign In / Sign Up
                 </a>
-                
-                <button onclick="continueAsGuest()" style="padding: 14px 20px; background: #f5f5f5; color: #333; border: none; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer;">
-                    Continue as Guest (Limited)
-                </button>
             </div>
             
             <p style="color: #999; font-size: 12px; margin-top: 20px;">
-                Free users get 5 descriptions per month
+                Sign up to get 5 free descriptions per month
             </p>
         </div>
     `;
@@ -87,6 +83,11 @@ function showUserDashboard() {
     // Remove any login overlay
     const overlay = document.getElementById('authOverlay');
     if (overlay) overlay.remove();
+    
+    // Don't show dashboard if no valid user
+    if (!currentUser || !currentUser.email) {
+        return;
+    }
     
     // Add user info to header
     const header = document.querySelector('header');
@@ -147,20 +148,7 @@ function showUserDashboard() {
     }
 }
 
-function continueAsGuest() {
-    // Allow limited guest access
-    const overlay = document.getElementById('authOverlay');
-    if (overlay) overlay.remove();
-    
-    // Set guest user
-    currentUser = {
-        name: 'Guest',
-        email: null,
-        subscription: 'guest'
-    };
-    
-    showUserDashboard();
-}
+// Guest mode removed - users must sign up
 
 function manageAccount() {
     // Check if user has Stripe subscription

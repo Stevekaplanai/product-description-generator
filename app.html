@@ -3264,15 +3264,7 @@
             // Get current usage
             await getUsage();
             
-            // Add manage subscription button
-            const header = document.querySelector('.header-nav') || document.querySelector('header');
-            if (header) {
-                const manageBtn = document.createElement('button');
-                manageBtn.textContent = 'Manage Subscription';
-                manageBtn.style.cssText = 'margin-left: 10px; padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;';
-                manageBtn.onclick = openCustomerPortal;
-                header.appendChild(manageBtn);
-            }
+            // Don't add manage subscription button here - it's handled by auth-check.js
             
             // Check for subscription success/cancel in URL
             const urlParams = new URLSearchParams(window.location.search);
