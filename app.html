@@ -448,6 +448,99 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+        
+        /* New pricing options styles */
+        .video-pricing-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .pricing-option {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-option.popular {
+            border-color: #ffd700;
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(255,215,0,0.3);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .savings-text {
+            color: #4ade80;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .pricing-option .create-video-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px 20px;
+        }
+
+        .pricing-option.popular .create-video-btn {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+        }
+
+        /* Trust badges */
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .trust-badges .badge {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Urgency timer */
+        .urgency-timer {
+            background: rgba(255,107,107,0.2);
+            border: 1px solid rgba(255,107,107,0.5);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 20px 0;
+        }
+
+        .urgency-timer p {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        #countdown {
+            color: #ffd700;
+            font-family: monospace;
+            font-size: 1.1em;
+        }
 
         .variations-tabs {
             display: flex;
@@ -731,7 +824,7 @@
             }
             
             .video-upsell-container h2 {
-                font-size: 1.5rem;
+                font-size: 1.3rem !important;
                 margin-bottom: 10px;
             }
             
@@ -1027,7 +1120,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
             border-radius: 20px;
             padding: 40px;
-            max-width: 600px;
+            max-width: 800px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
@@ -1668,21 +1761,44 @@
                     </div>
                 </div>
 
-                <div class="video-pricing">
-                    <div class="price-tag">
-                        <span class="currency">$</span>
-                        <span class="amount">29</span>
-                        <span class="period">/video</span>
+                <div class="video-pricing-options">
+                    <div class="pricing-option">
+                        <div class="price-tag">
+                            <span class="currency">$</span>
+                            <span class="amount">29</span>
+                            <span class="period">/video</span>
+                        </div>
+                        <button class="create-video-btn single" onclick="proceedToVideoCreation('single')">
+                            🎥 Get Single Video
+                        </button>
                     </div>
-                    <div class="discount-badge">Limited Time: 50% OFF</div>
+                    
+                    <div class="pricing-option popular">
+                        <span class="popular-badge">MOST POPULAR</span>
+                        <div class="price-tag">
+                            <span class="currency">$</span>
+                            <span class="amount">69</span>
+                            <span class="period">/3 videos</span>
+                        </div>
+                        <div class="savings-text">Save $18!</div>
+                        <button class="create-video-btn triple" onclick="proceedToVideoCreation('triple')">
+                            🎬 Get 3-Video Pack
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Removed video preview section for cleaner mobile experience -->
+                <div class="urgency-timer">
+                    <p>⏰ Limited time offer expires in: <span id="countdown">23:59:47</span></p>
+                </div>
+
+                <!-- Trust badges -->
+                <div class="trust-badges">
+                    <div class="badge">🔒 Secure Checkout</div>
+                    <div class="badge">💰 30-Day Guarantee</div>
+                    <div class="badge">⚡ Instant Delivery</div>
+                </div>
 
                 <div class="action-buttons">
-                    <button class="create-video-btn" onclick="proceedToVideoCreation()">
-                        🎥 Create Video Now
-                    </button>
                     <button class="skip-btn" onclick="handleMaybeLater()">
                         Maybe Later
                     </button>
@@ -2293,10 +2409,51 @@
             const modal = document.getElementById('videoUpsellModal');
             // Preview content removed for cleaner mobile experience
             modal.classList.add('active');
+            
+            // Start countdown timer
+            startCountdownTimer();
+        }
+        
+        function startCountdownTimer() {
+            // Set end time to 24 hours from now
+            const endTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+            
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const timeLeft = endTime - now;
+                
+                if (timeLeft > 0) {
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    
+                    const countdownEl = document.getElementById('countdown');
+                    if (countdownEl) {
+                        countdownEl.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                } else {
+                    clearInterval(countdownInterval);
+                    const countdownEl = document.getElementById('countdown');
+                    if (countdownEl) {
+                        countdownEl.textContent = '00:00:00';
+                    }
+                }
+            }
+            
+            updateCountdown();
+            const countdownInterval = setInterval(updateCountdown, 1000);
+            
+            // Store interval ID to clear when modal closes
+            window.videoCountdownInterval = countdownInterval;
         }
 
         function closeVideoUpsellModal() {
             document.getElementById('videoUpsellModal').classList.remove('active');
+            
+            // Clear countdown timer
+            if (window.videoCountdownInterval) {
+                clearInterval(window.videoCountdownInterval);
+            }
         }
 
         function handleMaybeLater() {
@@ -2352,7 +2509,7 @@
             }, 5000);
         }
 
-        async function proceedToVideoCreation() {
+        async function proceedToVideoCreation(videoType = 'single') {
             // Store data for video creation page
             const productName = sessionStorage.getItem('productName') || document.getElementById('productName').value;
             const description = sessionStorage.getItem('productDescription') || currentVariations[0];
@@ -2370,7 +2527,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        videoType: 'single',
+                        videoType: videoType,
                         customerEmail: customerEmail,
                         productName: productName,
                         productDescription: description
