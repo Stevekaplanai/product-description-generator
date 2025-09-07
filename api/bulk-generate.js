@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { checkRateLimit } = require('./lib/rate-limiter');
 
 // Initialize Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY);
@@ -15,6 +16,22 @@ module.exports = async (req, res) => {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Check rate limit (5 requests per minute for bulk)
+  const rateLimitResult = checkRateLimit(req);
+  if (!rateLimitResult.allowed) {
+    res.setHeader('X-RateLimit-Limit', '5');
+    res.setHeader('X-RateLimit-Remaining', '0');
+    res.setHeader('X-RateLimit-Reset', rateLimitResult.resetTime);
+    res.setHeader('Retry-After', rateLimitResult.retryAfter);
+    
+    return res.status(429).json({ 
+      success: false,
+      error: 'Too many bulk requests', 
+      details: `Please wait ${rateLimitResult.retryAfter} seconds before trying again`,
+      retryAfter: rateLimitResult.retryAfter
+    });
   }
 
   try {

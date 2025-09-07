@@ -1,6 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const OpenAI = require('openai');
 const cloudinary = require('cloudinary').v2;
+const { checkRateLimit } = require('./lib/rate-limiter');
 
 // Initialize APIs - check both possible env var names
 const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
@@ -30,6 +31,27 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Check rate limit
+  const rateLimitResult = checkRateLimit(req);
+  if (!rateLimitResult.allowed) {
+    res.setHeader('X-RateLimit-Limit', '10');
+    res.setHeader('X-RateLimit-Remaining', '0');
+    res.setHeader('X-RateLimit-Reset', rateLimitResult.resetTime);
+    res.setHeader('Retry-After', rateLimitResult.retryAfter);
+    
+    return res.status(429).json({ 
+      success: false,
+      error: 'Too many requests', 
+      details: `Please wait ${rateLimitResult.retryAfter} seconds before trying again`,
+      retryAfter: rateLimitResult.retryAfter
+    });
+  }
+  
+  // Add rate limit headers to successful responses
+  res.setHeader('X-RateLimit-Limit', '10');
+  res.setHeader('X-RateLimit-Remaining', rateLimitResult.remaining);
+  res.setHeader('X-RateLimit-Reset', rateLimitResult.resetTime);
 
   try {
     const { productName, productCategory, targetAudience, keyFeatures, tone, imageAnalysis, hasUploadedImage } = req.body;

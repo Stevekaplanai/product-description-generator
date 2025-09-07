@@ -295,13 +295,67 @@
             margin-top: 30px;
         }
 
-        .process-btn:hover {
+        .process-btn:hover:not(:disabled) {
             transform: translateY(-2px);
         }
 
         .process-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+        }
+        
+        /* Loading spinner styles */
+        .loading-spinner {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .spinner-icon {
+            animation: rotate 1s linear infinite;
+        }
+        
+        .spinner-icon circle {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 80;
+            animation: dash 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes dash {
+            0% { stroke-dashoffset: 80; }
+            50% { stroke-dashoffset: 20; }
+            100% { stroke-dashoffset: 80; }
+        }
+        
+        /* Error message styles */
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 20px auto;
+            max-width: 600px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .error-message.show {
+            display: block !important;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .results-section {
@@ -495,9 +549,17 @@
 
             <div style="text-align: center;">
                 <button class="process-btn" id="processBtn" disabled onclick="processBulkUpload()">
-                    Select File to Continue
+                    <span class="btn-text">Select File to Continue</span>
+                    <span class="loading-spinner" style="display: none;">
+                        <svg class="spinner-icon" width="20" height="20" viewBox="0 0 50 50">
+                            <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5"></circle>
+                        </svg>
+                        Processing...
+                    </span>
                 </button>
             </div>
+            
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
 
             <div class="loading" id="loading">
                 <div class="spinner"></div>
@@ -625,6 +687,20 @@
         async function processBulkUpload() {
             if (uploadedProducts.length === 0) return;
 
+            // Show loading state on button
+            const processBtn = document.getElementById('processBtn');
+            const btnText = processBtn.querySelector('.btn-text');
+            const loadingSpinner = processBtn.querySelector('.loading-spinner');
+            
+            processBtn.disabled = true;
+            btnText.style.display = 'none';
+            loadingSpinner.style.display = 'inline-flex';
+            
+            // Clear any previous errors
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.style.display = 'none';
+            errorDiv.classList.remove('show');
+
             // Track event
             if (typeof posthog !== 'undefined') {
                 posthog.capture('bulk_processing_started', {
@@ -634,7 +710,6 @@
             }
 
             document.getElementById('loading').classList.add('active');
-            document.getElementById('processBtn').disabled = true;
             
             processedResults = [];
             let successCount = 0;
@@ -691,6 +766,12 @@
             } catch (error) {
                 console.error('Bulk processing error:', error);
                 
+                // Show error message
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = error.message || 'Unable to process products. Please check your connection and try again.';
+                errorDiv.style.display = 'block';
+                errorDiv.classList.add('show');
+                
                 // Update UI to show error
                 document.getElementById('progressFill').style.width = '100%';
                 document.getElementById('progressFill').style.backgroundColor = '#e74c3c';
@@ -711,6 +792,12 @@
             document.getElementById('loading').classList.remove('active');
             document.getElementById('resultsSection').classList.add('active');
             document.getElementById('successCount').textContent = successCount;
+            
+            // Reset button state
+            processBtn.disabled = false;
+            btnText.style.display = 'inline';
+            btnText.textContent = 'Process Another File';
+            loadingSpinner.style.display = 'none';
 
             // Store results for video creation
             sessionStorage.setItem('bulkProcessedProducts', JSON.stringify(processedResults));
