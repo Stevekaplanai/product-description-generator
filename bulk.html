@@ -3,7 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Product Description Generator - CSV Upload</title>
+    <title>Bulk Product Description Generator - Professional Plan</title>
+    
+    <!-- PostHog Analytics -->
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        
+        const pageLoadTime = Date.now();
+        
+        // Initialize PostHog from server-side config
+        fetch('/api/config')
+            .then(response => response.json())
+            .then(config => {
+                if (config.posthogKey) {
+                    posthog.init(config.posthogKey, {api_host:'https://app.posthog.com'});
+                }
+            })
+            .catch(err => console.log('Analytics not configured'));
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -59,11 +77,132 @@
             background: rgba(255,255,255,0.3);
         }
 
+        /* Subscription Upsell Banner */
+        .subscription-banner {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .subscription-banner h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .subscription-plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .plan-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s;
+            color: #333;
+        }
+
+        .plan-card.popular {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .plan-price span {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .plan-features li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .plan-features li:before {
+            content: "✓ ";
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .subscribe-btn {
+            width: 100%;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .subscribe-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .plan-card.popular .subscribe-btn {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+        }
+
         .main-content {
             background: white;
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .free-tier-notice {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .free-tier-notice h3 {
+            color: #856404;
+            margin-bottom: 10px;
         }
 
         .upload-section {
@@ -104,96 +243,21 @@
             display: none;
             margin-top: 20px;
             padding: 15px;
-            background: white;
-            border-radius: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
         }
 
         .file-info.active {
             display: block;
         }
 
-        .instructions {
-            text-align: left;
-        }
-
-        .instructions h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .instructions ol {
-            margin-left: 20px;
-            color: #666;
-            line-height: 1.8;
-        }
-
-        .sample-download {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #4caf50;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-
-        .sample-download:hover {
-            background: #45a049;
-        }
-
-        .pricing-section {
-            margin-bottom: 30px;
-        }
-
-        .pricing-tiers {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .tier-card {
-            flex: 1;
-            padding: 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-
-        .tier-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .tier-card.selected {
-            border-color: #667eea;
-            background: #f7f9ff;
-        }
-
-        .tier-price {
-            font-size: 28px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 10px 0;
-        }
-
-        .tier-features {
-            font-size: 14px;
-            color: #666;
-            margin-top: 10px;
-            line-height: 1.6;
-        }
-
         .process-btn {
-            width: 100%;
-            padding: 20px;
+            padding: 15px 40px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 20px;
+            border-radius: 8px;
+            font-size: 18px;
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.3s;
@@ -220,75 +284,35 @@
             display: block;
         }
 
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .results-stats {
-            display: flex;
-            gap: 30px;
-        }
-
-        .stat-card {
+        .video-upsell-banner {
+            background: linear-gradient(135deg, #9c27b0, #673ab7);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
             text-align: center;
         }
 
-        .stat-value {
-            font-size: 32px;
+        .video-upsell-banner h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .video-bundle-btn {
+            padding: 15px 30px;
+            background: white;
+            color: #9c27b0;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
             font-weight: bold;
-            color: #667eea;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.3s;
         }
 
-        .stat-label {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .download-btn {
-            padding: 12px 24px;
-            background: #4caf50;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-
-        .download-btn:hover {
-            background: #45a049;
-        }
-
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .results-table th {
-            background: #f5f5f5;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .results-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .status-success {
-            color: #4caf50;
-            font-weight: 600;
-        }
-
-        .status-error {
-            color: #f44336;
-            font-weight: 600;
+        .video-bundle-btn:hover {
+            transform: scale(1.05);
         }
 
         .loading {
@@ -321,48 +345,13 @@
             font-weight: 600;
         }
 
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .cost-summary {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 30px;
-            text-align: center;
-        }
-
-        .total-cost {
-            font-size: 36px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 10px 0;
-        }
-
         @media (max-width: 768px) {
             .upload-section {
                 grid-template-columns: 1fr;
             }
             
-            .pricing-tiers {
-                flex-direction: column;
-            }
-
-            .results-stats {
-                flex-direction: column;
-                gap: 15px;
+            .subscription-plans {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -370,273 +359,419 @@
 <body>
     <div class="container">
         <header>
-            <h1>Bulk Product Description Generator</h1>
-            <p class="subtitle">Upload CSV files to generate descriptions for multiple products at once</p>
+            <h1>🚀 Bulk Product Description Generator</h1>
+            <p class="subtitle">Professional tools for scaling your e-commerce content</p>
             <div class="nav-links">
-                <a href="/" class="nav-link">Single Product</a>
-                <a href="/bulk.html" class="nav-link">Bulk Upload</a>
+                <a href="/" class="nav-link">← Back to Home</a>
+                <a href="/app.html" class="nav-link">Single Product</a>
             </div>
         </header>
 
+        <!-- Subscription Upsell Section -->
+        <div class="subscription-banner">
+            <h2>📈 Unlock Unlimited Bulk Processing</h2>
+            <p>Process hundreds of products monthly with our professional plans</p>
+            
+            <div class="subscription-plans">
+                <div class="plan-card">
+                    <div class="plan-name">Starter</div>
+                    <div class="plan-price">$49<span>/month</span></div>
+                    <ul class="plan-features">
+                        <li>100 products/month</li>
+                        <li>Basic descriptions</li>
+                        <li>CSV export</li>
+                        <li>Email support</li>
+                    </ul>
+                    <button class="subscribe-btn" onclick="subscribeToplan('starter')">
+                        Start Free Trial
+                    </button>
+                </div>
+
+                <div class="plan-card popular">
+                    <span class="popular-badge">MOST POPULAR</span>
+                    <div class="plan-name">Professional</div>
+                    <div class="plan-price">$99<span>/month</span></div>
+                    <ul class="plan-features">
+                        <li>500 products/month</li>
+                        <li>AI images included</li>
+                        <li>3 description variations</li>
+                        <li>Priority processing</li>
+                        <li>5 videos/month included</li>
+                    </ul>
+                    <button class="subscribe-btn" onclick="subscribeToplan('professional')">
+                        Start Free Trial
+                    </button>
+                </div>
+
+                <div class="plan-card">
+                    <div class="plan-name">Enterprise</div>
+                    <div class="plan-price">$299<span>/month</span></div>
+                    <ul class="plan-features">
+                        <li>Unlimited products</li>
+                        <li>API access</li>
+                        <li>Custom templates</li>
+                        <li>20 videos/month</li>
+                        <li>Dedicated support</li>
+                    </ul>
+                    <button class="subscribe-btn" onclick="subscribeToplan('enterprise')">
+                        Contact Sales
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="main-content">
+            <!-- Free Tier Notice -->
+            <div class="free-tier-notice">
+                <h3>🎁 Free Trial: Process up to 5 products</h3>
+                <p>Test our bulk processing with up to 5 products for free. Upload your CSV below to get started!</p>
+            </div>
+
             <div class="upload-section">
                 <div>
                     <div class="csv-upload-area" id="csvUploadArea" onclick="document.getElementById('csvFile').click()">
                         <div class="upload-icon">📁</div>
-                        <h3>Click to upload CSV file</h3>
-                        <p style="margin-top: 10px; color: #666;">
-                            Upload your product list in CSV format
-                        </p>
-                        <input type="file" id="csvFile" accept=".csv" style="display: none;" onchange="handleCsvUpload(event)">
-                        
-                        <div class="file-info" id="fileInfo">
-                            <p><strong>File:</strong> <span id="fileName"></span></p>
-                            <p><strong>Size:</strong> <span id="fileSize"></span></p>
-                            <p><strong>Ready to process!</strong> ✅</p>
-                        </div>
+                        <h3>Upload CSV File</h3>
+                        <p>Click to browse or drag and drop</p>
+                        <input type="file" id="csvFile" accept=".csv" style="display: none;" onchange="handleFileUpload(event)">
+                    </div>
+                    <div class="file-info" id="fileInfo">
+                        <h4>File Details:</h4>
+                        <p>Name: <span id="fileName"></span></p>
+                        <p>Products Found: <span id="productCount"></span></p>
+                        <p>Status: <span id="fileStatus"></span></p>
                     </div>
                 </div>
 
-                <div class="instructions">
-                    <h3>How to use bulk upload:</h3>
-                    <ol>
-                        <li>Download our sample CSV template</li>
-                        <li>Fill in your product information</li>
-                        <li>Upload the CSV file</li>
-                        <li>Select your pricing tier</li>
-                        <li>Click "Process Products"</li>
-                        <li>Download results with all variations</li>
-                    </ol>
+                <div>
+                    <h3>📋 CSV Format Requirements</h3>
+                    <p>Your CSV should have the following columns:</p>
+                    <ul>
+                        <li><strong>product_name</strong> (required)</li>
+                        <li><strong>category</strong> (optional)</li>
+                        <li><strong>features</strong> (optional)</li>
+                        <li><strong>target_audience</strong> (optional)</li>
+                        <li><strong>tone</strong> (optional)</li>
+                    </ul>
                     
-                    <a href="/sample-products.csv" download class="sample-download">
-                        📥 Download Sample CSV Template
-                    </a>
+                    <p style="margin-top: 20px;">
+                        <a href="/sample-bulk-template.csv" download style="color: #667eea; font-weight: 600;">
+                            📥 Download Sample CSV Template
+                        </a>
+                    </p>
                 </div>
             </div>
 
-            <div class="pricing-section">
-                <h3>Select Pricing Tier (per product)</h3>
-                <div class="pricing-tiers">
-                    <div class="tier-card" data-tier="basic">
-                        <div class="tier-name">Basic</div>
-                        <div class="tier-price">$5</div>
-                        <div class="tier-features">
-                            150 words<br>
-                            2 variations<br>
-                            Basic SEO
-                        </div>
-                    </div>
-                    <div class="tier-card selected" data-tier="standard">
-                        <div class="tier-name">Standard</div>
-                        <div class="tier-price">$15</div>
-                        <div class="tier-features">
-                            300 words<br>
-                            3 variations<br>
-                            Advanced SEO
-                        </div>
-                    </div>
-                    <div class="tier-card" data-tier="premium">
-                        <div class="tier-name">Premium</div>
-                        <div class="tier-price">$25</div>
-                        <div class="tier-features">
-                            500+ words<br>
-                            5 variations<br>
-                            Full SEO suite
-                        </div>
-                    </div>
-                </div>
+            <div style="text-align: center;">
+                <button class="process-btn" id="processBtn" disabled onclick="processBulkUpload()">
+                    Select File to Continue
+                </button>
             </div>
-
-            <button class="process-btn" id="processBtn" onclick="processCsv()" disabled>
-                Upload CSV to Continue
-            </button>
 
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <h3>Processing your products...</h3>
+                <h3>Processing Your Products...</h3>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
                 </div>
-                <p id="progressText">Initializing...</p>
+                <p id="progressText">Starting...</p>
             </div>
 
             <div class="results-section" id="resultsSection">
-                <div class="results-header">
-                    <h2>Processing Results</h2>
-                    <a href="#" class="download-btn" id="downloadBtn" style="display: none;">
-                        📥 Download Results CSV
-                    </a>
+                <h2>✅ Processing Complete!</h2>
+                
+                <!-- Video Upsell for Bulk Users -->
+                <div class="video-upsell-banner">
+                    <h3>🎬 Transform Your Products into Videos!</h3>
+                    <p>Create professional product videos for all your processed items</p>
+                    <p style="font-size: 1.5rem; margin: 15px 0;">
+                        <strong>Special Bulk Rate: $199</strong> for up to 10 videos
+                    </p>
+                    <button class="video-bundle-btn" onclick="proceedToBulkVideoCreation()">
+                        Create Video Bundle Now
+                    </button>
                 </div>
 
                 <div class="results-stats">
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalProcessed">0</div>
-                        <div class="stat-label">Total Products</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="successCount">0</div>
-                        <div class="stat-label">Successful</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="failedCount">0</div>
-                        <div class="stat-label">Failed</div>
-                    </div>
-                </div>
-
-                <table class="results-table" id="resultsTable">
-                    <thead>
-                        <tr>
-                            <th>Product Name</th>
-                            <th>Category</th>
-                            <th>Word Count</th>
-                            <th>SEO Score</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultsBody">
-                    </tbody>
-                </table>
-
-                <div class="cost-summary">
-                    <h3>Total Cost</h3>
-                    <div class="total-cost" id="totalCost">$0</div>
-                    <p style="color: #666; margin-top: 10px;">
-                        <span id="costBreakdown"></span>
-                    </p>
+                    <p>Successfully processed <span id="successCount">0</span> products</p>
+                    <button class="download-btn" onclick="downloadResults()">
+                        📥 Download Results (CSV)
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let selectedTier = 'standard';
-        let uploadedFile = null;
+        let uploadedProducts = [];
+        let processedResults = [];
+        let currentSubscription = null;
 
-        document.querySelectorAll('.tier-card').forEach(card => {
-            card.addEventListener('click', function() {
-                document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedTier = this.dataset.tier;
-                updateButtonText();
-            });
-        });
+        // Check subscription status
+        async function checkSubscription() {
+            try {
+                const response = await fetch('/api/check-subscription');
+                const data = await response.json();
+                currentSubscription = data.subscription;
+                updateUIForSubscription();
+            } catch (error) {
+                console.log('No subscription found');
+            }
+        }
 
-        function handleCsvUpload(event) {
+        function updateUIForSubscription() {
+            if (currentSubscription) {
+                document.querySelector('.free-tier-notice').innerHTML = `
+                    <h3>✅ ${currentSubscription.plan} Plan Active</h3>
+                    <p>You can process up to ${currentSubscription.limit} products this month. 
+                       ${currentSubscription.used}/${currentSubscription.limit} used.</p>
+                `;
+            }
+        }
+
+        function handleFileUpload(event) {
             const file = event.target.files[0];
-            if (file) {
-                uploadedFile = file;
-                document.getElementById('csvUploadArea').classList.add('has-file');
-                document.getElementById('fileName').textContent = file.name;
-                document.getElementById('fileSize').textContent = formatFileSize(file.size);
-                document.getElementById('fileInfo').classList.add('active');
-                document.getElementById('processBtn').disabled = false;
-                updateButtonText();
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                parseCSV(csv);
+            };
+            reader.readAsText(file);
+
+            // Update UI
+            document.getElementById('csvUploadArea').classList.add('has-file');
+            document.getElementById('fileInfo').classList.add('active');
+            document.getElementById('fileName').textContent = file.name;
+            
+            // Track event
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('bulk_csv_uploaded', {
+                    file_size: file.size,
+                    file_name: file.name
+                });
             }
         }
 
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-        }
-
-        function updateButtonText() {
-            const btn = document.getElementById('processBtn');
-            if (uploadedFile) {
-                const tierPrices = { basic: 5, standard: 15, premium: 25 };
-                btn.textContent = `Process Products (${tierPrices[selectedTier]} per product)`;
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            
+            uploadedProducts = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = lines[i].split(',');
+                    const product = {};
+                    headers.forEach((header, index) => {
+                        product[header] = values[index]?.trim() || '';
+                    });
+                    if (product.product_name) {
+                        uploadedProducts.push(product);
+                    }
+                }
             }
+
+            document.getElementById('productCount').textContent = uploadedProducts.length;
+            
+            // Check limits
+            const limit = currentSubscription ? currentSubscription.limit : 5;
+            if (uploadedProducts.length > limit) {
+                document.getElementById('fileStatus').innerHTML = 
+                    `<span style="color: orange;">⚠️ File contains ${uploadedProducts.length} products. 
+                     Your plan allows ${limit}. <a href="#" onclick="subscribeToplan('professional')">Upgrade to process all</a></span>`;
+                uploadedProducts = uploadedProducts.slice(0, limit);
+            } else {
+                document.getElementById('fileStatus').innerHTML = 
+                    '<span style="color: green;">✓ Ready to process</span>';
+            }
+
+            document.getElementById('processBtn').disabled = false;
+            document.getElementById('processBtn').textContent = 
+                `Process ${uploadedProducts.length} Products`;
         }
 
-        async function processCsv() {
-            if (!uploadedFile) {
-                alert('Please upload a CSV file');
-                return;
+        async function processBulkUpload() {
+            if (uploadedProducts.length === 0) return;
+
+            // Track event
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('bulk_processing_started', {
+                    product_count: uploadedProducts.length,
+                    has_subscription: !!currentSubscription
+                });
             }
 
             document.getElementById('loading').classList.add('active');
-            document.getElementById('resultsSection').classList.remove('active');
             document.getElementById('processBtn').disabled = true;
+            
+            processedResults = [];
+            let successCount = 0;
 
-            // Simulate progress
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress = Math.min(progress + 10, 90);
+            for (let i = 0; i < uploadedProducts.length; i++) {
+                const product = uploadedProducts[i];
+                
+                // Update progress
+                const progress = Math.round(((i + 1) / uploadedProducts.length) * 100);
                 document.getElementById('progressFill').style.width = progress + '%';
                 document.getElementById('progressFill').textContent = progress + '%';
-                document.getElementById('progressText').textContent = `Processing products... ${progress}%`;
-            }, 200);
+                document.getElementById('progressText').textContent = 
+                    `Processing ${product.product_name} (${i + 1}/${uploadedProducts.length})...`;
+
+                try {
+                    const response = await fetch('/api/generate-description', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            productName: product.product_name,
+                            productCategory: product.category,
+                            keyFeatures: product.features,
+                            targetAudience: product.target_audience,
+                            tone: product.tone || 'professional',
+                            generateImages: currentSubscription?.plan !== 'starter'
+                        })
+                    });
+
+                    const data = await response.json();
+                    processedResults.push({
+                        ...product,
+                        description_1: data.descriptions?.[0] || '',
+                        description_2: data.descriptions?.[1] || '',
+                        description_3: data.descriptions?.[2] || '',
+                        image_url: data.images?.[0]?.url || '',
+                        status: 'success'
+                    });
+                    successCount++;
+                } catch (error) {
+                    processedResults.push({
+                        ...product,
+                        status: 'error',
+                        error: error.message
+                    });
+                }
+
+                // Small delay to prevent rate limiting
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            // Show results
+            document.getElementById('loading').classList.remove('active');
+            document.getElementById('resultsSection').classList.add('active');
+            document.getElementById('successCount').textContent = successCount;
+
+            // Store results for video creation
+            sessionStorage.setItem('bulkProcessedProducts', JSON.stringify(processedResults));
+
+            // Track completion
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('bulk_processing_completed', {
+                    total_products: uploadedProducts.length,
+                    successful: successCount,
+                    failed: uploadedProducts.length - successCount
+                });
+            }
+        }
+
+        function downloadResults() {
+            if (processedResults.length === 0) return;
+
+            // Convert to CSV
+            const headers = Object.keys(processedResults[0]);
+            const csvContent = [
+                headers.join(','),
+                ...processedResults.map(row => 
+                    headers.map(header => 
+                        `"${(row[header] || '').toString().replace(/"/g, '""')}"`
+                    ).join(',')
+                )
+            ].join('\n');
+
+            // Download
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `product-descriptions-${Date.now()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            // Track
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('bulk_results_downloaded', {
+                    product_count: processedResults.length
+                });
+            }
+        }
+
+        async function subscribeToplan(plan) {
+            // Track interest
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('subscription_plan_clicked', {
+                    plan: plan,
+                    from_page: 'bulk_upload'
+                });
+            }
 
             try {
-                const formData = new FormData();
-                formData.append('csvFile', uploadedFile);
-                formData.append('tier', selectedTier);
-
-                const response = await fetch('/api/bulk-csv-upload', {
+                const response = await fetch('/api/create-subscription-checkout', {
                     method: 'POST',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan })
                 });
 
                 const data = await response.json();
-                
-                clearInterval(progressInterval);
-                document.getElementById('progressFill').style.width = '100%';
-                document.getElementById('progressFill').textContent = '100%';
-
-                if (data.success) {
-                    displayResults(data);
-                } else {
-                    alert('Error processing CSV: ' + (data.error || 'Unknown error'));
+                if (data.url) {
+                    window.location.href = data.url;
                 }
             } catch (error) {
-                clearInterval(progressInterval);
-                console.error('Error:', error);
-                alert('Error uploading file. Please try again.');
-            } finally {
-                document.getElementById('loading').classList.remove('active');
-                document.getElementById('processBtn').disabled = false;
+                console.error('Subscription error:', error);
+                alert('Subscription system coming soon! Contact us for enterprise access.');
             }
         }
 
-        function displayResults(data) {
-            document.getElementById('resultsSection').classList.add('active');
+        async function proceedToBulkVideoCreation() {
+            const products = JSON.parse(sessionStorage.getItem('bulkProcessedProducts') || '[]');
             
-            // Update stats
-            document.getElementById('totalProcessed').textContent = data.processed;
-            document.getElementById('successCount').textContent = data.successful;
-            document.getElementById('failedCount').textContent = data.failed;
-            
-            // Update table
-            const tbody = document.getElementById('resultsBody');
-            tbody.innerHTML = '';
-            
-            data.results.forEach(result => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${result.productName}</td>
-                    <td>${result.category || '-'}</td>
-                    <td>${result.wordCount || '-'}</td>
-                    <td>${result.seoScore || '-'}</td>
-                    <td class="status-${result.status}">${result.status === 'success' ? '✅ Success' : '❌ Failed'}</td>
-                `;
-                tbody.appendChild(row);
-            });
-            
-            // Update cost
-            document.getElementById('totalCost').textContent = `$${data.totalCost}`;
-            const tierPrices = { basic: 5, standard: 15, premium: 25 };
-            document.getElementById('costBreakdown').textContent = 
-                `${data.successful} products × $${tierPrices[selectedTier]} = $${data.totalCost}`;
-            
-            // Set download link
-            if (data.downloadUrl) {
-                const downloadBtn = document.getElementById('downloadBtn');
-                downloadBtn.href = data.downloadUrl;
-                downloadBtn.style.display = 'inline-block';
+            if (products.length === 0) {
+                alert('No products to create videos for');
+                return;
+            }
+
+            // Track
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('bulk_video_upsell_clicked', {
+                    product_count: products.length
+                });
+            }
+
+            try {
+                const response = await fetch('/api/create-video-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        videoType: 'bulk',
+                        productCount: Math.min(products.length, 10),
+                        products: products.slice(0, 10),
+                        bulkPrice: 199
+                    })
+                });
+
+                const data = await response.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                }
+            } catch (error) {
+                console.error('Video checkout error:', error);
+                alert('Video bundle checkout coming soon!');
             }
         }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkSubscription();
+        });
     </script>
 </body>
 </html>
