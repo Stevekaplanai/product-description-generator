@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Login / Sign Up - ProductDescriptions.io</title>
     
+    <!-- Google Sign-In -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
     <style>
         * {
             margin: 0;
@@ -336,13 +339,26 @@
             <span>or continue with</span>
         </div>
         
-        <div class="social-buttons">
-            <button class="social-btn" onclick="socialLogin('google')">
-                <span>🔍</span> Google
-            </button>
-            <button class="social-btn" onclick="socialLogin('shopify')">
-                <span>🛍️</span> Shopify
-            </button>
+        <!-- Google Sign-In Button -->
+        <div id="g_id_onload"
+             data-client_id="YOUR_GOOGLE_CLIENT_ID"
+             data-callback="handleGoogleSignIn"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="sign_in_with"
+             data-shape="rectangular"
+             data-logo_alignment="left"
+             style="width: 100%; display: flex; justify-content: center;">
+        </div>
+        
+        <div style="margin-top: 15px;">
+            <a href="/shopify-install.html" class="social-btn" style="display: block; text-decoration: none; text-align: center;">
+                <span>🛍️</span> Connect Shopify Store
+            </a>
         </div>
         
         <div class="footer-links">
@@ -479,12 +495,70 @@
             }
         });
         
-        function socialLogin(provider) {
-            if (provider === 'shopify') {
-                window.location.href = '/shopify-install.html';
-            } else {
-                alert(`${provider} login coming soon!`);
+        // Handle Google Sign-In
+        async function handleGoogleSignIn(response) {
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            try {
+                const res = await fetch('/api/auth/google', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ credential: response.credential })
+                });
+                
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    throw new Error(data.error || 'Google login failed');
+                }
+                
+                // Store token and user data
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                successDiv.textContent = 'Login successful! Redirecting...';
+                successDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    window.location.href = '/app.html';
+                }, 1500);
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
             }
+        }
+        
+        // Initialize Google Sign-In with actual client ID from environment
+        window.onload = function() {
+            // Fetch the Google Client ID from the server config
+            fetch('/api/config')
+                .then(response => response.json())
+                .then(config => {
+                    if (config.googleClientId) {
+                        // Update the Google Sign-In button with the actual client ID
+                        const googleButton = document.getElementById('g_id_onload');
+                        if (googleButton) {
+                            googleButton.setAttribute('data-client_id', config.googleClientId);
+                            // Re-render the button
+                            google.accounts.id.initialize({
+                                client_id: config.googleClientId,
+                                callback: handleGoogleSignIn
+                            });
+                            google.accounts.id.renderButton(
+                                document.querySelector('.g_id_signin'),
+                                { theme: 'outline', size: 'large', width: '100%' }
+                            );
+                        }
+                    }
+                })
+                .catch(err => console.log('Google Sign-In not configured'));
         }
         
         // Check if already logged in

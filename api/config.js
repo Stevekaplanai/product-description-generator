@@ -19,11 +19,19 @@ module.exports = async (req, res) => {
     // PostHog analytics key (safe to expose - it's meant to be public)
     posthogKey: process.env.POSTHOG_API_KEY || null,
     
+    // Google OAuth Client ID (safe to expose - it's meant to be public)
+    googleClientId: process.env.GOOGLE_CLIENT_ID || null,
+    
+    // Stripe Publishable Key (safe to expose)
+    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null,
+    
     // Feature flags
     features: {
       videoUpsell: true,
       bulkUpload: true,
-      imageAnalysis: true
+      imageAnalysis: true,
+      googleAuth: true,
+      guestMode: true
     },
     
     // Public pricing info
