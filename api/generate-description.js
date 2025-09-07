@@ -37,49 +37,52 @@ module.exports = async (req, res) => {
       try {
         const model = gemini.getGenerativeModel({ model: 'gemini-pro' });
         console.log('Using Gemini API for description generation');
-      
-      // Enhanced prompts if we have image analysis data
-      let enhancedContext = '';
-      if (imageAnalysis) {
-        enhancedContext = `\nAdditional product details from image analysis:
-        - Colors: ${imageAnalysis.colors?.join(', ') || 'various'}
-        - Materials: ${imageAnalysis.materials?.join(', ') || 'premium materials'}
-        - Style: ${imageAnalysis.style || 'modern'}
-        - Key selling points: ${imageAnalysis.keySellingPoints?.join(', ') || 'quality and design'}
-        - Suggested description: ${imageAnalysis.suggestedDescription || ''}`;
-      }
-      
-      const prompts = [
-        `Write a compelling product description for ${productName}. Category: ${productCategory || 'general'}. Target audience: ${targetAudience || 'general consumers'}. Key features: ${keyFeatures || 'high quality'}. Tone: ${tone || 'professional'}.${enhancedContext} Keep it under 150 words.`,
-        `Create an SEO-optimized product description for ${productName} that highlights its benefits. Focus on ${keyFeatures || 'quality and value'}. Target: ${targetAudience || 'online shoppers'}.${enhancedContext}`,
-        `Write a persuasive product description for ${productName} that converts browsers into buyers. Emphasize ${keyFeatures || 'unique selling points'}.${enhancedContext}`
-      ];
-
-      for (const prompt of prompts) {
-        try {
-          const result = await model.generateContent(prompt);
-          const text = result.response.text();
-          descriptions.push(text);
-        } catch (error) {
-          console.error('Gemini generation error:', error);
-          // Use enhanced fallback instead of simple one
-          const features = keyFeatures ? keyFeatures.split(',').map(f => f.trim()) : ['premium quality'];
-          descriptions.push(
-            `Discover the exceptional ${productName}, a premium ${productCategory || 'product'} designed for ${targetAudience || 'you'}. ${features.length > 0 ? `Featuring ${features[0]}, this remarkable product delivers outstanding value and performance.` : ''} Experience the perfect combination of quality, innovation, and reliability that sets ${productName} apart from the competition.`
-          );
+        
+        // Enhanced prompts if we have image analysis data
+        let enhancedContext = '';
+        if (imageAnalysis) {
+          enhancedContext = `\nAdditional product details from image analysis:
+          - Colors: ${imageAnalysis.colors?.join(', ') || 'various'}
+          - Materials: ${imageAnalysis.materials?.join(', ') || 'premium materials'}
+          - Style: ${imageAnalysis.style || 'modern'}
+          - Key selling points: ${imageAnalysis.keySellingPoints?.join(', ') || 'quality and design'}
+          - Suggested description: ${imageAnalysis.suggestedDescription || ''}`;
         }
-      }
+        
+        const prompts = [
+          `Write a compelling and detailed product description for ${productName}. Category: ${productCategory || 'general'}. Target audience: ${targetAudience || 'general consumers'}. Key features: ${keyFeatures || 'high quality'}. Tone: ${tone || 'professional'}.${enhancedContext} The description should be engaging, informative, and between 100-150 words. Focus on benefits and value proposition.`,
+          
+          `Create an SEO-optimized and conversion-focused product description for ${productName}. Highlight the benefits of: ${keyFeatures || 'quality and value'}. Target market: ${targetAudience || 'online shoppers'}. Category: ${productCategory || 'general'}.${enhancedContext} Write 100-150 words that will help customers understand why this product is perfect for them.`,
+          
+          `Write a persuasive and emotionally engaging product description for ${productName} that converts browsers into buyers. Emphasize: ${keyFeatures || 'unique selling points'}. Appeal to: ${targetAudience || 'discerning customers'}. Style: ${tone || 'professional'}.${enhancedContext} Create a 100-150 word description that tells a story and creates desire.`
+        ];
+
+        for (const prompt of prompts) {
+          try {
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+            descriptions.push(text);
+            console.log(`Generated description ${descriptions.length}: ${text.substring(0, 50)}...`);
+          } catch (error) {
+            console.error('Gemini generation error for prompt:', error.message);
+            // Add a fallback for this specific variation
+            descriptions.push(generateFallbackDescription(productName, productCategory, targetAudience, keyFeatures, tone, descriptions.length));
+          }
+        }
       } catch (apiError) {
-        console.error('Gemini API initialization error:', apiError);
+        console.error('Gemini API initialization error:', apiError.message);
         // Fall through to enhanced fallback descriptions
       }
-    } else {
-      // Enhanced fallback descriptions when Gemini isn't available
+    }
+    
+    // If no descriptions were generated or Gemini isn't available, use enhanced fallbacks
+    if (descriptions.length === 0) {
+      console.log('Using fallback descriptions');
       const features = keyFeatures ? keyFeatures.split(',').map(f => f.trim()) : ['premium quality', 'innovative design', 'exceptional value'];
       const audience = targetAudience || 'discerning customers';
       const category = productCategory || 'product';
       
-      // Generate three varied, comprehensive descriptions
       descriptions.push(
         // Description 1: Feature-focused
         `Discover the exceptional ${productName}, a premium ${category} designed specifically for ${audience}. ${features.length > 0 ? `Featuring ${features.slice(0, 2).join(' and ')}, this remarkable product delivers unmatched performance and reliability.` : ''} Every detail has been carefully crafted to exceed expectations, from its sophisticated design to its intuitive functionality. Whether you're a professional or an enthusiast, ${productName} provides the perfect combination of quality, innovation, and value that sets it apart from the competition.`,
@@ -92,27 +95,41 @@ module.exports = async (req, res) => {
       );
     }
 
-    // Generate images if OpenAI is available
+    // Generate images if OpenAI is available and requested
     const images = [];
-    if (openai && req.body.generateImages) {
+    if (openai && req.body.generateImages !== false) {
       try {
+        console.log('Generating image with DALL-E 3');
+        const imagePrompt = `Product photography of ${productName}: ${keyFeatures || 'professional, high-quality, commercial style'}. ${productCategory ? `Category: ${productCategory}.` : ''} Clean, modern, e-commerce style product image on white background.`;
+        
         const imageResponse = await openai.images.generate({
           model: "dall-e-3",
-          prompt: `Product photography of ${productName}: ${keyFeatures || 'professional, high-quality, commercial style'}`,
+          prompt: imagePrompt,
           n: 1,
           size: "1024x1024",
+          quality: "standard",
+          style: "natural"
         });
-        images.push(imageResponse.data[0].url);
+        
+        if (imageResponse.data && imageResponse.data[0]) {
+          images.push({
+            url: imageResponse.data[0].url,
+            style: 'AI Generated'
+          });
+          console.log('Image generated successfully');
+        }
       } catch (error) {
-        console.error('DALL-E generation error:', error);
+        console.error('DALL-E generation error:', error.message);
+        // Continue without images
       }
     }
 
     res.status(200).json({
       success: true,
       product: productName,
-      descriptions,
-      images,
+      descriptions: descriptions,
+      images: images,
+      generatedImages: images, // Include both keys for compatibility
       timestamp: new Date().toISOString()
     });
 
@@ -120,7 +137,23 @@ module.exports = async (req, res) => {
     console.error('API Error:', error);
     res.status(500).json({ 
       error: 'Internal server error', 
-      message: error.message 
+      message: error.message,
+      details: 'Failed to generate content. Please try again.'
     });
   }
 };
+
+// Helper function to generate fallback descriptions
+function generateFallbackDescription(productName, category, audience, features, tone, variationIndex) {
+  const featuresList = features ? features.split(',').map(f => f.trim()) : ['quality design', 'premium materials'];
+  
+  const variations = [
+    `Experience the remarkable ${productName}, expertly crafted for ${audience || 'you'}. This premium ${category || 'product'} features ${featuresList.join(' and ')}, delivering exceptional value and performance that exceeds expectations.`,
+    
+    `Introducing ${productName} - the perfect ${category || 'solution'} for ${audience || 'discerning customers'}. With ${featuresList[0] || 'outstanding features'} at its core, this product represents the ideal balance of form and function.`,
+    
+    `Discover why ${productName} is the preferred choice for ${audience || 'customers like you'}. Combining ${featuresList.join(', ')} with uncompromising quality, it's designed to deliver results that matter.`
+  ];
+  
+  return variations[variationIndex % variations.length];
+}
