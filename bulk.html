@@ -608,50 +608,72 @@
             processedResults = [];
             let successCount = 0;
 
-            for (let i = 0; i < uploadedProducts.length; i++) {
-                const product = uploadedProducts[i];
-                
+            // Update initial progress
+            document.getElementById('progressFill').style.width = '10%';
+            document.getElementById('progressFill').textContent = '10%';
+            document.getElementById('progressText').textContent = 
+                `Processing ${uploadedProducts.length} products in bulk...`;
+
+            try {
+                const response = await fetch('/api/bulk-generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ products: uploadedProducts })
+                });
+
                 // Update progress
-                const progress = Math.round(((i + 1) / uploadedProducts.length) * 100);
-                document.getElementById('progressFill').style.width = progress + '%';
-                document.getElementById('progressFill').textContent = progress + '%';
-                document.getElementById('progressText').textContent = 
-                    `Processing ${product.product_name} (${i + 1}/${uploadedProducts.length})...`;
+                document.getElementById('progressFill').style.width = '50%';
+                document.getElementById('progressFill').textContent = '50%';
+                document.getElementById('progressText').textContent = 'Generating descriptions...';
 
-                try {
-                    const response = await fetch('/api/generate-description', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            productName: product.product_name,
-                            productCategory: product.category,
-                            keyFeatures: product.features,
-                            targetAudience: product.target_audience,
-                            tone: product.tone || 'professional',
-                            generateImages: currentSubscription?.plan !== 'starter'
-                        })
-                    });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Server error: ${response.status}`);
+                }
 
-                    const data = await response.json();
-                    processedResults.push({
-                        ...product,
-                        description_1: data.descriptions?.[0] || '',
-                        description_2: data.descriptions?.[1] || '',
-                        description_3: data.descriptions?.[2] || '',
-                        image_url: data.images?.[0]?.url || '',
-                        status: 'success'
+                const data = await response.json();
+                
+                // Process bulk results
+                if (data.results && Array.isArray(data.results)) {
+                    data.results.forEach(result => {
+                        const originalProduct = uploadedProducts.find(p => p.product_name === result.product_name) || {};
+                        processedResults.push({
+                            ...originalProduct,
+                            product_name: result.product_name,
+                            description_1: result.description || '',
+                            description_2: '', 
+                            description_3: '',
+                            image_url: '',
+                            status: result.success ? 'success' : 'error',
+                            error: result.error
+                        });
+                        if (result.success) successCount++;
                     });
-                    successCount++;
-                } catch (error) {
+                    
+                    // Update final progress
+                    document.getElementById('progressFill').style.width = '100%';
+                    document.getElementById('progressFill').textContent = '100%';
+                    document.getElementById('progressText').textContent = 'Processing complete!';
+                } else {
+                    throw new Error('Invalid response format from server');
+                }
+            } catch (error) {
+                console.error('Bulk processing error:', error);
+                
+                // Update UI to show error
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('progressFill').style.backgroundColor = '#e74c3c';
+                document.getElementById('progressFill').textContent = 'Error';
+                document.getElementById('progressText').textContent = `Error: ${error.message}`;
+                
+                // Mark all as failed
+                uploadedProducts.forEach(product => {
                     processedResults.push({
                         ...product,
                         status: 'error',
                         error: error.message
                     });
-                }
-
-                // Small delay to prevent rate limiting
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                });
             }
 
             // Show results
