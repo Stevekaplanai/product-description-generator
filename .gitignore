@@ -70,3 +70,5 @@ build/
 !public/generated-videos/.gitkeep
 .vercel
 .env*.local
+
+.env*.local

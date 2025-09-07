@@ -1,9 +1,10 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripeConfig = require('./config/stripe');
+const stripe = require('stripe')(stripeConfig.secretKey);
 
 // Video price IDs - use environment variables (they override the defaults)
 const VIDEO_PRICES = {
-  single: process.env.STRIPE_PRICE_VIDEO_SINGLE || 'price_1S4X3ERrVb92Q7hgEGJQNVDh', // $29 single video
-  triple: process.env.STRIPE_PRICE_VIDEO_TRIPLE || 'price_1S4X4BRrVb92Q7hg460AjSu4'  // $69 triple pack
+  single: process.env.STRIPE_PRICE_VIDEO_SINGLE || 'price_1S4X3ERrVb92Q7hgEGJQNVDh', // $29 single video - Live price ID
+  triple: process.env.STRIPE_PRICE_VIDEO_TRIPLE || 'price_1S4X4BRrVb92Q7hg460AjSu4'  // $69 triple pack - Live price ID
 };
 
 module.exports = async (req, res) => {
@@ -21,8 +22,8 @@ module.exports = async (req, res) => {
   }
 
   // Check if Stripe is configured
-  if (!process.env.STRIPE_SECRET_KEY) {
-    console.error('STRIPE_SECRET_KEY is not configured');
+  if (!stripeConfig.isConfigured()) {
+    console.error('Stripe is not properly configured');
     return res.status(500).json({ 
       error: 'Payment system not configured',
       message: 'Stripe API key is missing'
@@ -38,8 +39,8 @@ module.exports = async (req, res) => {
     
     console.log('Creating video checkout for:', { videoType, priceId, packageName });
 
-    // Create Stripe checkout session for one-time payment
-    const session = await stripe.checkout.sessions.create({
+    // Build session configuration
+    const sessionConfig = {
       payment_method_types: ['card'],
       line_items: [
         {
@@ -50,14 +51,21 @@ module.exports = async (req, res) => {
       mode: 'payment', // One-time payment, not subscription
       success_url: `${req.headers.origin || 'https://productdescriptions.io'}/video-success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.origin || 'https://productdescriptions.io'}/app.html`,
-      customer_email: customerEmail,
       metadata: {
         videoType: videoType,
         packageName: packageName,
         productName: productName || 'Product',
         productDescription: productDescription || ''
       }
-    });
+    };
+    
+    // Only add customer_email if it's a valid email
+    if (customerEmail && customerEmail.includes('@')) {
+      sessionConfig.customer_email = customerEmail;
+    }
+    
+    // Create Stripe checkout session for one-time payment
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     res.status(200).json({ 
       sessionId: session.id,

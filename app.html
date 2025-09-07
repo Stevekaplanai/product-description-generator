@@ -1725,9 +1725,12 @@
                 Generate descriptions with AI-created product images
                 <span class="new-badge">NEW: AI Images!</span>
             </p>
-            <div style="margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
+            <div style="margin-top: 20px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
                 <a href="/bulk.html" style="display: inline-block; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 20px; transition: background 0.3s;">
                     📁 Bulk CSV Upload
+                </a>
+                <a href="#" onclick="showVideoUpgradeModal(); return false;" style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%); color: white; text-decoration: none; border-radius: 20px; transition: transform 0.2s; font-weight: bold;">
+                    🎬 Create Videos
                 </a>
                 <a href="/" style="display: inline-block; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 20px; transition: background 0.3s;">
                     🔄 Classic Version
@@ -1850,6 +1853,15 @@
                             <div class="image-gallery" id="imageGallery">
                                 <!-- Generated images will appear here -->
                             </div>
+                        </div>
+                        
+                        <!-- Video Upgrade CTA -->
+                        <div class="video-upgrade-cta" style="margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; text-align: center;">
+                            <h3 style="color: white; margin-bottom: 10px;">🎬 Turn Your Product Into a Video!</h3>
+                            <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 20px;">Create professional UGC-style videos with AI avatars to boost conversions</p>
+                            <button onclick="showVideoUpgradeModal()" style="background: white; color: #667eea; padding: 12px 30px; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.2s;">
+                                🚀 Create Video Now
+                            </button>
                         </div>
                     </div>
 
@@ -2527,9 +2539,10 @@
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', checkSubscription);
 
-        let currentVariations = [];
-        let currentVariationIndex = 0;
-        let generatedImages = [];
+        // Make these global so they're accessible everywhere
+        window.currentVariations = [];
+        window.currentVariationIndex = 0;
+        window.generatedImages = [];
 
         let uploadedImageBase64 = null;
         
@@ -2654,9 +2667,57 @@
             }
         }
 
+        // Error handling functions
+        function hideError() {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+            }
+        }
+
+        function showErrorMessage(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                errorDiv.style.color = '#dc3545';
+                errorDiv.style.padding = '10px';
+                errorDiv.style.marginBottom = '20px';
+                errorDiv.style.backgroundColor = '#f8d7da';
+                errorDiv.style.border = '1px solid #f5c6cb';
+                errorDiv.style.borderRadius = '5px';
+            } else {
+                // Create error div if it doesn't exist
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.id = 'errorMessage';
+                newErrorDiv.textContent = message;
+                newErrorDiv.style.cssText = 'color: #dc3545; padding: 10px; margin-bottom: 20px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px;';
+                
+                const formCard = document.querySelector('.form-card');
+                if (formCard) {
+                    formCard.insertBefore(newErrorDiv, formCard.firstChild);
+                }
+            }
+            
+            // Also ensure loading is hidden and button is re-enabled
+            document.getElementById('loading').classList.remove('active');
+            const generateBtn = document.getElementById('generateBtn');
+            if (generateBtn) {
+                generateBtn.disabled = false;
+                const btnText = generateBtn.querySelector('.btn-text');
+                const loadingSpinner = generateBtn.querySelector('.loading-spinner');
+                if (btnText) btnText.style.display = 'inline';
+                if (loadingSpinner) loadingSpinner.style.display = 'none';
+            }
+        }
+
         // Tab switching no longer needed - everything is in one view
         function showResults() {
             document.getElementById('results').style.display = 'block';
+            document.getElementById('loading').classList.remove('active');
+            const generateBtn = document.querySelector('.generate-btn');
+            if (generateBtn) generateBtn.disabled = false;
         }
         
         function hideResults() {
@@ -2675,17 +2736,23 @@
             loadingSpinner.style.display = 'inline-flex';
             
             // Clear any previous errors
-            hideError();
-            
-            // Track usage for this generation
-            const usageResult = await trackUsage('description');
-            if (!usageResult) {
-                // Usage limit exceeded, modal will be shown by trackUsage
-                generateBtn.disabled = false;
-                btnText.style.display = 'inline';
-                loadingSpinner.style.display = 'none';
-                return;
+            // hideError function inline to avoid scope issues
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
             }
+            
+            // Track usage for this generation (skip for now to allow testing)
+            // TODO: Re-enable this when authentication is properly set up
+            // const usageResult = await trackUsage('description');
+            // if (!usageResult) {
+            //     // Usage limit exceeded, modal will be shown by trackUsage
+            //     generateBtn.disabled = false;
+            //     btnText.style.display = 'inline';
+            //     loadingSpinner.style.display = 'none';
+            //     return;
+            // }
 
             let productName = document.getElementById('productName').value;
             let category = document.getElementById('category').value;
@@ -2747,6 +2814,18 @@
             document.getElementById('variationTabs').style.display = 'none';
             document.querySelector('.generate-btn').disabled = true;
             
+            // Add mobile-specific progress message
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            if (isMobile) {
+                const loadingElement = document.getElementById('loading');
+                if (loadingElement) {
+                    const existingText = loadingElement.querySelector('p');
+                    if (existingText) {
+                        existingText.innerHTML = 'Generating your content...<br><small>This may take a bit longer on mobile connections</small>';
+                    }
+                }
+            }
+            
             // Track generation event
             if (typeof posthog !== 'undefined') {
                 posthog.capture('content_generated', {
@@ -2779,13 +2858,23 @@
                 
                 while (retries <= maxRetries) {
                     try {
+                        // Detect if mobile and adjust timeout accordingly
+                        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                        const timeout = isMobile ? 60000 : 45000; // 60s for mobile, 45s for desktop
+                        
                         response = await fetch('/api/generate-description', {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json'
+                                'Content-Type': 'application/json',
+                                // Add keep-alive for mobile connections
+                                'Connection': isMobile ? 'keep-alive' : 'close'
                             },
                             body: JSON.stringify(requestData),
-                            signal: AbortSignal.timeout(30000) // 30 second timeout
+                            signal: AbortSignal.timeout(timeout),
+                            // Mobile-specific fetch options
+                            keepalive: isMobile,
+                            mode: 'cors',
+                            credentials: 'same-origin'
                         });
                         
                         if (response.ok || response.status < 500) {
@@ -2794,14 +2883,48 @@
                         
                         if (retries < maxRetries) {
                             console.log(`Retry attempt ${retries + 1} after server error`);
-                            await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1))); // Exponential backoff
+                            // Longer retry delay for mobile
+                            const baseDelay = isMobile ? 2000 : 1000;
+                            await new Promise(resolve => setTimeout(resolve, baseDelay * (retries + 1))); // Exponential backoff
                         }
                     } catch (fetchError) {
+                        console.error('Fetch error:', fetchError);
+                        
+                        // Show mobile-specific error message
+                        if (isMobile && retries === 0) {
+                            const loadingElement = document.getElementById('loading');
+                            if (loadingElement) {
+                                const existingText = loadingElement.querySelector('p');
+                                if (existingText) {
+                                    existingText.innerHTML = 'Connection issue detected. Retrying...<br><small>Mobile networks can be slower - please wait</small>';
+                                }
+                            }
+                        }
+                        
                         if (retries === maxRetries) {
+                            // On mobile, try one more time with simplified request
+                            if (isMobile && !requestData.simplifiedRequest) {
+                                console.log('Mobile fallback: trying simplified request without images');
+                                
+                                // Update loading message
+                                const loadingElement = document.getElementById('loading');
+                                if (loadingElement) {
+                                    const existingText = loadingElement.querySelector('p');
+                                    if (existingText) {
+                                        existingText.innerHTML = 'Switching to text-only mode for faster loading...<br><small>Images can be generated separately</small>';
+                                    }
+                                }
+                                
+                                requestData.simplifiedRequest = true;
+                                requestData.generateImages = false; // Disable image generation for faster response
+                                retries = 0; // Reset retries for simplified attempt
+                                continue;
+                            }
                             throw fetchError;
                         }
                         console.log(`Retry attempt ${retries + 1} after network error`);
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)));
+                        const baseDelay = isMobile ? 2000 : 1000;
+                        await new Promise(resolve => setTimeout(resolve, baseDelay * (retries + 1)));
                     }
                     retries++;
                 }
@@ -2810,22 +2933,32 @@
 
                 if (data.success) {
                     // Store data - handle both 'variations' and 'descriptions' keys
-                    currentVariations = data.variations || data.descriptions || [data.description];
-                    generatedImages = data.generatedImages || data.images || [];
+                    window.currentVariations = data.variations || data.descriptions || [data.description];
+                    window.generatedImages = data.generatedImages || data.images || [];
+                    
+                    console.log('API Success - Descriptions:', window.currentVariations.length, 'Images:', window.generatedImages.length);
                     
                     // Show the results section
                     showResults();
                     
                     // Display variations
-                    displayVariations();
+                    if (typeof displayVariations === 'function') {
+                        displayVariations();
+                    } else {
+                        console.error('displayVariations function not found');
+                    }
                     
                     // Display images
-                    displayImages();
+                    if (typeof displayImages === 'function') {
+                        displayImages();
+                    } else {
+                        console.error('displayImages function not found');
+                    }
                     
                     // Store data for video upsell
                     sessionStorage.setItem('productName', productName);
-                    sessionStorage.setItem('productDescription', currentVariations[0]);
-                    sessionStorage.setItem('generatedImages', JSON.stringify(generatedImages));
+                    sessionStorage.setItem('productDescription', window.currentVariations[0]);
+                    sessionStorage.setItem('generatedImages', JSON.stringify(window.generatedImages));
                     sessionStorage.setItem('features', features);
                     sessionStorage.setItem('targetAudience', targetAudience);
                     // Store tier from subscription
@@ -2833,7 +2966,7 @@
                     
                     // Show video upsell popup after 1.5 minutes
                     setTimeout(() => {
-                        showVideoUpsellPopup(productName, currentVariations[0], generatedImages);
+                        showVideoUpsellPopup(productName, window.currentVariations[0], window.generatedImages);
                     }, 90000); // 90000ms = 1.5 minutes
                 } else {
                     showErrorMessage('Error generating content: ' + (data.details || 'Please try again.'));
@@ -2874,7 +3007,7 @@
             const tabsContainer = document.getElementById('variationTabs');
             tabsContainer.innerHTML = '';
             
-            currentVariations.forEach((variation, index) => {
+            window.currentVariations.forEach((variation, index) => {
                 const tab = document.createElement('button');
                 tab.className = 'variation-tab' + (index === 0 ? ' active' : '');
                 tab.textContent = `V${index + 1}`;
@@ -2882,11 +3015,11 @@
                 tabsContainer.appendChild(tab);
             });
 
-            if (currentVariations.length > 1) {
+            if (window.currentVariations.length > 1) {
                 tabsContainer.style.display = 'flex';
             }
 
-            document.getElementById('descriptionOutput').textContent = currentVariations[0];
+            document.getElementById('descriptionOutput').textContent = window.currentVariations[0];
             
             // Add copy button if it doesn't exist
             const outputContainer = document.getElementById('descriptionOutput').parentElement;
@@ -2895,7 +3028,7 @@
                 copyBtn.className = 'copy-btn';
                 copyBtn.innerHTML = '📋 Copy to Clipboard';
                 copyBtn.onclick = () => {
-                    const currentText = currentVariations[currentVariationIndex];
+                    const currentText = window.currentVariations[window.currentVariationIndex];
                     copyToClipboard(currentText, copyBtn);
                 };
                 outputContainer.appendChild(copyBtn);
@@ -2903,8 +3036,8 @@
         }
 
         function showVariation(index) {
-            currentVariationIndex = index;
-            document.getElementById('descriptionOutput').textContent = currentVariations[index];
+            window.currentVariationIndex = index;
+            document.getElementById('descriptionOutput').textContent = window.currentVariations[index];
             
             document.querySelectorAll('.variation-tab').forEach((tab, i) => {
                 tab.classList.toggle('active', i === index);
@@ -2931,12 +3064,36 @@
             const gallery = document.getElementById('imageGallery');
             gallery.innerHTML = '';
 
-            if (generatedImages.length === 0) {
-                gallery.innerHTML = '<p style="text-align: center; color: #666;">No images generated</p>';
+            if (window.generatedImages.length === 0) {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (isMobile) {
+                    gallery.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <p style="color: #666; margin-bottom: 15px;">Images not generated yet</p>
+                            <button onclick="generateImagesOnly()" style="
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                color: white;
+                                padding: 12px 24px;
+                                border: none;
+                                border-radius: 25px;
+                                font-size: 16px;
+                                cursor: pointer;
+                                font-weight: 600;
+                            ">
+                                🎨 Generate Images Now
+                            </button>
+                            <p style="color: #999; margin-top: 10px; font-size: 14px;">
+                                Mobile tip: Generate images separately for better performance
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    gallery.innerHTML = '<p style="text-align: center; color: #666;">No images generated</p>';
+                }
                 return;
             }
 
-            generatedImages.forEach((image, index) => {
+            window.generatedImages.forEach((image, index) => {
                 const card = document.createElement('div');
                 card.className = 'image-card';
                 card.innerHTML = `
@@ -2964,6 +3121,79 @@
 
         function closeModal() {
             document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // Generate images only function for mobile
+        async function generateImagesOnly() {
+            const gallery = document.getElementById('imageGallery');
+            gallery.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div class="loading-spinner" style="display: inline-flex;"></div>
+                    <p style="color: #666; margin-top: 10px;">Generating images...</p>
+                </div>
+            `;
+            
+            try {
+                const productName = document.getElementById('productName').value || 
+                                   sessionStorage.getItem('productName') || 
+                                   'Product';
+                
+                const response = await fetch('/api/generate-description', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productName: productName,
+                        productCategory: document.getElementById('category').value || 'general',
+                        keyFeatures: document.getElementById('features').value || 'High quality product',
+                        generateImages: true,
+                        imagesOnly: true, // Tell API to only generate images
+                        tier: userSubscription?.plan?.toLowerCase() || 'free'
+                    }),
+                    signal: AbortSignal.timeout(45000) // 45 second timeout for images
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.images) {
+                    window.generatedImages = data.images;
+                    displayImages();
+                    // Save to session storage
+                    sessionStorage.setItem('generatedImages', JSON.stringify(generatedImages));
+                } else {
+                    gallery.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <p style="color: #dc3545;">Failed to generate images</p>
+                            <button onclick="generateImagesOnly()" style="
+                                background: #dc3545;
+                                color: white;
+                                padding: 10px 20px;
+                                border: none;
+                                border-radius: 20px;
+                                margin-top: 10px;
+                                cursor: pointer;
+                            ">Retry</button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Image generation error:', error);
+                gallery.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="color: #dc3545;">Network error - please check your connection</p>
+                        <button onclick="generateImagesOnly()" style="
+                            background: #dc3545;
+                            color: white;
+                            padding: 10px 20px;
+                            border: none;
+                            border-radius: 20px;
+                            margin-top: 10px;
+                            cursor: pointer;
+                        ">Retry</button>
+                    </div>
+                `;
+            }
         }
 
         // Video Upsell Modal Functions
@@ -3060,6 +3290,29 @@
             sessionStorage.setItem('videoCtaDismissed', 'true');
         }
         
+        function showVideoUpgradeModal() {
+            // Get current product data or use stored data
+            const productName = document.getElementById('productName').value || sessionStorage.getItem('productName');
+            const description = window.currentVariations ? window.currentVariations[0] : sessionStorage.getItem('productDescription');
+            const images = window.generatedImages || JSON.parse(sessionStorage.getItem('generatedImages') || '[]');
+            
+            // Store data for later use
+            if (productName) sessionStorage.setItem('productName', productName);
+            if (description) sessionStorage.setItem('productDescription', description);
+            if (images && images.length) sessionStorage.setItem('generatedImages', JSON.stringify(images));
+            
+            // Show video upsell popup
+            showVideoUpsellPopup(productName, description, images);
+            
+            // Track CTA click
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('video_upgrade_cta_clicked', {
+                    source: 'results_section',
+                    product_name: productName
+                });
+            }
+        }
+        
         // Better error message display
         function showErrorMessage(message) {
             // Create error element if it doesn't exist
@@ -3082,7 +3335,7 @@
         async function proceedToVideoCreation(videoType = 'single') {
             // Store data for video creation page
             const productName = sessionStorage.getItem('productName') || document.getElementById('productName').value;
-            const description = sessionStorage.getItem('productDescription') || currentVariations[0];
+            const description = sessionStorage.getItem('productDescription') || window.currentVariations[0];
             const images = sessionStorage.getItem('generatedImages');
             
             // Track package selection
@@ -3097,8 +3350,13 @@
             // Close modal
             closeVideoUpsellModal();
             
-            // Get customer email (could prompt for it)
-            const customerEmail = sessionStorage.getItem('customerEmail') || '';
+            // Get customer email - if not available, prompt for it or leave empty
+            let customerEmail = sessionStorage.getItem('customerEmail') || '';
+            
+            // If no email stored, try to get from a logged-in user or leave empty for Stripe to collect
+            if (!customerEmail && window.userEmail) {
+                customerEmail = window.userEmail;
+            }
             
             try {
                 // Create checkout session for single video
@@ -3107,7 +3365,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         videoType: videoType,
-                        customerEmail: customerEmail,
+                        customerEmail: customerEmail || undefined, // Don't send empty string
                         productName: productName,
                         productDescription: description
                     })

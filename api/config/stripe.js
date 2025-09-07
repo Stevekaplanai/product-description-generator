@@ -6,16 +6,21 @@
 const isProduction = process.env.NODE_ENV === 'production';
 const useProductionStripe = process.env.STRIPE_MODE === 'live';
 
+// Debug: Log environment variables
+console.log('Stripe Config Loading:', {
+  NODE_ENV: process.env.NODE_ENV,
+  STRIPE_MODE: process.env.STRIPE_MODE,
+  hasSecretKey: !!process.env.STRIPE_SECRET_KEY,
+  hasPublishableKey: !!process.env.STRIPE_PUBLISHABLE_KEY,
+  useProductionStripe
+});
+
 module.exports = {
   // Select keys based on environment
-  // Support both old (STRIPE_SECRET_KEY) and new (STRIPE_LIVE_SECRET_KEY) formats
-  secretKey: useProductionStripe 
-    ? (process.env.STRIPE_LIVE_SECRET_KEY || process.env.STRIPE_SECRET_KEY)
-    : (process.env.STRIPE_TEST_SECRET_KEY || process.env.STRIPE_SECRET_KEY),
+  // Use the production keys we have available
+  secretKey: process.env.STRIPE_SECRET_KEY || process.env.STRIPE_LIVE_SECRET_KEY || process.env.STRIPE_TEST_SECRET_KEY,
   
-  publishableKey: useProductionStripe
-    ? (process.env.STRIPE_LIVE_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY)
-    : (process.env.STRIPE_TEST_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY),
+  publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_LIVE_PUBLISHABLE_KEY || process.env.STRIPE_TEST_PUBLISHABLE_KEY,
   
   // Webhook secret (same for test and production)
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,

@@ -4,11 +4,26 @@ let authToken = null;
 
 async function checkAuth() {
     // Get token from localStorage
-    authToken = localStorage.getItem('token');
+    authToken = localStorage.getItem('token') || localStorage.getItem('authToken');
     const userStr = localStorage.getItem('user');
     
+    // Allow guest access if no token (for testing)
     if (!authToken) {
-        // Not logged in - show login prompt
+        // Check if we're in development/test mode
+        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        if (isDevelopment) {
+            // Allow guest access in development
+            currentUser = { 
+                email: 'guest@test.com', 
+                name: 'Guest User',
+                subscription: 'free' 
+            };
+            showUserDashboard();
+            return true;
+        }
+        
+        // Production - show login prompt
         showLoginPrompt();
         return false;
     }

@@ -28,14 +28,15 @@ To restore full context in a new Claude conversation, read these files:
 - `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`
 - `POSTHOG_API_KEY` - Analytics tracking
 
-### Stripe Price IDs (Configured in Vercel)
+### Stripe Configuration (Live Mode)
+- **Mode**: Production/Live (using live Stripe keys)
 - **Subscriptions**:
   - `STRIPE_PRICE_STARTER` - $49/month
   - `STRIPE_PRICE_PROFESSIONAL` - $99/month  
   - `STRIPE_PRICE_ENTERPRISE` - $299/month
-- **Video Products**:
-  - `STRIPE_PRICE_VIDEO_SINGLE` - $29 single video
-  - `STRIPE_PRICE_VIDEO_TRIPLE` - $69 triple pack
+- **Video Products** (Live Price IDs):
+  - `STRIPE_PRICE_VIDEO_SINGLE`: `price_1S4X3ERrVb92Q7hgEGJQNVDh` - $29 single video
+  - `STRIPE_PRICE_VIDEO_TRIPLE`: `price_1S4X4BRrVb92Q7hg460AjSu4` - $69 triple pack
   - `STRIPE_PRICE_BULK_VIDEO` - $199 bulk bundle (10 videos)
 
 ## 🎯 Core Features
@@ -285,6 +286,9 @@ Tracked events for conversion optimization:
 
 ## 🎯 Recent Updates (January 2025)
 
+- ✅ **Fixed Video Checkout**: Updated to use live Stripe price IDs for production
+- ✅ **Enhanced Video Upgrade Flow**: Added multiple upgrade CTAs throughout the interface
+- ✅ **Fixed JavaScript Scope Issues**: Resolved global variable references for proper functionality
 - ✅ **Upgraded to Gemini 2.0 Flash** (gemini-2.0-flash-exp) for superior quality
 - ✅ **Bulk CSV Processing**: Efficient batch API for multiple products
 - ✅ **Subscription Model**: Monthly tiers with 7-day free trial

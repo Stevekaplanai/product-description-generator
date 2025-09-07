@@ -54,8 +54,15 @@ self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
     
-    // Skip non-GET requests
+    // Skip non-GET requests and critical API endpoints
     if (request.method !== 'GET') {
+        return;
+    }
+    
+    // Skip caching for critical generation endpoints
+    if (url.pathname === '/api/generate-description' || 
+        url.pathname === '/api/generate-video' ||
+        url.pathname === '/api/analyze-image') {
         return;
     }
     

@@ -54,10 +54,46 @@ module.exports = async (req, res) => {
   res.setHeader('X-RateLimit-Reset', rateLimitResult.resetTime);
 
   try {
-    const { productName, productCategory, targetAudience, keyFeatures, tone, imageAnalysis, hasUploadedImage } = req.body;
+    const { productName, productCategory, targetAudience, keyFeatures, tone, imageAnalysis, hasUploadedImage, imagesOnly, generateImages } = req.body;
 
     if (!productName) {
       return res.status(400).json({ error: 'Product name is required' });
+    }
+
+    // If images only requested, skip description generation
+    if (imagesOnly) {
+      console.log('Images-only request received');
+      const images = [];
+      
+      // Generate images with DALL-E if available
+      if (openai && process.env.OPENAI_API_KEY) {
+        try {
+          console.log('Generating image with DALL-E 3 for:', productName);
+          const imageResponse = await openai.images.generate({
+            model: "dall-e-3",
+            prompt: `Professional product photo of ${productName}. ${keyFeatures || ''}. High quality, clean background, commercial photography style.`,
+            n: 1,
+            size: "1024x1024",
+            quality: "standard",
+            style: "natural"
+          });
+          
+          if (imageResponse.data && imageResponse.data[0]) {
+            images.push({
+              url: imageResponse.data[0].url,
+              style: 'AI Generated'
+            });
+          }
+        } catch (error) {
+          console.error('Image generation error:', error.message);
+        }
+      }
+      
+      return res.status(200).json({
+        success: true,
+        images: images,
+        imagesOnly: true
+      });
     }
 
     // Generate descriptions using Gemini
