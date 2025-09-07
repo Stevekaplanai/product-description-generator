@@ -1,10 +1,9 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const OpenAI = require('openai');
 
-// Initialize APIs
-const gemini = process.env.GOOGLE_GEMINI_API_KEY 
-  ? new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY)
-  : null;
+// Initialize APIs - check both possible env var names
+const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
+const gemini = geminiKey ? new GoogleGenerativeAI(geminiKey) : null;
 
 const openai = process.env.OPENAI_API_KEY 
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -35,7 +34,9 @@ module.exports = async (req, res) => {
     const descriptions = [];
     
     if (gemini) {
-      const model = gemini.getGenerativeModel({ model: 'gemini-pro' });
+      try {
+        const model = gemini.getGenerativeModel({ model: 'gemini-pro' });
+        console.log('Using Gemini API for description generation');
       
       // Enhanced prompts if we have image analysis data
       let enhancedContext = '';
@@ -61,8 +62,16 @@ module.exports = async (req, res) => {
           descriptions.push(text);
         } catch (error) {
           console.error('Gemini generation error:', error);
-          descriptions.push(`Premium ${productName} - High quality ${productCategory || 'product'} designed for ${targetAudience || 'discerning customers'}.`);
+          // Use enhanced fallback instead of simple one
+          const features = keyFeatures ? keyFeatures.split(',').map(f => f.trim()) : ['premium quality'];
+          descriptions.push(
+            `Discover the exceptional ${productName}, a premium ${productCategory || 'product'} designed for ${targetAudience || 'you'}. ${features.length > 0 ? `Featuring ${features[0]}, this remarkable product delivers outstanding value and performance.` : ''} Experience the perfect combination of quality, innovation, and reliability that sets ${productName} apart from the competition.`
+          );
         }
+      }
+      } catch (apiError) {
+        console.error('Gemini API initialization error:', apiError);
+        // Fall through to enhanced fallback descriptions
       }
     } else {
       // Enhanced fallback descriptions when Gemini isn't available
