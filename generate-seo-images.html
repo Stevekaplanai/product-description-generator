@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate SEO Images</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin: 20px 0;
+            display: block;
+            background: white;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4F46E5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #4338CA;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SEO Image Generator</h1>
+        
+        <h2>OG Preview (1200x630)</h2>
+        <canvas id="og-canvas" width="1200" height="630"></canvas>
+        <button onclick="downloadImage('og-canvas', 'og-preview.png')">Download OG Preview</button>
+        
+        <h2>Twitter Card (1200x600)</h2>
+        <canvas id="twitter-canvas" width="1200" height="600"></canvas>
+        <button onclick="downloadImage('twitter-canvas', 'twitter-card.png')">Download Twitter Card</button>
+        
+        <h2>Square Logo (512x512)</h2>
+        <canvas id="logo-canvas" width="512" height="512"></canvas>
+        <button onclick="downloadImage('logo-canvas', 'logo-512.png')">Download Logo</button>
+        
+        <h2>Favicon (32x32)</h2>
+        <canvas id="favicon-canvas" width="32" height="32"></canvas>
+        <button onclick="downloadImage('favicon-canvas', 'favicon-32.png')">Download Favicon</button>
+    </div>
+
+    <script>
+        // Brand colors
+        const primaryColor = '#4F46E5';
+        const secondaryColor = '#6366F1';
+        const accentColor = '#10B981';
+        const textColor = '#1F2937';
+        const lightBg = '#F9FAFB';
+
+        // Draw OG Preview
+        function drawOGPreview() {
+            const canvas = document.getElementById('og-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+            gradient.addColorStop(0, primaryColor);
+            gradient.addColorStop(1, secondaryColor);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1200, 630);
+            
+            // White card area
+            ctx.fillStyle = 'white';
+            ctx.roundRect(60, 60, 1080, 510, 20);
+            ctx.fill();
+            
+            // Logo icon
+            ctx.fillStyle = primaryColor;
+            ctx.font = 'bold 72px Arial';
+            ctx.fillText('📝', 100, 160);
+            
+            // Title
+            ctx.fillStyle = textColor;
+            ctx.font = 'bold 56px -apple-system, Arial';
+            ctx.fillText('ProductDescriptions.io', 220, 160);
+            
+            // Tagline
+            ctx.font = '32px -apple-system, Arial';
+            ctx.fillStyle = '#6B7280';
+            ctx.fillText('AI-Powered Product Descriptions & Videos', 100, 240);
+            ctx.fillText('That Convert Browsers Into Buyers', 100, 290);
+            
+            // Features
+            ctx.font = '24px -apple-system, Arial';
+            ctx.fillStyle = textColor;
+            const features = [
+                '✨ Generate compelling descriptions in seconds',
+                '🎥 Create product videos with AI avatars',
+                '📊 Bulk processing for entire catalogs',
+                '🚀 SEO-optimized content that ranks'
+            ];
+            
+            features.forEach((feature, i) => {
+                ctx.fillText(feature, 100, 380 + (i * 40));
+            });
+            
+            // CTA
+            ctx.fillStyle = accentColor;
+            ctx.roundRect(850, 460, 250, 60, 10);
+            ctx.fill();
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 24px -apple-system, Arial';
+            ctx.fillText('Try Free Now', 910, 500);
+        }
+
+        // Draw Twitter Card
+        function drawTwitterCard() {
+            const canvas = document.getElementById('twitter-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 1200, 600);
+            gradient.addColorStop(0, '#667EEA');
+            gradient.addColorStop(1, '#764BA2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1200, 600);
+            
+            // White overlay
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.roundRect(100, 100, 1000, 400, 20);
+            ctx.fill();
+            
+            // Logo and title
+            ctx.fillStyle = primaryColor;
+            ctx.font = 'bold 64px Arial';
+            ctx.fillText('📝', 150, 220);
+            
+            ctx.fillStyle = textColor;
+            ctx.font = 'bold 48px -apple-system, Arial';
+            ctx.fillText('ProductDescriptions.io', 270, 220);
+            
+            // Main message
+            ctx.font = '36px -apple-system, Arial';
+            ctx.fillStyle = '#4B5563';
+            ctx.fillText('Transform Your Product Listings', 150, 320);
+            ctx.fillText('With AI-Powered Content', 150, 370);
+            
+            // CTA
+            ctx.fillStyle = accentColor;
+            ctx.roundRect(150, 410, 200, 50, 10);
+            ctx.fill();
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px -apple-system, Arial';
+            ctx.fillText('Start Free Trial', 195, 445);
+        }
+
+        // Draw Logo
+        function drawLogo() {
+            const canvas = document.getElementById('logo-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Background circle
+            const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+            gradient.addColorStop(0, secondaryColor);
+            gradient.addColorStop(1, primaryColor);
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(256, 256, 240, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Icon
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 280px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('📝', 256, 256);
+            
+            // Reset alignment
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+        }
+
+        // Draw Favicon
+        function drawFavicon() {
+            const canvas = document.getElementById('favicon-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = primaryColor;
+            ctx.fillRect(0, 0, 32, 32);
+            
+            // Letter P
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText('P', 7, 25);
+        }
+
+        // Helper for rounded rectangles
+        CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+            this.beginPath();
+            this.moveTo(x + radius, y);
+            this.lineTo(x + width - radius, y);
+            this.quadraticCurveTo(x + width, y, x + width, y + radius);
+            this.lineTo(x + width, y + height - radius);
+            this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            this.lineTo(x + radius, y + height);
+            this.quadraticCurveTo(x, y + height, x, y + height - radius);
+            this.lineTo(x, y + radius);
+            this.quadraticCurveTo(x, y, x + radius, y);
+            this.closePath();
+        };
+
+        // Download function
+        function downloadImage(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Draw all images on load
+        window.onload = function() {
+            drawOGPreview();
+            drawTwitterCard();
+            drawLogo();
+            drawFavicon();
+        };
+    </script>
+</body>
+</html>

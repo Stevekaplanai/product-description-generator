@@ -12,6 +12,12 @@
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://productdescriptions.io/">
     
+    <!-- Hreflang Tags for International SEO -->
+    <link rel="alternate" hreflang="en" href="https://productdescriptions.io/">
+    <link rel="alternate" hreflang="en-US" href="https://productdescriptions.io/">
+    <link rel="alternate" hreflang="en-GB" href="https://productdescriptions.io/">
+    <link rel="alternate" hreflang="x-default" href="https://productdescriptions.io/">
+    
     <!-- Open Graph Tags -->
     <meta property="og:title" content="AI Product Description Generator - Professional E-commerce Content">
     <meta property="og:description" content="Create compelling product descriptions, images, and videos in seconds. Bulk processing for hundreds of products. Start free trial.">
@@ -36,7 +42,7 @@
     
     <!-- Schema.org Structured Data -->
     <script type="application/ld+json">
-    {
+    [{
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "ProductDescriptions.io",
@@ -55,8 +61,72 @@
             "reviewCount": "127"
         },
         "description": "AI-powered product description generator with bulk processing, image generation, and video creation capabilities."
-    }
+    },
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "ProductDescriptions.io",
+        "url": "https://productdescriptions.io",
+        "logo": "https://productdescriptions.io/images/logo-512.png",
+        "sameAs": [
+            "https://twitter.com/productdescs",
+            "https://linkedin.com/company/productdescriptions"
+        ]
+    },
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ProductDescriptions.io",
+        "url": "https://productdescriptions.io",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://productdescriptions.io/app.html?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    },
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [{
+            "@type": "Question",
+            "name": "How does the AI product description generator work?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Our AI uses Gemini 2.0 Flash and GPT-4 to analyze your product information and generate compelling, SEO-optimized descriptions in seconds."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Can I process multiple products at once?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes! Our bulk processing feature allows you to upload CSV files with hundreds of products and generate descriptions for all of them simultaneously."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What file formats are supported for bulk upload?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "We support CSV files with columns for product name, category, features, target audience, and tone. Excel files can be saved as CSV for upload."
+            }
+        }]
+    }]
     </script>
+    
+    <!-- Performance Optimizations -->
+    <script src="/performance-config.js" defer></script>
+    <script>
+        // Register Service Worker for offline support and caching
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered:', registration.scope))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+    
     <style>
         * {
             margin: 0;

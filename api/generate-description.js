@@ -1,5 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const OpenAI = require('openai');
+const cloudinary = require('cloudinary').v2;
 
 // Initialize APIs - check both possible env var names
 const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
@@ -8,6 +9,13 @@ const gemini = geminiKey ? new GoogleGenerativeAI(geminiKey) : null;
 const openai = process.env.OPENAI_API_KEY 
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null;
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 module.exports = async (req, res) => {
   // Enable CORS
@@ -117,9 +125,35 @@ module.exports = async (req, res) => {
         });
         
         if (imageResponse.data && imageResponse.data[0]) {
+          // Upload to Cloudinary if configured
+          let finalImageUrl = imageResponse.data[0].url;
+          
+          if (process.env.CLOUDINARY_CLOUD_NAME) {
+            try {
+              console.log('Uploading DALL-E image to Cloudinary');
+              const uploadResult = await cloudinary.uploader.upload(imageResponse.data[0].url, {
+                folder: 'product-images',
+                public_id: `${productName.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`,
+                resource_type: 'image',
+                transformation: [
+                  { width: 1024, height: 1024, crop: 'limit' },
+                  { quality: 'auto:good' },
+                  { fetch_format: 'auto' }
+                ]
+              });
+              
+              finalImageUrl = uploadResult.secure_url;
+              console.log('Image uploaded to Cloudinary:', finalImageUrl);
+            } catch (uploadError) {
+              console.error('Cloudinary upload error:', uploadError.message);
+              // Fall back to original DALL-E URL
+            }
+          }
+          
           images.push({
-            url: imageResponse.data[0].url,
-            style: 'AI Generated'
+            url: finalImageUrl,
+            style: 'AI Generated',
+            cloudinary: finalImageUrl.includes('cloudinary')
           });
           console.log('Image generated successfully');
         }
