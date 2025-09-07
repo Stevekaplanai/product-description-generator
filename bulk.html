@@ -769,14 +769,15 @@
             }
 
             try {
-                const response = await fetch('/api/create-video-checkout', {
+                const response = await fetch('/api/create-bulk-video-checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        videoType: 'bulk',
-                        productCount: Math.min(products.length, 10),
-                        products: products.slice(0, 10),
-                        bulkPrice: 199
+                        products: products.slice(0, 10).map(p => ({
+                            product_name: p.product_name || p.productName,
+                            id: p.id || p.product_name
+                        })),
+                        customerEmail: document.getElementById('email')?.value || ''
                     })
                 });
 
