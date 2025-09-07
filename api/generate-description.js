@@ -35,8 +35,9 @@ module.exports = async (req, res) => {
     
     if (gemini) {
       try {
+        console.log('Gemini API key found, attempting to use Gemini');
         const model = gemini.getGenerativeModel({ model: 'gemini-pro' });
-        console.log('Using Gemini API for description generation');
+        console.log('Gemini model initialized successfully');
         
         // Enhanced prompts if we have image analysis data
         let enhancedContext = '';
@@ -71,9 +72,12 @@ module.exports = async (req, res) => {
           }
         }
       } catch (apiError) {
-        console.error('Gemini API initialization error:', apiError.message);
+        console.error('Gemini API error:', apiError.message || apiError);
+        console.error('Full error:', JSON.stringify(apiError));
         // Fall through to enhanced fallback descriptions
       }
+    } else {
+      console.log('Gemini API not configured - using fallback descriptions');
     }
     
     // If no descriptions were generated or Gemini isn't available, use enhanced fallbacks
