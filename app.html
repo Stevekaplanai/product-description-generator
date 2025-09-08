@@ -2718,12 +2718,6 @@
                         
                         // Update UI based on subscription
                         if (subData.plan === 'enterprise' || subData.plan === 'professional' || subData.plan === 'starter') {
-                            // Hide free tier UI
-                            const freeTierInfo = document.getElementById('subscriptionInfo');
-                            if (freeTierInfo) {
-                                freeTierInfo.style.display = 'none';
-                            }
-                            
                             // Show appropriate plan badge
                             updateSubscriptionDisplay(subData.plan, subData.features);
                         } else {
@@ -2747,41 +2741,59 @@
         function updateSubscriptionDisplay(plan, features) {
             const subscriptionInfo = document.getElementById('subscriptionInfo');
             if (subscriptionInfo) {
+                // Clear any existing content first
+                subscriptionInfo.innerHTML = '';
                 subscriptionInfo.style.display = 'block';
                 
-                const planName = document.getElementById('planName');
-                const planFeatures = document.getElementById('planFeatures');
-                
+                // Create the proper styled container based on plan
                 if (plan === 'enterprise') {
-                    planName.innerHTML = '<span style="color: #ffd700;">👑 Enterprise Plan</span>';
-                    planFeatures.innerHTML = `
-                        <div style="color: #ffd700; font-weight: bold;">Unlimited Everything!</div>
-                        <div style="margin-top: 5px; color: #666;">
-                            ✓ Unlimited descriptions<br>
-                            ✓ Unlimited images<br>
-                            ✓ Unlimited videos<br>
-                            ✓ API access & priority support
+                    subscriptionInfo.innerHTML = `
+                        <div style="background: linear-gradient(135deg, #fff9e6 0%, #fffdf7 100%); padding: 15px; border-radius: 8px; border: 2px solid #ffd700;">
+                            <div style="font-weight: bold; color: #ffd700; margin-bottom: 10px;">
+                                <span style="font-size: 20px;">👑 Enterprise Plan</span>
+                            </div>
+                            <div style="font-size: 14px; color: #666;">
+                                <div style="color: #ffd700; font-weight: bold;">Unlimited Everything!</div>
+                                <div style="margin-top: 5px;">
+                                    ✓ Unlimited descriptions<br>
+                                    ✓ Unlimited images<br>
+                                    ✓ Unlimited videos<br>
+                                    ✓ API access & priority support
+                                </div>
+                            </div>
                         </div>
                     `;
                 } else if (plan === 'professional') {
-                    planName.innerHTML = '<span style="color: #667eea;">💎 Professional Plan</span>';
-                    planFeatures.innerHTML = `
-                        <div style="color: #667eea; font-weight: bold;">Professional Features</div>
-                        <div style="margin-top: 5px; color: #666;">
-                            ✓ 500 descriptions/month<br>
-                            ✓ Unlimited images<br>
-                            ✓ 50 videos/month<br>
-                            ✓ API access & priority support
+                    subscriptionInfo.innerHTML = `
+                        <div style="background: #f7f9ff; padding: 15px; border-radius: 8px; border: 2px solid #667eea;">
+                            <div style="font-weight: bold; color: #667eea; margin-bottom: 10px;">
+                                <span style="font-size: 18px;">💎 Professional Plan</span>
+                            </div>
+                            <div style="font-size: 14px; color: #666;">
+                                <div style="color: #667eea; font-weight: bold;">Professional Features</div>
+                                <div style="margin-top: 5px;">
+                                    ✓ 500 descriptions/month<br>
+                                    ✓ Unlimited images<br>
+                                    ✓ 50 videos/month<br>
+                                    ✓ API access & priority support
+                                </div>
+                            </div>
                         </div>
                     `;
                 } else if (plan === 'starter') {
-                    planName.innerHTML = '<span style="color: #667eea;">⭐ Starter Plan</span>';
-                    planFeatures.innerHTML = `
-                        <div style="color: #667eea; font-weight: bold;">Starter Features</div>
-                        <div style="margin-top: 5px; color: #666;">
-                            ✓ 100 descriptions/month<br>
-                            ✓ 3 images per product<br>
-                            ✓ 10 videos/month
+                    subscriptionInfo.innerHTML = `
+                        <div style="background: #f7f9ff; padding: 15px; border-radius: 8px; border: 1px solid #667eea;">
+                            <div style="font-weight: bold; color: #667eea; margin-bottom: 10px;">
+                                <span style="font-size: 16px;">⭐ Starter Plan</span>
+                            </div>
+                            <div style="font-size: 14px; color: #666;">
+                                <div style="color: #667eea; font-weight: bold;">Starter Features</div>
+                                <div style="margin-top: 5px;">
+                                    ✓ 100 descriptions/month<br>
+                                    ✓ 3 images per product<br>
+                                    ✓ 10 videos/month
+                                </div>
+                            </div>
                         </div>
                     `;
                 }
@@ -3550,14 +3562,24 @@
             if (description) sessionStorage.setItem('productDescription', description);
             if (images && images.length) sessionStorage.setItem('generatedImages', JSON.stringify(images));
             
-            // Show video upsell popup
+            // Check if user is enterprise or professional - they get direct access
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (currentUser.subscription === 'enterprise' || currentUser.subscription === 'professional') {
+                // Direct to video creation page without upsell
+                sessionStorage.setItem('videoType', 'triple'); // Enterprise gets best package
+                window.location.href = '/video-success.html?direct=true&plan=' + currentUser.subscription;
+                return;
+            }
+            
+            // Show video upsell popup for other users
             showVideoUpsellPopup(productName, description, images);
             
             // Track CTA click
             if (typeof posthog !== 'undefined') {
                 posthog.capture('video_upgrade_cta_clicked', {
                     source: 'results_section',
-                    product_name: productName
+                    product_name: productName,
+                    subscription: currentUser.subscription || 'free'
                 });
             }
         }
