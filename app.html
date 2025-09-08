@@ -3517,6 +3517,20 @@
                 customerEmail = window.userEmail;
             }
             
+            // Check if user is enterprise - they get direct access without payment
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (currentUser.subscription === 'enterprise' || currentUser.subscription === 'professional') {
+                // Enterprise and Professional users get direct access to video creation
+                sessionStorage.setItem('videoType', videoType);
+                sessionStorage.setItem('productName', productName);
+                sessionStorage.setItem('productDescription', description);
+                if (images) sessionStorage.setItem('generatedImages', images);
+                
+                // Redirect directly to video creation page
+                window.location.href = '/video-success.html?direct=true&plan=' + currentUser.subscription;
+                return;
+            }
+            
             try {
                 // Show loading state - find the correct button based on videoType
                 const buttonSelector = videoType === 'triple' ? '.create-video-btn.triple' : '.create-video-btn.single';
