@@ -134,8 +134,12 @@ function showUserDashboard() {
             </div>
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
-            <span style="color: white; font-size: 14px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px;">
-                ${currentUser?.subscription === 'free' ? 'Free Plan' : currentUser?.subscription || 'Guest'}
+            <span style="color: white; font-size: 14px; background: ${currentUser?.subscription === 'enterprise' ? 'linear-gradient(135deg, #ffd700, #ffed4e)' : 'rgba(255,255,255,0.2)'}; padding: 6px 12px; border-radius: 20px; ${currentUser?.subscription === 'enterprise' ? 'color: #333; font-weight: bold;' : ''}">
+                ${currentUser?.subscription === 'free' ? 'Free Plan' : 
+                  currentUser?.subscription === 'starter' ? '⭐ Starter' :
+                  currentUser?.subscription === 'professional' ? '💎 Professional' :
+                  currentUser?.subscription === 'enterprise' ? '👑 Enterprise' :
+                  currentUser?.subscription || 'Guest'}
             </span>
             ${currentUser ? `
                 <button onclick="manageAccount()" style="padding: 8px 15px; background: white; color: #667eea; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">

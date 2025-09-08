@@ -1,0 +1,1 @@
+The video checkout is trying to use test mode Stripe price IDs with live mode keys. The price IDs that start with 'price_1S4' appear to be test mode prices. We need live mode price IDs for production.

@@ -46,6 +46,23 @@ module.exports = async (req, res) => {
   // Generate token
   const token = generateToken(user.id);
   
+  // Check subscription status from Stripe
+  let subscription = 'free';
+  try {
+    const checkSubResponse = await fetch(`${process.env.VERCEL_URL || 'https://productdescriptions.io'}/api/check-subscription`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: user.email })
+    });
+    
+    if (checkSubResponse.ok) {
+      const subData = await checkSubResponse.json();
+      subscription = subData.plan || 'free';
+    }
+  } catch (error) {
+    console.error('Error checking subscription:', error);
+  }
+  
   res.status(200).json({
     success: true,
     token,
@@ -53,7 +70,7 @@ module.exports = async (req, res) => {
       id: user.id,
       email: user.email,
       name: user.name,
-      subscription: user.subscription,
+      subscription: subscription,
       usage: user.usage
     }
   });

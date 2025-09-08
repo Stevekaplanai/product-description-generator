@@ -22,6 +22,19 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Email is required' });
     }
 
+    // Special override for testing enterprise features
+    if (email === 'steve@gtmvp.com') {
+      return res.status(200).json({
+        hasSubscription: true,
+        plan: 'enterprise',
+        features: stripeConfig.plans.enterprise.features,
+        customerId: 'test_enterprise_customer',
+        subscriptionId: 'test_enterprise_subscription',
+        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+        isTestOverride: true
+      });
+    }
+
     // Search for customer by email
     const customers = await stripe.customers.list({
       email: email,
