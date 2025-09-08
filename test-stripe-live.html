@@ -78,6 +78,8 @@
             word-wrap: break-word;
         }
     </style>
+    <!-- Load Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
     <div class="container">
@@ -139,11 +141,25 @@
 
                     // Initialize Stripe
                     if (config.publishableKey) {
-                        stripe = Stripe(config.publishableKey);
-                        html += `<div class="status-item">
-                            <span>Stripe.js Initialized</span>
-                            <span class="success">✅ Yes</span>
-                        </div>`;
+                        try {
+                            if (typeof Stripe !== 'undefined') {
+                                stripe = Stripe(config.publishableKey);
+                                html += `<div class="status-item">
+                                    <span>Stripe.js Initialized</span>
+                                    <span class="success">✅ Yes</span>
+                                </div>`;
+                            } else {
+                                html += `<div class="status-item">
+                                    <span>Stripe.js Library</span>
+                                    <span class="error">❌ Not loaded</span>
+                                </div>`;
+                            }
+                        } catch (e) {
+                            html += `<div class="status-item">
+                                <span>Stripe.js Initialization</span>
+                                <span class="error">❌ ${e.message}</span>
+                            </div>`;
+                        }
                     }
                 } else {
                     html += `<div class="status-item">
