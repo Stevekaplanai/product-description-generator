@@ -438,7 +438,26 @@
                     // Show video result
                     document.getElementById('loading').className = 'loading';
                     document.getElementById('videoResult').className = 'video-result active';
-                    document.getElementById('videoPlayer').src = data.videoUrl;
+                    
+                    // Check if it's an actual video URL or an image URL
+                    if (data.videoUrl.includes('.mp4') || data.videoUrl.includes('/video/')) {
+                        document.getElementById('videoPlayer').src = data.videoUrl;
+                    } else {
+                        // If it's an image URL, show a message
+                        document.getElementById('videoResult').innerHTML = `
+                            <h3>🎉 Video Preview Generated!</h3>
+                            <div style="background: #f0f9ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                                <p><strong>Product:</strong> ${data.productName}</p>
+                                <p><strong>Status:</strong> ${data.message}</p>
+                                <p style="color: #667eea; margin-top: 10px;">
+                                    ${data.note || 'Your video has been generated as a preview. Full video generation with AI avatars requires D-ID API configuration.'}
+                                </p>
+                            </div>
+                            <a href="${data.videoUrl}" target="_blank" class="download-btn">
+                                View Generated Content
+                            </a>
+                        `;
+                    }
                     
                     // Store video URL for download
                     window.currentVideoUrl = data.videoUrl;
