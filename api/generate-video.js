@@ -46,15 +46,28 @@ module.exports = async (req, res) => {
     // Generate video script
     const script = `Hey everyone! Let me tell you about the amazing ${productName}. ${productDescription} ${features ? `Key features include: ${features}` : ''} This is definitely worth checking out!`;
 
+    // Debug logging for API keys
+    console.log('Video generation config:', {
+      hasCloudinaryName: !!process.env.CLOUDINARY_CLOUD_NAME,
+      hasCloudinaryKey: !!process.env.CLOUDINARY_API_KEY,
+      hasCloudinarySecret: !!process.env.CLOUDINARY_API_SECRET,
+      hasDIDKey: !!D_ID_API_KEY,
+      dIdKeyLength: D_ID_API_KEY ? D_ID_API_KEY.length : 0,
+      dIdKeyPrefix: D_ID_API_KEY ? D_ID_API_KEY.substring(0, 10) + '...' : 'none'
+    });
+
     // If D-ID API key is available, try to generate video
-    if (D_ID_API_KEY && D_ID_API_KEY !== 'your_did_api_key_here') {
+    if (D_ID_API_KEY && D_ID_API_KEY !== 'your_did_api_key_here' && D_ID_API_KEY.length > 20) {
       try {
+        console.log('Attempting D-ID video generation...');
+        
         // Create D-ID talk video
         const talkResponse = await fetch(`${D_ID_API_URL}/talks`, {
           method: 'POST',
           headers: {
             'Authorization': `Basic ${D_ID_API_KEY}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'accept': 'application/json'
           },
           body: JSON.stringify({
             source_url: `https://create-images-results.d-id.com/api/images/${avatar}/image.jpeg`,
@@ -74,6 +87,18 @@ module.exports = async (req, res) => {
         });
 
         const talkData = await talkResponse.json();
+        
+        console.log('D-ID API Response:', {
+          status: talkResponse.status,
+          ok: talkResponse.ok,
+          hasId: !!talkData.id,
+          error: talkData.error || talkData.message
+        });
+
+        if (!talkResponse.ok) {
+          console.error('D-ID API Error:', talkData);
+          throw new Error(`D-ID API Error: ${talkData.message || talkData.error || 'Unknown error'}`);
+        }
 
         if (talkData.id) {
           // Poll for video completion
@@ -164,64 +189,125 @@ module.exports = async (req, res) => {
           }
         }
       } catch (error) {
-        console.error('D-ID API error:', error);
+        console.error('D-ID API error:', error.message);
+        console.error('Full error:', error);
+        // Continue to fallback methods instead of failing completely
       }
+    } else {
+      console.log('D-ID API key not configured or invalid:', {
+        hasKey: !!D_ID_API_KEY,
+        keyLength: D_ID_API_KEY ? D_ID_API_KEY.length : 0
+      });
     }
 
-    // Fallback: Create a simple video slideshow using Cloudinary if images are provided
-    if (images.length > 0) {
-      try {
-        // Upload images to Cloudinary if needed
-        const uploadedImages = [];
-        for (const image of images.slice(0, 3)) { // Limit to 3 images
-          if (image.startsWith('http')) {
-            // External image - upload to Cloudinary
-            const uploadResult = await cloudinary.uploader.upload(image, {
-              folder: 'product-images'
-            });
-            uploadedImages.push(uploadResult.public_id);
-          }
+    // Fallback: Create a video using Cloudinary with images or a placeholder
+    try {
+      console.log('Attempting Cloudinary video generation...');
+      
+      // If we have images, create a video slideshow
+      if (images && images.length > 0) {
+        console.log(`Creating slideshow with ${images.length} images`);
+        
+        // Upload the first image to Cloudinary to use as video base
+        const firstImage = images[0];
+        let videoPublicId;
+        
+        if (firstImage && firstImage.startsWith('http')) {
+          const uploadResult = await cloudinary.uploader.upload(firstImage, {
+            folder: 'product-videos',
+            resource_type: 'image',
+            public_id: `${productName.replace(/\s+/g, '_')}_${Date.now()}`
+          });
+          videoPublicId = uploadResult.public_id;
         }
-
-        if (uploadedImages.length > 0) {
-          // Create a video slideshow using Cloudinary
-          const slideshowUrl = cloudinary.url('sample', {
+        
+        if (videoPublicId) {
+          // Create a video from the image with text overlay
+          const videoUrl = cloudinary.url(videoPublicId, {
             resource_type: 'video',
             transformation: [
               { width: 1280, height: 720, crop: 'fill' },
-              { 
-                overlay: {
-                  resource_type: 'video',
-                  public_id: uploadedImages.join(';')
-                },
-                flags: 'splice',
-                duration: 3.0
-              },
+              { duration: 5 },
               { 
                 overlay: {
                   text: productName,
                   font_family: 'Arial',
-                  font_size: 60,
+                  font_size: 80,
                   font_weight: 'bold',
-                  text_color: 'white'
+                  text_color: 'white',
+                  background: '#000000AA',
+                  border_radius: 10
                 },
-                gravity: 'south',
-                y: 50
-              }
+                gravity: 'center',
+                y: -200
+              },
+              {
+                overlay: {
+                  text: productDescription.substring(0, 100) + '...',
+                  font_family: 'Arial', 
+                  font_size: 40,
+                  text_color: 'white',
+                  width: 1000,
+                  crop: 'fit'
+                },
+                gravity: 'center',
+                y: 100
+              },
+              { format: 'mp4' }
             ]
           });
-
+          
           return res.status(200).json({
             success: true,
-            videoUrl: slideshowUrl,
+            videoUrl: videoUrl,
             productName,
-            message: 'Product slideshow created using Cloudinary',
-            slideshowMode: true
+            message: 'Product video created using Cloudinary',
+            cloudinaryMode: true
           });
         }
-      } catch (error) {
-        console.error('Cloudinary slideshow error:', error);
       }
+      
+      // If no images, create a text-based video using Cloudinary
+      console.log('Creating text-based video...');
+      const textVideoUrl = cloudinary.url('sample', {
+        resource_type: 'video',
+        transformation: [
+          { width: 1280, height: 720, background: 'black', duration: 5 },
+          {
+            overlay: {
+              text: productName,
+              font_family: 'Arial',
+              font_size: 100,
+              font_weight: 'bold',
+              text_color: 'white'
+            },
+            gravity: 'center',
+            y: -100
+          },
+          {
+            overlay: {
+              text: 'AI Generated Video',
+              font_family: 'Arial',
+              font_size: 60,
+              text_color: '#667eea'
+            },
+            gravity: 'center',
+            y: 50
+          },
+          { format: 'mp4' }
+        ]
+      });
+      
+      return res.status(200).json({
+        success: true,
+        videoUrl: textVideoUrl,
+        productName,
+        message: 'Text video created using Cloudinary',
+        textMode: true
+      });
+      
+    } catch (error) {
+      console.error('Cloudinary video generation error:', error);
     }
 
     // If all else fails, return demo mode
