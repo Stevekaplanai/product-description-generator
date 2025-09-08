@@ -382,41 +382,86 @@
             document.getElementById('errorMessage').style.display = 'none';
             
             try {
+                // Parse generated images from storage
+                let images = [];
+                try {
+                    const storedImages = sessionStorage.getItem('generatedImages');
+                    if (storedImages) {
+                        images = JSON.parse(storedImages);
+                    }
+                } catch (e) {
+                    console.log('No images found in storage');
+                }
+                
+                // Map voice type to D-ID voice IDs
+                const voiceMap = {
+                    'female-professional': 'en-US-JennyNeural',
+                    'male-professional': 'en-US-GuyNeural',
+                    'female-friendly': 'en-US-AriaNeural',
+                    'male-friendly': 'en-US-DavisNeural',
+                    'female-energetic': 'en-US-SaraNeural',
+                    'male-energetic': 'en-US-JasonNeural'
+                };
+                
+                // Map avatar styles
+                const avatarMap = {
+                    'modern': 'amy-Aq6OmGZpMt',
+                    'dynamic': 'josh-z3Y7JKX8Be',
+                    'elegant': 'anna-gXa87QbXaP',
+                    'playful': 'matt-e3wEQr5voi',
+                    'minimal': 'alex-Xn5mJ3RKdC'
+                };
+                
                 // Call video generation API
                 const response = await fetch('/api/generate-video', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        productName,
-                        productDescription,
-                        script: customScript || undefined,
-                        voiceType,
-                        videoStyle,
-                        duration: parseInt(videoDuration),
-                        images: JSON.parse(sessionStorage.getItem('generatedImages') || '[]')
+                        productName: productName || 'Product',
+                        productDescription: customScript || productDescription || 'Amazing product',
+                        features: '',
+                        images: images,
+                        avatar: avatarMap[videoStyle] || 'amy-Aq6OmGZpMt',
+                        voice: voiceMap[voiceType] || 'en-US-JennyNeural',
+                        generateProductShowcase: images.length > 0
                     })
                 });
                 
-                if (!response.ok) {
-                    throw new Error('Video generation failed');
-                }
-                
                 const data = await response.json();
                 
-                // Show video result
-                document.getElementById('loading').className = 'loading';
-                document.getElementById('videoResult').className = 'video-result active';
-                document.getElementById('videoPlayer').src = data.videoUrl;
+                if (!response.ok) {
+                    throw new Error(data.message || 'Video generation failed');
+                }
                 
-                // Store video URL for download
-                window.currentVideoUrl = data.videoUrl;
+                // Handle response based on what we got back
+                if (data.videoUrl) {
+                    // Show video result
+                    document.getElementById('loading').className = 'loading';
+                    document.getElementById('videoResult').className = 'video-result active';
+                    document.getElementById('videoPlayer').src = data.videoUrl;
+                    
+                    // Store video URL for download
+                    window.currentVideoUrl = data.videoUrl;
+                } else if (data.demoMode) {
+                    // Show demo mode message
+                    document.getElementById('loading').className = 'loading';
+                    document.getElementById('videoForm').style.display = 'block';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('errorMessage').innerHTML = `
+                        <strong>Demo Mode:</strong> Video generation is configured but requires active API keys.<br>
+                        Script generated: "${data.script}"<br>
+                        <small>Contact support to enable full video generation.</small>
+                    `;
+                } else {
+                    throw new Error('No video URL returned');
+                }
                 
             } catch (error) {
                 console.error('Video creation error:', error);
                 document.getElementById('loading').className = 'loading';
                 document.getElementById('videoForm').style.display = 'block';
                 document.getElementById('errorMessage').style.display = 'block';
-                document.getElementById('errorMessage').textContent = 'Failed to create video. Please try again or contact support.';
+                document.getElementById('errorMessage').textContent = `Failed to create video: ${error.message}. Please try again or contact support.`;
             }
         }
         
