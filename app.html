@@ -550,6 +550,17 @@
             }
         }
 
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
         .generate-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -1985,7 +1996,7 @@
                             <span class="amount">29</span>
                             <span class="period">/video</span>
                         </div>
-                        <button class="create-video-btn single" onclick="proceedToVideoCreation('single')">
+                        <button class="create-video-btn single" onclick="proceedToVideoCreation('single', event)">
                             🎥 Get Single Video
                         </button>
                     </div>
@@ -1998,7 +2009,7 @@
                             <span class="period">/3 videos</span>
                         </div>
                         <div class="savings-text">Save $18!</div>
-                        <button class="create-video-btn triple" onclick="proceedToVideoCreation('triple')">
+                        <button class="create-video-btn triple" onclick="proceedToVideoCreation('triple', event)">
                             🎬 Get 3-Video Pack
                         </button>
                     </div>
@@ -2413,6 +2424,154 @@
             `;
             document.body.appendChild(modal);
         }
+
+        // Show upgrade modal with custom message
+        function showUpgradeModalWithMessage(message) {
+            const modal = document.createElement('div');
+            modal.className = 'upgrade-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            modal.innerHTML = `
+                <div class="modal-content" style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; text-align: center;">
+                    <h2 style="color: #667eea; margin-bottom: 20px;">🎉 Free Tier Limit Reached</h2>
+                    <p style="color: #666; margin-bottom: 20px;">${message}</p>
+                    <p style="color: #999; font-size: 14px; margin-bottom: 25px;">Upgrade to continue generating amazing content!</p>
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <button onclick="showPricingModal(); this.closest('.upgrade-modal').remove();" style="padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                            View Plans
+                        </button>
+                        <button onclick="this.closest('.upgrade-modal').remove();" style="padding: 12px 30px; background: #f0f0f0; color: #666; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Check and track usage for free tier
+        async function checkAndTrackUsage() {
+            // Get or create a unique session ID for this browser
+            let sessionId = localStorage.getItem('session_id');
+            if (!sessionId) {
+                sessionId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('session_id', sessionId);
+            }
+
+            // Get monthly usage from localStorage
+            const currentMonth = new Date().getMonth() + '_' + new Date().getFullYear();
+            const usageKey = 'free_usage_' + currentMonth;
+            let monthlyUsage = JSON.parse(localStorage.getItem(usageKey) || '{"count": 0, "sessions": []}');
+
+            // Check if we're within the free tier limit
+            const FREE_TIER_LIMIT = 5;
+            if (monthlyUsage.count >= FREE_TIER_LIMIT) {
+                return {
+                    canGenerate: false,
+                    message: `You've used all ${FREE_TIER_LIMIT} free generations this month. Upgrade to unlock unlimited access!`,
+                    remaining: 0
+                };
+            }
+
+            // Increment usage
+            monthlyUsage.count++;
+            monthlyUsage.sessions.push({
+                id: sessionId,
+                timestamp: Date.now()
+            });
+            localStorage.setItem(usageKey, JSON.stringify(monthlyUsage));
+
+            // Update UI to show remaining uses
+            updateFreeUsageDisplay(FREE_TIER_LIMIT - monthlyUsage.count);
+
+            return {
+                canGenerate: true,
+                remaining: FREE_TIER_LIMIT - monthlyUsage.count
+            };
+        }
+
+        // Update free usage display
+        function updateFreeUsageDisplay(remaining) {
+            // Update subscription info if it exists
+            const planFeatures = document.getElementById('planFeatures');
+            if (planFeatures) {
+                planFeatures.innerHTML = `
+                    <div style="color: #667eea; font-weight: bold;">Free Tier</div>
+                    <div style="margin-top: 5px;">
+                        <span style="color: #666;">Generations remaining this month: </span>
+                        <span style="color: #667eea; font-weight: bold;">${remaining}/5</span>
+                    </div>
+                    ${remaining === 0 ? '<div style="color: #ff6b6b; margin-top: 5px;">Upgrade to continue!</div>' : ''}
+                `;
+            }
+
+            // Show a subtle notification
+            if (remaining <= 2 && remaining > 0) {
+                showNotification(`Only ${remaining} free generation${remaining === 1 ? '' : 's'} left this month!`, 'warning');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'warning' ? '#ff9800' : '#667eea'};
+                color: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                max-width: 300px;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+
+        // Initialize free tier on page load
+        function initializeFreeTier() {
+            // Get current month's usage
+            const currentMonth = new Date().getMonth() + '_' + new Date().getFullYear();
+            const usageKey = 'free_usage_' + currentMonth;
+            const monthlyUsage = JSON.parse(localStorage.getItem(usageKey) || '{"count": 0, "sessions": []}');
+            const FREE_TIER_LIMIT = 5;
+            const remaining = FREE_TIER_LIMIT - monthlyUsage.count;
+
+            // Update the subscription info section
+            const subscriptionInfo = document.getElementById('subscriptionInfo');
+            if (subscriptionInfo) {
+                subscriptionInfo.style.display = 'block';
+                document.getElementById('planName').innerHTML = '<span style="color: #667eea;">🎉 Free Tier</span>';
+                updateFreeUsageDisplay(remaining);
+            }
+
+            // Show welcome message for first-time users
+            const hasSeenWelcome = localStorage.getItem('has_seen_welcome');
+            if (!hasSeenWelcome && remaining === 5) {
+                setTimeout(() => {
+                    showNotification('Welcome! You have 5 free generations to try our AI tool!', 'info');
+                    localStorage.setItem('has_seen_welcome', 'true');
+                }, 1000);
+            }
+        }
         
         // Open customer portal
         async function openCustomerPortal() {
@@ -2743,16 +2902,16 @@
                 errorDiv.textContent = '';
             }
             
-            // Track usage for this generation (skip for now to allow testing)
-            // TODO: Re-enable this when authentication is properly set up
-            // const usageResult = await trackUsage('description');
-            // if (!usageResult) {
-            //     // Usage limit exceeded, modal will be shown by trackUsage
-            //     generateBtn.disabled = false;
-            //     btnText.style.display = 'inline';
-            //     loadingSpinner.style.display = 'none';
-            //     return;
-            // }
+            // Check and track usage for free tier
+            const usageCheck = await checkAndTrackUsage();
+            if (!usageCheck.canGenerate) {
+                // Show upgrade modal if limit exceeded
+                showUpgradeModalWithMessage(usageCheck.message);
+                generateBtn.disabled = false;
+                btnText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                return;
+            }
 
             let productName = document.getElementById('productName').value;
             let category = document.getElementById('category').value;
@@ -3332,7 +3491,7 @@
             }, 5000);
         }
 
-        async function proceedToVideoCreation(videoType = 'single') {
+        async function proceedToVideoCreation(videoType = 'single', event = null) {
             // Store data for video creation page
             const productName = sessionStorage.getItem('productName') || document.getElementById('productName').value;
             const description = sessionStorage.getItem('productDescription') || window.currentVariations[0];
@@ -3359,6 +3518,15 @@
             }
             
             try {
+                // Show loading state - find the correct button based on videoType
+                const buttonSelector = videoType === 'triple' ? '.create-video-btn.triple' : '.create-video-btn.single';
+                const button = event ? event.target : document.querySelector(buttonSelector);
+                const originalText = button ? button.textContent : '';
+                if (button) {
+                    button.disabled = true;
+                    button.textContent = 'Processing...';
+                }
+                
                 // Create checkout session for single video
                 const response = await fetch('/api/create-video-checkout', {
                     method: 'POST',
@@ -3371,18 +3539,49 @@
                     })
                 });
                 
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || errorData.error || 'Checkout failed');
+                }
+                
                 const data = await response.json();
                 
                 if (data.url) {
                     // Redirect to Stripe checkout
                     window.location.href = data.url;
+                } else if (data.sessionId && window.stripe) {
+                    // Fallback to client-side redirect if URL not provided
+                    const { error } = await window.stripe.redirectToCheckout({
+                        sessionId: data.sessionId
+                    });
+                    if (error) {
+                        throw new Error(error.message);
+                    }
                 } else {
-                    console.error('No checkout URL received');
-                    alert('Unable to start checkout process. Please try again.');
+                    throw new Error('No checkout session created');
                 }
             } catch (error) {
                 console.error('Checkout error:', error);
-                alert('Unable to process payment. Please try again.');
+                
+                // Show better error message
+                let errorMessage = 'Unable to process payment. ';
+                if (error.message.includes('price')) {
+                    errorMessage += 'Invalid pricing configuration. Please contact support.';
+                } else if (error.message.includes('API key')) {
+                    errorMessage += 'Payment system not configured. Please try again later.';
+                } else if (error.message.includes('network')) {
+                    errorMessage += 'Network error. Please check your connection.';
+                } else {
+                    errorMessage += error.message || 'Please try again.';
+                }
+                
+                showErrorMessage(errorMessage);
+                
+                // Reset button
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = originalText;
+                }
             }
         }
 
@@ -3513,16 +3712,18 @@
         
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', async function() {
+            // Initialize free tier display
+            initializeFreeTier();
+            
             // Initialize Stripe
             await initializeStripe();
             
-            // Check subscription status
-            await checkSubscription();
-            
-            // Get current usage
-            await getUsage();
-            
-            // Don't add manage subscription button here - it's handled by auth-check.js
+            // Check subscription status (skip if no auth)
+            const hasAuth = localStorage.getItem('token') || localStorage.getItem('authToken');
+            if (hasAuth) {
+                await checkSubscription();
+                await getUsage();
+            }
             
             // Check for subscription success/cancel in URL
             const urlParams = new URLSearchParams(window.location.search);

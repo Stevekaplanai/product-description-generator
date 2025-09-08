@@ -7,25 +7,29 @@ async function checkAuth() {
     authToken = localStorage.getItem('token') || localStorage.getItem('authToken');
     const userStr = localStorage.getItem('user');
     
-    // Allow guest access if no token (for testing)
+    // Allow guest access for free tier (production and development)
     if (!authToken) {
-        // Check if we're in development/test mode
-        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        // Check if user has used free tier
+        const currentMonth = new Date().getMonth() + '_' + new Date().getFullYear();
+        const usageKey = 'free_usage_' + currentMonth;
+        const monthlyUsage = JSON.parse(localStorage.getItem(usageKey) || '{"count": 0, "sessions": []}');
         
-        if (isDevelopment) {
-            // Allow guest access in development
-            currentUser = { 
-                email: 'guest@test.com', 
-                name: 'Guest User',
-                subscription: 'free' 
-            };
-            showUserDashboard();
-            return true;
+        // Allow guest access for free tier
+        currentUser = { 
+            email: 'guest@free-tier', 
+            name: 'Free User',
+            subscription: 'free',
+            isGuest: true
+        };
+        
+        // Only show login prompt if they've exhausted free tier
+        if (monthlyUsage.count >= 5) {
+            showUpgradePrompt();
+        } else {
+            showFreeTierWelcome();
         }
         
-        // Production - show login prompt
-        showLoginPrompt();
-        return false;
+        return true;
     }
     
     try {
@@ -197,6 +201,84 @@ if (typeof window !== 'undefined') {
             }
         }, 250);
     });
+}
+
+// Show free tier welcome for new users
+function showFreeTierWelcome() {
+    // Don't show if already seen
+    if (localStorage.getItem('seen_free_tier_welcome')) {
+        return;
+    }
+    
+    const welcome = document.createElement('div');
+    welcome.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        max-width: 500px;
+        width: 90%;
+        z-index: 10001;
+        text-align: center;
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    welcome.innerHTML = `
+        <h2 style="color: #667eea; margin-bottom: 20px; font-size: 28px;">🎉 Welcome to ProductDescriptions.io!</h2>
+        <p style="color: #666; font-size: 18px; margin-bottom: 25px;">
+            Start creating amazing product content with AI - <strong>no signup required!</strong>
+        </p>
+        <div style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+            <h3 style="color: #667eea; margin-bottom: 15px;">Your Free Tier Includes:</h3>
+            <ul style="text-align: left; color: #555; list-style: none; padding: 0;">
+                <li style="margin-bottom: 10px;">✅ <strong>5 free generations</strong> per month</li>
+                <li style="margin-bottom: 10px;">✅ SEO-optimized descriptions</li>
+                <li style="margin-bottom: 10px;">✅ Professional product images</li>
+                <li style="margin-bottom: 10px;">✅ Multiple variations</li>
+                <li>✅ No credit card required</li>
+            </ul>
+        </div>
+        <button onclick="this.parentElement.remove(); localStorage.setItem('seen_free_tier_welcome', 'true');" 
+                style="padding: 14px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 25px; font-size: 18px; font-weight: bold; cursor: pointer; transition: transform 0.2s;">
+            Start Creating Free
+        </button>
+        <p style="color: #999; font-size: 12px; margin-top: 20px;">
+            Upgrade anytime for unlimited generations
+        </p>
+    `;
+    
+    document.body.appendChild(welcome);
+}
+
+// Show upgrade prompt when free tier is exhausted
+function showUpgradePrompt() {
+    const prompt = document.createElement('div');
+    prompt.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        z-index: 10000;
+        font-size: 14px;
+        font-weight: 600;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    prompt.innerHTML = `
+        ⚠️ Free tier limit reached! 
+        <a href="/auth.html" style="color: white; text-decoration: underline; margin-left: 10px;">Sign up for unlimited access →</a>
+    `;
+    
+    document.body.appendChild(prompt);
 }
 
 // Export for use in other scripts
