@@ -73,15 +73,17 @@ module.exports = async (req, res) => {
         const talkResponse = await fetch(`${D_ID_API_URL}/talks`, {
           method: 'POST',
           headers: {
-            'Authorization': `Basic ${D_ID_API_KEY}`,
+            'Authorization': `Bearer ${D_ID_API_KEY}`,  // D-ID uses Bearer, not Basic
             'Content-Type': 'application/json',
             'accept': 'application/json'
           },
           body: JSON.stringify({
-            source_url: `https://create-images-results.d-id.com/api/images/${avatar}/image.jpeg`,
+            source_url: images && images.length > 0 
+              ? images[0]  // Use product image if available
+              : `https://create-images-results.d-id.com/api/images/amy-Aq6OmGZpMt/image.jpeg`, // Default avatar
             script: {
               type: 'text',
-              input: script,
+              input: script.substring(0, 500), // D-ID has character limits
               provider: {
                 type: 'microsoft',
                 voice_id: voice
@@ -89,7 +91,14 @@ module.exports = async (req, res) => {
             },
             config: {
               fluent: true,
-              pad_audio: 0.0
+              pad_audio: 0.0,
+              driver_expressions: {
+                expressions: [{
+                  start_frame: 0,
+                  expression: 'happy',
+                  intensity: 0.5
+                }]
+              }
             }
           })
         });
@@ -119,7 +128,7 @@ module.exports = async (req, res) => {
             
             const statusResponse = await fetch(`${D_ID_API_URL}/talks/${talkData.id}`, {
               headers: {
-                'Authorization': `Basic ${D_ID_API_KEY}`
+                'Authorization': `Bearer ${D_ID_API_KEY}`  // Fixed: Bearer auth
               }
             });
 
