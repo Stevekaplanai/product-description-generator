@@ -301,27 +301,69 @@ module.exports = async (req, res) => {
       }
     }
     
-    // Fallback: Create a simple text-based video
+    // Fallback: Create a simple video from a solid color
     try {
-      console.log('Creating text-based video fallback...');
+      console.log('Creating fallback video...');
       
-      // Use Cloudinary's video generation from text
-      const textVideoId = `text_video_${Date.now()}`;
+      // Create a solid color image and convert to video
+      const timestamp = Date.now();
+      const fallbackId = `fallback_video_${timestamp}`;
       
-      // Upload a blank video or use transformation to create one
-      const videoUrl = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME || 'demo'}/video/upload/w_1280,h_720,c_fill,b_rgb:667eea,du_5/l_text:Arial_80_bold:${encodeURIComponent(productName || 'Product Video')},co_white,g_center/fl_layer_apply/sample.mp4`;
+      // Upload a solid color image to Cloudinary
+      const solidColorImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+      
+      const uploadResult = await cloudinary.uploader.upload(solidColorImage, {
+        public_id: fallbackId,
+        folder: 'product-videos',
+        resource_type: 'image',
+        transformation: [
+          { width: 1280, height: 720, crop: 'fill', background: '#667eea' }
+        ]
+      });
+      
+      // Create video from the uploaded image
+      const videoUrl = cloudinary.url(uploadResult.public_id, {
+        resource_type: 'video',
+        format: 'mp4',
+        transformation: [
+          { width: 1280, height: 720, crop: 'fill', duration: 5 },
+          {
+            overlay: {
+              font_family: 'Arial',
+              font_size: 80,
+              font_weight: 'bold',
+              text: productName || 'Product Video'
+            },
+            color: 'white',
+            gravity: 'center',
+            y: -50
+          },
+          {
+            overlay: {
+              font_family: 'Arial',
+              font_size: 40,
+              text: 'AI Generated Video'
+            },
+            color: 'white',
+            gravity: 'center',
+            y: 50
+          }
+        ]
+      });
+      
+      console.log('Fallback video created:', videoUrl);
       
       return res.status(200).json({
         success: true,
         videoUrl: videoUrl,
         productName,
-        message: 'Text video created',
-        mode: 'text_video',
+        message: 'Video created',
+        mode: 'fallback_video',
         duration: 5
       });
       
     } catch (error) {
-      console.error('Text video creation error:', error);
+      console.error('Fallback video creation error:', error);
     }
     
     // Ultimate fallback
