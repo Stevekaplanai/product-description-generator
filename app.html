@@ -2696,7 +2696,97 @@
         }
 
         // Initialize on page load
-        window.addEventListener('DOMContentLoaded', checkSubscription);
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is logged in and get their subscription
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (user.email) {
+                // User is logged in, check their subscription status
+                try {
+                    const response = await fetch('/api/check-subscription', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: user.email })
+                    });
+                    
+                    if (response.ok) {
+                        const subData = await response.json();
+                        
+                        // Update user object with latest subscription
+                        user.subscription = subData.plan;
+                        localStorage.setItem('user', JSON.stringify(user));
+                        
+                        // Update UI based on subscription
+                        if (subData.plan === 'enterprise' || subData.plan === 'professional' || subData.plan === 'starter') {
+                            // Hide free tier UI
+                            const freeTierInfo = document.getElementById('subscriptionInfo');
+                            if (freeTierInfo) {
+                                freeTierInfo.style.display = 'none';
+                            }
+                            
+                            // Show appropriate plan badge
+                            updateSubscriptionDisplay(subData.plan, subData.features);
+                        } else {
+                            // Show free tier
+                            initializeFreeTier();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking subscription:', error);
+                    initializeFreeTier();
+                }
+            } else {
+                // Not logged in - show free tier
+                initializeFreeTier();
+            }
+            
+            // Also initialize Stripe
+            await initializeStripe();
+        });
+        
+        function updateSubscriptionDisplay(plan, features) {
+            const subscriptionInfo = document.getElementById('subscriptionInfo');
+            if (subscriptionInfo) {
+                subscriptionInfo.style.display = 'block';
+                
+                const planName = document.getElementById('planName');
+                const planFeatures = document.getElementById('planFeatures');
+                
+                if (plan === 'enterprise') {
+                    planName.innerHTML = '<span style="color: #ffd700;">👑 Enterprise Plan</span>';
+                    planFeatures.innerHTML = `
+                        <div style="color: #ffd700; font-weight: bold;">Unlimited Everything!</div>
+                        <div style="margin-top: 5px; color: #666;">
+                            ✓ Unlimited descriptions<br>
+                            ✓ Unlimited images<br>
+                            ✓ Unlimited videos<br>
+                            ✓ API access & priority support
+                        </div>
+                    `;
+                } else if (plan === 'professional') {
+                    planName.innerHTML = '<span style="color: #667eea;">💎 Professional Plan</span>';
+                    planFeatures.innerHTML = `
+                        <div style="color: #667eea; font-weight: bold;">Professional Features</div>
+                        <div style="margin-top: 5px; color: #666;">
+                            ✓ 500 descriptions/month<br>
+                            ✓ Unlimited images<br>
+                            ✓ 50 videos/month<br>
+                            ✓ API access & priority support
+                        </div>
+                    `;
+                } else if (plan === 'starter') {
+                    planName.innerHTML = '<span style="color: #667eea;">⭐ Starter Plan</span>';
+                    planFeatures.innerHTML = `
+                        <div style="color: #667eea; font-weight: bold;">Starter Features</div>
+                        <div style="margin-top: 5px; color: #666;">
+                            ✓ 100 descriptions/month<br>
+                            ✓ 3 images per product<br>
+                            ✓ 10 videos/month
+                        </div>
+                    `;
+                }
+            }
+        }
 
         // Make these global so they're accessible everywhere
         window.currentVariations = [];
