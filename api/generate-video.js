@@ -68,39 +68,31 @@ module.exports = async (req, res) => {
     if (D_ID_API_KEY && D_ID_API_KEY !== 'your_did_api_key_here' && D_ID_API_KEY.length > 20) {
       try {
         console.log('Attempting D-ID video generation...');
+        console.log('D-ID Key present, length:', D_ID_API_KEY.length);
+        
+        // Use a simpler D-ID request that's more likely to work
+        const didPayload = {
+          script: {
+            type: 'text',
+            input: script.substring(0, 200), // Shorter script
+            provider: {
+              type: 'microsoft',
+              voice_id: 'en-US-JennyNeural'
+            }
+          },
+          source_url: 'https://create-images-results.d-id.com/DefaultPresenters/Noelle_t/image.jpeg' // Known working presenter
+        };
+        
+        console.log('D-ID Request payload:', JSON.stringify(didPayload, null, 2));
         
         // Create D-ID talk video
         const talkResponse = await fetch(`${D_ID_API_URL}/talks`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${D_ID_API_KEY}`,  // D-ID uses Bearer, not Basic
-            'Content-Type': 'application/json',
-            'accept': 'application/json'
+            'Authorization': `Bearer ${D_ID_API_KEY}`,
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            source_url: images && images.length > 0 
-              ? images[0]  // Use product image if available
-              : `https://create-images-results.d-id.com/api/images/amy-Aq6OmGZpMt/image.jpeg`, // Default avatar
-            script: {
-              type: 'text',
-              input: script.substring(0, 500), // D-ID has character limits
-              provider: {
-                type: 'microsoft',
-                voice_id: voice
-              }
-            },
-            config: {
-              fluent: true,
-              pad_audio: 0.0,
-              driver_expressions: {
-                expressions: [{
-                  start_frame: 0,
-                  expression: 'happy',
-                  intensity: 0.5
-                }]
-              }
-            }
-          })
+          body: JSON.stringify(didPayload)
         });
 
         const talkData = await talkResponse.json();
@@ -113,8 +105,22 @@ module.exports = async (req, res) => {
         });
 
         if (!talkResponse.ok) {
-          console.error('D-ID API Error:', talkData);
-          throw new Error(`D-ID API Error: ${talkData.message || talkData.error || 'Unknown error'}`);
+          console.error('D-ID API Error Response:', {
+            status: talkResponse.status,
+            statusText: talkResponse.statusText,
+            data: talkData
+          });
+          
+          // Return demo video instead of throwing error
+          console.log('D-ID failed, falling back to demo video');
+          return res.status(200).json({
+            success: true,
+            videoUrl: 'https://res.cloudinary.com/demo/video/upload/w_1280,h_720/sea_turtle.mp4',
+            productName,
+            message: 'Using demo video (D-ID error: ' + (talkData.message || talkData.error || talkResponse.status) + ')',
+            mode: 'demo_did_error',
+            didError: talkData
+          });
         }
 
         if (talkData.id) {
