@@ -39,10 +39,11 @@ module.exports = async (req, res) => {
   // Test 2: Check API key validity with a simple GET request
   try {
     console.log('Testing D-ID API connection...');
-    const testResponse = await fetch(`${D_ID_API_URL}/talks/tlk_H6Jy7FInMGh1K9ZVqsIvM`, {
+    // Test with the credits endpoint which should work for valid API keys
+    const testResponse = await fetch(`${D_ID_API_URL}/credits`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${D_ID_API_KEY}`,
+        'Authorization': `Basic ${D_ID_API_KEY}`, // D-ID uses Basic auth with username:password format
         'accept': 'application/json'
       }
     });
@@ -92,7 +93,7 @@ module.exports = async (req, res) => {
     const talkResponse = await fetch(`${D_ID_API_URL}/talks`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${D_ID_API_KEY}`,
+        'Authorization': `Basic ${D_ID_API_KEY}`,
         'Content-Type': 'application/json',
         'accept': 'application/json'
       },
@@ -119,7 +120,7 @@ module.exports = async (req, res) => {
       const statusResponse = await fetch(`${D_ID_API_URL}/talks/${talkData.id}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${D_ID_API_KEY}`,
+          'Authorization': `Basic ${D_ID_API_KEY}`,
           'accept': 'application/json'
         }
       });

@@ -89,7 +89,7 @@ module.exports = async (req, res) => {
         const talkResponse = await fetch(`${D_ID_API_URL}/talks`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${D_ID_API_KEY}`,
+            'Authorization': `Basic ${D_ID_API_KEY}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(didPayload)
@@ -134,7 +134,7 @@ module.exports = async (req, res) => {
             
             const statusResponse = await fetch(`${D_ID_API_URL}/talks/${talkData.id}`, {
               headers: {
-                'Authorization': `Bearer ${D_ID_API_KEY}`  // Fixed: Bearer auth
+                'Authorization': `Basic ${D_ID_API_KEY}`  // Fixed: Basic auth
               }
             });
 
