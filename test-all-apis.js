@@ -120,7 +120,8 @@ async function runTests() {
   ));
   
   // 6. Image Analysis (with base64 image)
-  const testImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  // This is a valid 1x1 red pixel PNG image in base64
+  const testImageBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
   results.push(await testEndpoint(
     'Analyze Image',
     'POST',
@@ -153,7 +154,7 @@ async function runTests() {
   results.push(await testEndpoint(
     'Pricing Configuration',
     'GET',
-    '/api/pricing-config'
+    '/api/get-pricing'
   ));
   
   // Summary
