@@ -708,6 +708,38 @@
             <div class="input-panel" id="inputPanel">
                 <h3>Product Details</h3>
                 
+                <!-- Smart Headline Analyzer -->
+                <div class="smart-headline-section" style="margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px;">
+                    <h4 style="color: white; margin-bottom: 15px;">🚀 Smart Auto-Fill</h4>
+                    <div class="form-group">
+                        <label style="color: white;">Enter Product Headline or Title</label>
+                        <textarea id="headlineInput" placeholder="e.g., 'Premium Wireless Headphones with Active Noise Cancellation for Music Lovers'" 
+                                  style="width: 100%; padding: 12px; border-radius: 10px; border: none; resize: vertical; min-height: 60px;"
+                                  onblur="analyzeHeadline()"></textarea>
+                        <button onclick="analyzeHeadline()" style="margin-top: 10px; padding: 10px 20px; background: white; color: #667eea; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            ✨ Auto-Fill Form
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Image Upload for Analysis -->
+                <div class="image-upload-section" style="margin-bottom: 25px;">
+                    <div class="upload-area" id="uploadArea" style="border: 2px dashed #667eea; border-radius: 15px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                        <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                        <div onclick="document.getElementById('imageUpload').click()">
+                            <span style="font-size: 48px;">📷</span>
+                            <h4 style="margin: 10px 0;">Upload Product Image</h4>
+                            <p style="color: #666;">Click or drag & drop an image here to auto-fill product details</p>
+                        </div>
+                        <div id="imagePreview" style="display: none; margin-top: 20px;">
+                            <img id="previewImg" style="max-width: 100%; max-height: 200px; border-radius: 10px;">
+                            <button onclick="removeImage()" style="margin-top: 10px; padding: 8px 15px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                Remove Image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Smart Input with AI Suggestions -->
                 <div class="form-group" style="position: relative;">
                     <label>Product Name</label>
@@ -734,6 +766,11 @@
                 <div class="form-group">
                     <label>Target Audience</label>
                     <input type="text" id="targetAudience" placeholder="AI will suggest based on product">
+                </div>
+                
+                <div class="form-group">
+                    <label>Key Features</label>
+                    <textarea id="keyFeatures" rows="4" placeholder="Enter product features, one per line"></textarea>
                 </div>
                 
                 <!-- Advanced Options -->
@@ -1215,6 +1252,7 @@
                 productName,
                 category: document.getElementById('category').value,
                 targetAudience: document.getElementById('targetAudience').value,
+                keyFeatures: document.getElementById('keyFeatures').value,
                 length: document.getElementById('lengthSlider').value,
                 languages: Array.from(document.getElementById('languages').selectedOptions).map(o => o.value),
                 template: currentTemplate,
@@ -1772,6 +1810,271 @@
         
         // Override the original exportAs with the enhanced version
         exportAs = exportAsEnhanced;
+        
+        // Headline Analysis for Auto-Fill
+        async function analyzeHeadline() {
+            const headline = document.getElementById('headlineInput').value;
+            if (!headline) {
+                showNotification('Please enter a headline to analyze', 'error');
+                return;
+            }
+            
+            showNotification('Analyzing headline...', 'info');
+            
+            try {
+                // Use AI to extract product details from headline
+                const response = await fetch('/api/analyze-headline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ headline })
+                });
+                
+                if (!response.ok) {
+                    // Fallback to client-side analysis
+                    performClientSideAnalysis(headline);
+                    return;
+                }
+                
+                const data = await response.json();
+                autoFillForm(data);
+                
+            } catch (error) {
+                // Fallback to client-side analysis
+                performClientSideAnalysis(headline);
+            }
+        }
+        
+        function performClientSideAnalysis(headline) {
+            const analysis = {
+                productName: '',
+                category: '',
+                targetAudience: '',
+                features: []
+            };
+            
+            // Extract product name (first few words or before 'with', 'for', etc.)
+            const nameMatch = headline.match(/^([^,\-–—]+?)(?:\s+(?:with|for|featuring|\-|–|—)|$)/i);
+            analysis.productName = nameMatch ? nameMatch[1].trim() : headline.split(' ').slice(0, 4).join(' ');
+            
+            // Detect category based on keywords
+            const categories = {
+                'electronics': ['headphones', 'phone', 'laptop', 'tablet', 'camera', 'speaker', 'wireless', 'bluetooth', 'smart'],
+                'fashion': ['shirt', 'dress', 'shoes', 'bag', 'jacket', 'jeans', 'style', 'fashion', 'wear'],
+                'home': ['furniture', 'decor', 'kitchen', 'bathroom', 'bed', 'sofa', 'table', 'chair', 'home'],
+                'beauty': ['cream', 'serum', 'makeup', 'skincare', 'perfume', 'cosmetic', 'beauty', 'skin'],
+                'sports': ['fitness', 'gym', 'sport', 'exercise', 'workout', 'training', 'athletic'],
+                'food': ['food', 'drink', 'snack', 'beverage', 'organic', 'natural', 'healthy']
+            };
+            
+            const lowerHeadline = headline.toLowerCase();
+            for (const [cat, keywords] of Object.entries(categories)) {
+                if (keywords.some(keyword => lowerHeadline.includes(keyword))) {
+                    analysis.category = cat;
+                    break;
+                }
+            }
+            
+            // Extract target audience
+            const audiencePatterns = [
+                { pattern: /for\s+([^,\.\-–—]+)/i, group: 1 },
+                { pattern: /perfect\s+for\s+([^,\.\-–—]+)/i, group: 1 },
+                { pattern: /designed\s+for\s+([^,\.\-–—]+)/i, group: 1 },
+                { pattern: /ideal\s+for\s+([^,\.\-–—]+)/i, group: 1 }
+            ];
+            
+            for (const {pattern, group} of audiencePatterns) {
+                const match = headline.match(pattern);
+                if (match) {
+                    analysis.targetAudience = match[group].trim();
+                    break;
+                }
+            }
+            
+            // Extract features (words after 'with', 'featuring', etc.)
+            const featurePatterns = [
+                /with\s+([^,\.\-–—]+)/gi,
+                /featuring\s+([^,\.\-–—]+)/gi,
+                /includes\s+([^,\.\-–—]+)/gi
+            ];
+            
+            for (const pattern of featurePatterns) {
+                const matches = headline.matchAll(pattern);
+                for (const match of matches) {
+                    analysis.features.push(match[1].trim());
+                }
+            }
+            
+            // Also look for adjectives and feature words
+            const featureWords = ['premium', 'wireless', 'noise cancellation', 'active', 'passive', 'bluetooth', 
+                                 'waterproof', 'durable', 'lightweight', 'portable', 'rechargeable', 'adjustable',
+                                 'ergonomic', 'professional', 'high-quality', 'advanced', 'smart', 'intelligent'];
+            
+            featureWords.forEach(word => {
+                if (lowerHeadline.includes(word) && !analysis.features.includes(word)) {
+                    analysis.features.push(word);
+                }
+            });
+            
+            autoFillForm(analysis);
+        }
+        
+        function autoFillForm(data) {
+            // Fill product name
+            if (data.productName) {
+                document.getElementById('productName').value = data.productName;
+                showNotification('✅ Product name detected', 'success');
+            }
+            
+            // Fill category
+            if (data.category) {
+                document.getElementById('category').value = data.category;
+                showNotification('✅ Category identified', 'success');
+            }
+            
+            // Fill target audience
+            if (data.targetAudience) {
+                document.getElementById('targetAudience').value = data.targetAudience;
+                showNotification('✅ Target audience identified', 'success');
+            }
+            
+            // Fill features
+            if (data.features && data.features.length > 0) {
+                document.getElementById('keyFeatures').value = data.features.join('\n');
+                showNotification(`✅ ${data.features.length} features extracted`, 'success');
+            }
+            
+            // Auto-select appropriate tone based on analysis
+            if (data.suggestedTone) {
+                const styleButtons = document.querySelectorAll('.preset-btn');
+                styleButtons.forEach(btn => {
+                    if (btn.textContent.toLowerCase() === data.suggestedTone.toLowerCase()) {
+                        btn.click();
+                    }
+                });
+            }
+            
+            showNotification('Form auto-filled successfully! Review and adjust as needed.', 'success');
+        }
+        
+        // Image Upload and Analysis
+        async function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+                document.getElementById('uploadArea').querySelector('div').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+            
+            // Analyze image
+            showNotification('Analyzing product image...', 'info');
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                // Convert to base64 for API
+                const base64 = await fileToBase64(file);
+                
+                const response = await fetch('/api/analyze-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        imageBase64: base64.split(',')[1] // Remove data:image/jpeg;base64, prefix
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Auto-fill form with image analysis results
+                    const formData = {
+                        productName: data.productName || '',
+                        category: data.category || '',
+                        targetAudience: data.targetAudience || '',
+                        features: data.features || [],
+                        suggestedTone: data.suggestedTone || 'professional'
+                    };
+                    
+                    autoFillForm(formData);
+                    
+                    // If we got a suggested description, show it
+                    if (data.suggestedDescription) {
+                        showNotification('Image analyzed! Suggested description available.', 'success');
+                        // Store for later use
+                        window.suggestedDescription = data.suggestedDescription;
+                    }
+                }
+            } catch (error) {
+                console.error('Image analysis error:', error);
+                showNotification('Could not analyze image. Please fill details manually.', 'warning');
+            }
+        }
+        
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+        
+        function removeImage() {
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('uploadArea').querySelector('div').style.display = 'block';
+            window.suggestedDescription = null;
+        }
+        
+        // Drag and drop support
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            if (uploadArea) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, preventDefaults, false);
+                });
+                
+                function preventDefaults(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, highlight, false);
+                });
+                
+                ['dragleave', 'drop'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, unhighlight, false);
+                });
+                
+                function highlight(e) {
+                    uploadArea.style.borderColor = '#667eea';
+                    uploadArea.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+                }
+                
+                function unhighlight(e) {
+                    uploadArea.style.borderColor = '#667eea';
+                    uploadArea.style.backgroundColor = 'transparent';
+                }
+                
+                uploadArea.addEventListener('drop', handleDrop, false);
+                
+                function handleDrop(e) {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    
+                    if (files.length > 0) {
+                        document.getElementById('imageUpload').files = files;
+                        handleImageUpload({ target: { files: files } });
+                    }
+                }
+            }
+        });
         
         // Load draft on startup
         loadDraft();

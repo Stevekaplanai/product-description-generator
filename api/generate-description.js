@@ -36,7 +36,8 @@ module.exports = async (req, res) => {
   
 
   try {
-    const { productName, productCategory, targetAudience, keyFeatures, tone, imageAnalysis, hasUploadedImage, imagesOnly, generateImages } = req.body;
+    const { productName, productCategory, targetAudience, keyFeatures, tone, imageAnalysis, hasUploadedImage, imagesOnly, generateImages, category } = req.body;
+    const actualCategory = productCategory || category; // Support both field names
 
     if (!productName) {
       return res.status(400).json({ error: 'Product name is required' });
