@@ -1410,8 +1410,146 @@
         
         function editDescription(index) {
             // Implement inline editing
-            showNotification('Edit mode activated');
+            const card = document.querySelectorAll('.result-card')[index];
+            const content = card.querySelector('p').innerText;
+            const newContent = prompt('Edit description:', content);
+            if (newContent && newContent !== content) {
+                card.querySelector('p').innerText = newContent;
+                generatedDescriptions[index] = newContent;
+                showNotification('Description updated!');
+            }
         }
+        
+        // Add missing switchTab function
+        function switchTab(tab) {
+            // Remove active class from all sidebar icons
+            document.querySelectorAll('.sidebar-icon').forEach(icon => {
+                icon.classList.remove('active');
+            });
+            
+            // Add active class to clicked icon
+            event.target.classList.add('active');
+            
+            switch(tab) {
+                case 'generate':
+                    showNotification('Generate tab selected');
+                    break;
+                case 'images':
+                    showNotification('Image generation coming soon!');
+                    // Future: Show image generation interface
+                    break;
+                case 'video':
+                    showNotification('Video generation coming soon!');
+                    // Future: Show video generation interface
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        // Enhanced exportAs function with actual functionality
+        function exportAsEnhanced(format) {
+            if (!generatedDescriptions || generatedDescriptions.length === 0) {
+                showNotification('No content to export!');
+                return;
+            }
+            
+            const content = generatedDescriptions.join('\n\n');
+            const productName = document.getElementById('productName').value || 'product';
+            const timestamp = new Date().toISOString().split('T')[0];
+            
+            switch(format) {
+                case 'pdf':
+                    // Create a printable version
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(`
+                        <html>
+                        <head>
+                            <title>Product Descriptions - ${productName}</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; padding: 20px; }
+                                h1 { color: #667eea; }
+                                .description { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>Product Descriptions: ${productName}</h1>
+                            <p>Generated: ${timestamp}</p>
+                            ${generatedDescriptions.map((desc, i) => `
+                                <div class="description">
+                                    <h3>Version ${i + 1}</h3>
+                                    <p>${desc}</p>
+                                </div>
+                            `).join('')}
+                        </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                    printWindow.print();
+                    break;
+                    
+                case 'csv':
+                    const csvContent = 'data:text/csv;charset=utf-8,' + 
+                        'Product Name,Description,Generated Date\n' +
+                        generatedDescriptions.map(desc => 
+                            `"${productName}","${desc.replace(/"/g, '""')}","${timestamp}"`
+                        ).join('\n');
+                    const csvLink = document.createElement('a');
+                    csvLink.href = encodeURI(csvContent);
+                    csvLink.download = `${productName}_descriptions_${timestamp}.csv`;
+                    csvLink.click();
+                    break;
+                    
+                case 'json':
+                    const jsonData = {
+                        productName: productName,
+                        category: document.getElementById('category').value,
+                        targetAudience: document.getElementById('targetAudience').value,
+                        descriptions: generatedDescriptions,
+                        generatedAt: timestamp
+                    };
+                    const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+                    const jsonUrl = URL.createObjectURL(jsonBlob);
+                    const jsonLink = document.createElement('a');
+                    jsonLink.href = jsonUrl;
+                    jsonLink.download = `${productName}_descriptions_${timestamp}.json`;
+                    jsonLink.click();
+                    break;
+                    
+                case 'docx':
+                    // Create HTML content that Word can understand
+                    const htmlContent = `
+                        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+                        <head><meta charset="utf-8"></head>
+                        <body>
+                            <h1>Product Descriptions: ${productName}</h1>
+                            <p>Generated: ${timestamp}</p>
+                            ${generatedDescriptions.map((desc, i) => `
+                                <h2>Version ${i + 1}</h2>
+                                <p>${desc}</p>
+                            `).join('')}
+                        </body>
+                        </html>
+                    `;
+                    const docBlob = new Blob([htmlContent], { type: 'application/msword' });
+                    const docUrl = URL.createObjectURL(docBlob);
+                    const docLink = document.createElement('a');
+                    docLink.href = docUrl;
+                    docLink.download = `${productName}_descriptions_${timestamp}.doc`;
+                    docLink.click();
+                    break;
+            }
+            
+            showNotification(`Exported as ${format.toUpperCase()}`);
+            
+            // Track export event
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('content_exported', { format: format });
+            }
+        }
+        
+        // Override the original exportAs with the enhanced version
+        exportAs = exportAsEnhanced;
         
         // Load draft on startup
         loadDraft();
