@@ -67,27 +67,18 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
+            padding: 20px;
         }
 
         .container {
-            width: 100vw;
-            height: 100vh;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            max-width: 1600px;
+            margin: 0 auto;
         }
 
         header {
             text-align: center;
             color: white;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            flex-shrink: 0;
+            margin-bottom: 40px;
         }
 
         h1 {
@@ -214,30 +205,23 @@
 
         .main-content {
             display: grid;
-            grid-template-columns: 450px 1fr;
-            gap: 0;
+            grid-template-columns: 380px 1fr;
+            gap: 30px;
             background: white;
-            flex: 1;
-            overflow: hidden;
-            margin: 0;
-            border-radius: 0;
-            box-shadow: none;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
         .input-section {
-            padding: 30px;
-            overflow-y: auto;
-            background: #f8f9fa;
-            border-right: 1px solid #e0e0e0;
+            padding: 20px;
         }
 
         .output-section {
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            background: white;
-            position: relative;
+            padding: 20px;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
         }
 
         .image-upload-area {
@@ -1223,137 +1207,6 @@
         }
         
         /* Extra small devices */
-        /* Full-screen results modal */
-        .results-fullscreen {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: white;
-            z-index: 3000;
-            overflow: hidden;
-            animation: slideInUp 0.4s ease-out;
-        }
-        
-        .results-fullscreen.active {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .results-fullscreen-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-        
-        .results-fullscreen-title {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        
-        .close-fullscreen-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid white;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .close-fullscreen-btn:hover {
-            background: white;
-            color: #667eea;
-            transform: scale(1.05);
-        }
-        
-        .results-fullscreen-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 40px;
-            background: #f8f9fa;
-        }
-        
-        .results-grid-fullscreen {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 30px;
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-        
-        .result-card-fullscreen {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-            border: 2px solid transparent;
-        }
-        
-        .result-card-fullscreen:hover {
-            border-color: #667eea;
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.25);
-        }
-        
-        .result-card-fullscreen h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-        
-        .result-card-fullscreen p {
-            line-height: 1.8;
-            color: #333;
-            margin-bottom: 15px;
-        }
-        
-        .view-fullscreen-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 20px;
-            width: 100%;
-            transition: all 0.3s;
-            display: none;
-        }
-        
-        .view-fullscreen-btn.show {
-            display: block;
-        }
-        
-        .view-fullscreen-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-        
-        @keyframes slideInUp {
-            from {
-                transform: translateY(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
         @media (max-width: 375px) {
             header h1 {
                 font-size: 1.3rem;
@@ -2004,11 +1857,6 @@
                         <div class="description-box" id="descriptionOutput">
                             Your generated descriptions will appear here...
                         </div>
-                        
-                        <!-- View Fullscreen Button -->
-                        <button id="viewFullscreenBtn" class="view-fullscreen-btn" onclick="openFullscreenResults()">
-                            <span style="margin-right: 8px;">⛶</span> View Full Screen
-                        </button>
                         
                         <!-- Images Section (appears below descriptions) -->
                         <div class="images-section" style="margin-top: 30px;">
@@ -3349,20 +3197,10 @@
                     window.currentVariations = data.variations || data.descriptions || [data.description];
                     window.generatedImages = data.generatedImages || data.images || [];
                     
-                    // Store in generatedContent for fullscreen view
-                    generatedContent.descriptions = window.currentVariations;
-                    generatedContent.images = window.generatedImages;
-                    
                     console.log('API Success - Descriptions:', window.currentVariations.length, 'Images:', window.generatedImages.length);
                     
                     // Show the results section
                     showResults();
-                    
-                    // Show the fullscreen button
-                    const fullscreenBtn = document.getElementById('viewFullscreenBtn');
-                    if (fullscreenBtn) {
-                        fullscreenBtn.classList.add('show');
-                    }
                     
                     // Display variations
                     if (typeof displayVariations === 'function') {
@@ -4046,87 +3884,5 @@
     
     <!-- Stripe Integration -->
     <script src="https://js.stripe.com/v3/"></script>
-    
-    <!-- Full-screen Results Modal -->
-    <div id="resultsFullscreen" class="results-fullscreen">
-        <div class="results-fullscreen-header">
-            <h2 class="results-fullscreen-title">Generated Product Content</h2>
-            <button class="close-fullscreen-btn" onclick="closeFullscreenResults()">
-                <span>✕</span> Close
-            </button>
-        </div>
-        <div class="results-fullscreen-content">
-            <div class="results-grid-fullscreen" id="fullscreenResultsGrid">
-                <!-- Results will be populated here -->
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // Store generated content globally
-        let generatedContent = {
-            descriptions: [],
-            images: []
-        };
-        
-        // Open fullscreen results
-        function openFullscreenResults() {
-            const modal = document.getElementById('resultsFullscreen');
-            const grid = document.getElementById('fullscreenResultsGrid');
-            
-            // Clear previous content
-            grid.innerHTML = '';
-            
-            // Add descriptions
-            if (generatedContent.descriptions && generatedContent.descriptions.length > 0) {
-                generatedContent.descriptions.forEach((desc, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'result-card-fullscreen';
-                    card.innerHTML = `
-                        <h3>Variation ${index + 1}</h3>
-                        <p>${desc}</p>
-                        <button class="copy-btn" onclick="copyToClipboard('${desc.replace(/'/g, "\\'")}', this)">
-                            <span>📋</span> Copy
-                        </button>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-            
-            // Add images if available
-            if (generatedContent.images && generatedContent.images.length > 0) {
-                generatedContent.images.forEach((img, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'result-card-fullscreen';
-                    card.innerHTML = `
-                        <h3>Generated Image ${index + 1}</h3>
-                        <img src="${img}" alt="Generated product image" style="width: 100%; border-radius: 10px; margin-bottom: 15px;">
-                        <a href="${img}" download class="copy-btn" style="text-decoration: none;">
-                            <span>⬇</span> Download
-                        </a>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-            
-            // Show modal
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-        
-        // Close fullscreen results
-        function closeFullscreenResults() {
-            const modal = document.getElementById('resultsFullscreen');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-        
-        // ESC key to close
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeFullscreenResults();
-            }
-        });
-    </script>
 </body>
 </html>
