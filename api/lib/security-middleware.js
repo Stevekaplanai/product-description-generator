@@ -218,7 +218,15 @@ async function securityMiddleware(req, res, options = {}) {
       return false;
     }
     
-    res.setHeader('X-RateLimit-Limit', rateLimitResult.limit || 30);
+    // Get the limit for this endpoint
+    const endpoint = req.url?.split('?')[0] || 'default';
+    const limit = rateLimitResult.limit || 
+                 (endpoint === '/api/generate-description' ? 10 : 
+                  endpoint === '/api/bulk-generate' ? 5 :
+                  endpoint === '/api/analyze-image' ? 15 :
+                  endpoint === '/api/generate-video' ? 3 : 30);
+    
+    res.setHeader('X-RateLimit-Limit', limit);
     res.setHeader('X-RateLimit-Remaining', rateLimitResult.remaining);
     res.setHeader('X-RateLimit-Reset', new Date(rateLimitResult.resetTime).toISOString());
   }

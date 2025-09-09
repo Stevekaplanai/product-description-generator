@@ -37,7 +37,11 @@ async function testEndpoint(name, method, endpoint, body = null, headers = {}) {
     }
     
     const response = await fetch(`${BASE_URL}${endpoint}`, options);
-    const responseHeaders = response.headers.raw();
+    const responseHeaders = {};
+    // Convert headers to lowercase for case-insensitive comparison
+    response.headers.forEach((value, key) => {
+      responseHeaders[key.toLowerCase()] = value;
+    });
     
     // Check security headers
     const securityHeaders = {
@@ -50,16 +54,19 @@ async function testEndpoint(name, method, endpoint, body = null, headers = {}) {
     
     let headersOk = true;
     for (const [header, expected] of Object.entries(securityHeaders)) {
+      const headerLower = header.toLowerCase();
       if (expected === true) {
-        if (!responseHeaders[header]) {
+        if (!responseHeaders[headerLower]) {
           log(`  ❌ Missing header: ${header}`, 'red');
           headersOk = false;
         } else {
           log(`  ✅ Has header: ${header}`, 'green');
         }
-      } else if (responseHeaders[header] !== expected) {
-        log(`  ❌ Invalid ${header}: ${responseHeaders[header]}`, 'red');
+      } else if (responseHeaders[headerLower] !== expected) {
+        log(`  ❌ Invalid ${header}: Expected "${expected}", got "${responseHeaders[headerLower]}"`, 'red');
         headersOk = false;
+      } else {
+        log(`  ✅ Correct ${header}: ${expected}`, 'green');
       }
     }
     

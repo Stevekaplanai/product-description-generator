@@ -40,7 +40,7 @@ function checkRateLimit(req, customLimit = null) {
       count: 1,
       windowStart: now
     });
-    return { allowed: true, remaining: limit - 1, resetTime: now + WINDOW_MS };
+    return { allowed: true, remaining: limit - 1, resetTime: now + WINDOW_MS, limit };
   }
   
   const data = requestCounts.get(key);
@@ -49,7 +49,7 @@ function checkRateLimit(req, customLimit = null) {
   if (now - data.windowStart > WINDOW_MS) {
     data.count = 1;
     data.windowStart = now;
-    return { allowed: true, remaining: limit - 1, resetTime: now + WINDOW_MS };
+    return { allowed: true, remaining: limit - 1, resetTime: now + WINDOW_MS, limit };
   }
   
   // Check if limit exceeded
@@ -59,7 +59,8 @@ function checkRateLimit(req, customLimit = null) {
       allowed: false, 
       remaining: 0, 
       resetTime,
-      retryAfter: Math.ceil((resetTime - now) / 1000)
+      retryAfter: Math.ceil((resetTime - now) / 1000),
+      limit
     };
   }
   
@@ -68,7 +69,8 @@ function checkRateLimit(req, customLimit = null) {
   return { 
     allowed: true, 
     remaining: limit - data.count,
-    resetTime: data.windowStart + WINDOW_MS
+    resetTime: data.windowStart + WINDOW_MS,
+    limit
   };
 }
 
