@@ -1,0 +1,4132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Description Generator - Free AI Tool | ProductDescriptions.io</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Free AI product description generator. Upload product images for instant analysis. Generate SEO-optimized descriptions, professional images, and marketing videos.">
+    <meta name="keywords" content="free product description generator, AI copywriting tool, product image analyzer, e-commerce content, SEO product descriptions">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://productdescriptions.io/app.html">
+    
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="Free AI Product Description Generator - Instant Results">
+    <meta property="og:description" content="Upload a product image and get professional descriptions in seconds. No signup required for your first 5 products.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://productdescriptions.io/app.html">
+    <meta property="og:image" content="https://productdescriptions.io/images/app-preview.png">
+    <meta property="og:site_name" content="ProductDescriptions.io">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Free Product Description Generator">
+    <meta name="twitter:description" content="AI-powered tool for instant product descriptions. Upload image → Get content.">
+    <meta name="twitter:image" content="https://productdescriptions.io/images/app-twitter.png">
+    
+    <!-- Authentication Check -->
+    <script src="/js/auth-check.js"></script>
+    
+    <!-- PostHog Analytics -->
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        
+        // Track page load time for engagement metrics
+        const pageLoadTime = Date.now();
+        
+        // Initialize PostHog from server-side config
+        fetch('/api/config')
+            .then(response => response.json())
+            .then(config => {
+                if (config.posthogKey) {
+                    posthog.init(config.posthogKey, {api_host:'https://app.posthog.com'});
+                }
+            })
+            .catch(err => console.log('Analytics not configured'));
+    </script>
+    
+    <!-- Performance Optimizations -->
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .new-badge {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Sticky Video CTA Header */
+        .sticky-video-cta {
+            position: fixed;
+            top: -100px;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            padding: 15px 20px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: top 0.3s ease-in-out;
+        }
+
+        .sticky-video-cta.active {
+            top: 0;
+        }
+
+        .sticky-video-cta-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .sticky-video-cta-text {
+            flex: 1;
+            color: white;
+        }
+
+        .sticky-video-cta-text h3 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .sticky-video-cta-text p {
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+
+        .sticky-video-cta-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .sticky-video-cta-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .sticky-video-cta-btn.primary {
+            background: white;
+            color: #ff6b6b;
+        }
+
+        .sticky-video-cta-btn.primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+        }
+
+        .sticky-video-cta-btn.dismiss {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .sticky-video-cta-btn.dismiss:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .sticky-video-cta-close {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 10px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .sticky-video-cta-close:hover {
+            opacity: 1;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 0;
+            background: white;
+            flex: 1;
+            overflow: hidden;
+            margin: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .input-section {
+            padding: 30px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .output-section {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: white;
+            position: relative;
+        }
+
+        .image-upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: #f9f9ff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .image-upload-area:hover {
+            background: #f0f0ff;
+            border-color: #764ba2;
+        }
+
+        .image-upload-area.has-image {
+            border-style: solid;
+            background: white;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 150px;
+            margin: 10px auto;
+            display: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .image-preview.active {
+            display: block;
+        }
+        
+        .analyze-btn {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .analyze-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group.optional {
+            opacity: 0.8;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: border-color 0.3s;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .pricing-tiers {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tier-card {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .tier-card.selected {
+            border-color: #667eea;
+            background: #f7f9ff;
+        }
+
+        .tier-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 3px 0;
+        }
+
+        .tier-features {
+            font-size: 10px;
+            color: #666;
+            margin-top: 3px;
+            line-height: 1.3;
+        }
+
+        .generate-images-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f0f9ff;
+            border-radius: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        /* Loading spinner styles */
+        .loading-spinner {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .spinner {
+            animation: rotate 1s linear infinite;
+        }
+        
+        .spinner circle {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 80;
+            animation: dash 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes dash {
+            0% { stroke-dashoffset: 80; }
+            50% { stroke-dashoffset: 20; }
+            100% { stroke-dashoffset: 80; }
+        }
+        
+        /* Tooltip styles */
+        .tooltip-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            pointer-events: none;
+            max-width: 250px;
+            white-space: normal;
+        }
+        
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #333;
+        }
+        
+        .tooltip-wrapper:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Copy button styles */
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        
+        .copy-btn:hover {
+            background: #764ba2;
+            transform: translateY(-1px);
+        }
+        
+        .copy-btn.copied {
+            background: #10b981;
+        }
+        
+        /* Error message styles */
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .output-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .output-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .output-tab:hover {
+            color: #667eea;
+        }
+
+        .output-tab.active {
+            color: #667eea;
+        }
+
+        .output-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+
+        .output-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .output-content.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .images-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* New pricing options styles */
+        .video-pricing-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .pricing-option {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-option.popular {
+            border-color: #ffd700;
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(255,215,0,0.3);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .savings-text {
+            color: #4ade80;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .pricing-option .create-video-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px 20px;
+        }
+
+        .pricing-option.popular .create-video-btn {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+        }
+
+        /* Trust badges */
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .trust-badges .badge {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Urgency timer */
+        .urgency-timer {
+            background: rgba(255,107,107,0.2);
+            border: 1px solid rgba(255,107,107,0.5);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 20px 0;
+        }
+
+        .urgency-timer p {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        #countdown {
+            color: #ffd700;
+            font-family: monospace;
+            font-size: 1.1em;
+        }
+
+        .variations-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .variation-tab {
+            padding: 6px 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+
+        .variation-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .description-box {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .image-info {
+            padding: 10px;
+        }
+
+        .image-style {
+            font-size: 12px;
+            color: #666;
+            text-transform: capitalize;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .image-btn {
+            flex: 1;
+            padding: 5px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .image-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            animation: fadeIn 0.3s;
+        }
+
+        .image-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1002;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .modal-close:hover {
+            color: #ff6b6b;
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        /* Mobile Styles for iPhone and other devices */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                padding-top: 60px; /* Space for fixed header */
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            /* Adjust main content area when user dashboard is present */
+            .main-content {
+                margin-top: 20px; /* Add extra space for user dashboard */
+            }
+            
+            header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 10px;
+                margin-bottom: 0;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            }
+            
+            header h1 {
+                font-size: 1.2rem;
+                margin-bottom: 5px;
+            }
+            
+            .subtitle {
+                font-size: 0.8rem;
+                display: none; /* Hide subtitle on mobile to save space */
+            }
+            
+            .main-content {
+                gap: 15px;
+                padding: 10px;
+            }
+            
+            .input-section, .output-section {
+                padding: 15px;
+            }
+            
+            .form-group label {
+                font-size: 14px;
+            }
+            
+            .form-group input, 
+            .form-group select, 
+            .form-group textarea {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 12px;
+            }
+            
+            .generate-btn {
+                font-size: 16px;
+                padding: 15px;
+                width: 100%;
+            }
+            
+            .metrics {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .metric-card {
+                padding: 12px;
+            }
+            
+            /* Combined view mobile optimization */
+            #results .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            #results .images-section {
+                margin-top: 20px !important;
+            }
+            
+            #results .images-section h3 {
+                font-size: 1.1rem;
+                margin-bottom: 15px;
+            }
+            
+            #results .description-box {
+                font-size: 14px;
+                line-height: 1.6;
+            }
+            
+            #results .image-gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            /* Video Upsell Modal Mobile Styles */
+            #videoUpsellModal .video-upsell-content {
+                padding: 20px;
+                width: 95%;
+                max-height: 85vh;
+                border-radius: 15px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            }
+            
+            .video-upsell-container h2 {
+                font-size: 1.3rem !important;
+                margin-bottom: 10px;
+            }
+            
+            .upsell-subtitle {
+                font-size: 1rem;
+                margin-bottom: 20px;
+            }
+            
+            .video-benefits {
+                flex-direction: column;
+                gap: 10px;
+                margin: 20px 0;
+            }
+            
+            .benefit-item {
+                width: 100%;
+                margin: 0;
+                padding: 12px;
+                min-width: auto;
+            }
+            
+            .benefit-icon {
+                font-size: 1.5rem;
+                margin-right: 10px;
+            }
+            
+            .benefit-item h4 {
+                font-size: 0.9rem;
+            }
+            
+            .benefit-item p {
+                font-size: 0.8rem;
+            }
+            
+            .price-tag {
+                font-size: 2rem !important;
+            }
+            
+            .currency {
+                font-size: 1.5rem !important;
+            }
+            
+            .period {
+                font-size: 1rem !important;
+            }
+            
+            .discount-badge {
+                font-size: 0.9rem;
+                padding: 6px 15px;
+            }
+            
+            .video-preview {
+                margin: 20px 0;
+                padding: 15px;
+            }
+            
+            /* Fix button issues on mobile */
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            
+            .create-video-btn,
+            .skip-btn {
+                width: 100%;
+                padding: 15px 20px;
+                font-size: 16px;
+                border-radius: 10px;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+                min-height: 50px;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+            
+            .create-video-btn {
+                font-size: 1rem;
+                padding: 14px 20px;
+            }
+            
+            .skip-btn {
+                font-size: 0.95rem;
+                padding: 12px 20px;
+            }
+            
+            /* Modal close button */
+            .modal-close {
+                font-size: 30px;
+                width: 40px;
+                height: 40px;
+                line-height: 40px;
+                right: 10px;
+                top: 10px;
+                background: rgba(255,255,255,0.2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            /* Image upload area */
+            .image-upload-area {
+                padding: 20px;
+            }
+            
+            .upload-icon {
+                font-size: 30px;
+            }
+            
+            /* Tabs */
+            .output-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .output-tab {
+                flex: 1;
+                min-width: 120px;
+                font-size: 14px;
+                padding: 10px;
+            }
+            
+            /* Image gallery */
+            .image-gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            /* Subscription status banner */
+            .subscription-status {
+                top: 10px;
+                width: calc(100% - 20px);
+                left: 10px;
+                right: 10px;
+                transform: none;
+                font-size: 14px;
+                padding: 8px 15px;
+                gap: 10px;
+            }
+            
+            /* Pricing modal */
+            .pricing-modal .modal-content {
+                width: 95%;
+                padding: 20px;
+                max-height: 90vh;
+            }
+            
+            .pricing-plans {
+                flex-direction: column;
+            }
+            
+            .plan-card {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+        }
+        
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .create-video-btn:hover,
+            .skip-btn:hover {
+                transform: none;
+            }
+            
+            .create-video-btn:active {
+                transform: scale(0.98);
+            }
+            
+            .skip-btn:active {
+                background: rgba(255,255,255,0.2);
+            }
+        }
+        
+        /* Extra small devices */
+        /* Full-screen results modal */
+        .results-fullscreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: white;
+            z-index: 3000;
+            overflow: hidden;
+            animation: slideInUp 0.4s ease-out;
+        }
+        
+        .results-fullscreen.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .results-fullscreen-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .results-fullscreen-title {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .close-fullscreen-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .close-fullscreen-btn:hover {
+            background: white;
+            color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .results-fullscreen-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            background: #f8f9fa;
+        }
+        
+        .results-grid-fullscreen {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .result-card-fullscreen {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .result-card-fullscreen:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.25);
+        }
+        
+        .result-card-fullscreen h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .result-card-fullscreen p {
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .view-fullscreen-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: all 0.3s;
+            display: none;
+        }
+        
+        .view-fullscreen-btn.show {
+            display: block;
+        }
+        
+        .view-fullscreen-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 375px) {
+            header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .video-upsell-container h2 {
+                font-size: 1.3rem;
+            }
+            
+            .price-tag {
+                font-size: 1.8rem !important;
+            }
+            
+            .create-video-btn,
+            .skip-btn {
+                font-size: 14px;
+                padding: 12px 15px;
+            }
+        }
+
+        .video-generator {
+            padding: 20px;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .avatar-option {
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .avatar-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .avatar-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .avatar-option img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 5px;
+        }
+
+        .voice-selection {
+            margin: 20px 0;
+        }
+
+        .voice-selection select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .script-editor {
+            margin: 20px 0;
+        }
+
+        .script-editor textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .video-results {
+            margin-top: 20px;
+        }
+
+        .video-player {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .video-player video {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Video Upsell Modal Styles */
+        #videoUpsellModal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            animation: fadeIn 0.3s;
+        }
+
+        #videoUpsellModal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-upsell-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            color: white !important;
+        }
+
+        .video-upsell-container {
+            color: white;
+            text-align: center;
+        }
+
+        .video-upsell-container h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .upsell-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            margin-bottom: 30px;
+        }
+
+        .video-benefits {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px;
+            backdrop-filter: blur(10px);
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .benefit-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        .benefit-item h4 {
+            margin: 0;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .benefit-item p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .video-pricing {
+            margin: 30px 0;
+        }
+
+        .price-tag {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .currency {
+            font-size: 2rem;
+            vertical-align: super;
+        }
+
+        .period {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .discount-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        .video-preview {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+            min-height: 100px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .create-video-btn {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .create-video-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .skip-btn {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 15px 40px;
+            font-size: 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .skip-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        /* Subscription Status Styles */
+        .subscription-status {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+            border: 1px solid #e0e0e0;
+        }
+
+        .subscription-status.premium {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        .subscription-status.free {
+            background: white;
+            color: #333;
+        }
+
+        .subscription-status.free span {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .subscription-status button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .subscription-status.free button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        /* Pricing Modal Styles */
+        .pricing-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 1000px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-content .close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .price-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .price-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .price-card.popular {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .price-card .badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 20px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+
+        .price-card h3 {
+            margin-bottom: 20px;
+        }
+
+        .price-card .price {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .price-card ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+
+        .price-card li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .price-card.popular li {
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .price-card button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .price-card.popular button {
+            background: white;
+            color: #667eea;
+        }
+
+        .price-card button:hover {
+            opacity: 0.9;
+        }
+
+        /* Mobile fixes for sticky video header */
+        @media (max-width: 768px) {
+            .sticky-video-cta {
+                padding: 10px;
+            }
+
+            .sticky-video-cta-content {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .sticky-video-cta-text h3 {
+                font-size: 1rem;
+            }
+
+            .sticky-video-cta-text p {
+                font-size: 0.8rem;
+                display: none; /* Hide description on mobile for space */
+            }
+
+            .sticky-video-cta-buttons {
+                width: 100%;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .sticky-video-cta-btn {
+                width: 100%;
+                padding: 12px 20px;
+                font-size: 0.9rem;
+                /* Fix touch targets */
+                min-height: 44px;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+                position: relative;
+                z-index: 10;
+            }
+
+            .sticky-video-cta-btn.dismiss {
+                background: rgba(255,255,255,0.2);
+            }
+
+            .sticky-video-cta-close {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                font-size: 1.8rem;
+                padding: 10px;
+                min-width: 44px;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+                z-index: 11;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sticky Video CTA Header -->
+    <div id="stickyVideoCTA" class="sticky-video-cta">
+        <div class="sticky-video-cta-content">
+            <div class="sticky-video-cta-text">
+                <h3>🔥 Limited Time: Turn Your Product into a Viral Video!</h3>
+                <p>AI-powered videos get 12x more engagement. Create yours in 60 seconds!</p>
+            </div>
+            <div class="sticky-video-cta-buttons">
+                <button class="sticky-video-cta-btn primary" onclick="showVideoUpsellFromSticky()">
+                    🎬 Create Video Now - Save 50%
+                </button>
+                <button class="sticky-video-cta-btn dismiss" onclick="dismissStickyHeader()">
+                    Not Interested
+                </button>
+            </div>
+            <button class="sticky-video-cta-close" onclick="dismissStickyHeader()">
+                ×
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>AI Product Description & Image Generator</h1>
+            <p class="subtitle">
+                Generate descriptions with AI-created product images
+                <span class="new-badge">NEW: AI Images!</span>
+            </p>
+            <div style="margin-top: 20px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                <a href="/bulk.html" style="display: inline-block; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 20px; transition: background 0.3s;">
+                    📁 Bulk CSV Upload
+                </a>
+                <a href="#" onclick="showVideoUpgradeModal(); return false;" style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%); color: white; text-decoration: none; border-radius: 20px; transition: transform 0.2s; font-weight: bold;">
+                    🎬 Create Videos
+                </a>
+                <a href="/" style="display: inline-block; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 20px; transition: background 0.3s;">
+                    🔄 Classic Version
+                </a>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h3 style="margin-bottom: 15px;">Product Details</h3>
+                
+                <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('productImage').click()">
+                    <div class="upload-icon">📸</div>
+                    <p><strong>Upload product image for AI analysis</strong></p>
+                    <p style="font-size: 11px; color: #666; margin-top: 5px;">
+                        AI will identify your product and auto-fill details
+                    </p>
+                    <img id="imagePreview" class="image-preview">
+                    <input type="file" id="productImage" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                    <div id="analyzeButton" style="display: none; margin-top: 10px;">
+                        <button class="analyze-btn" onclick="analyzeImage(event)" style="background: #10b981; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;">🔍 Analyze Image</button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="productNameGroup">
+                    <label for="productName">Product Name <span id="productNameOptional" style="color: #10b981; font-size: 12px; display: none;">(auto-detected)</span></label>
+                    <input type="text" id="productName" placeholder="e.g., Wireless Bluetooth Headphones" required>
+                </div>
+
+                <div class="form-group" id="categoryGroup">
+                    <label for="category">Category <span id="categoryOptional" style="color: #10b981; font-size: 12px; display: none;">(auto-detected)</span></label>
+                    <select id="category" required>
+                        <option value="">Select category</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="fashion">Fashion</option>
+                        <option value="home">Home & Garden</option>
+                        <option value="beauty">Beauty & Personal Care</option>
+                        <option value="sports">Sports & Outdoors</option>
+                        <option value="toys">Toys & Games</option>
+                        <option value="food">Food & Beverage</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="featuresGroup">
+                    <label for="features">Key Features <span id="featuresOptional" style="color: #10b981; font-size: 12px; display: none;">(auto-detected)</span></label>
+                    <textarea id="features" placeholder="One feature per line" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="targetAudience">Target Audience</label>
+                    <input type="text" id="targetAudience" placeholder="e.g., Young professionals">
+                </div>
+
+                <div class="form-group">
+                    <label for="tone">Tone</label>
+                    <select id="tone">
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual</option>
+                        <option value="luxury">Luxury</option>
+                        <option value="playful">Playful</option>
+                        <option value="technical">Technical</option>
+                    </select>
+                </div>
+
+                <div class="generate-images-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="generateImages" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <div>
+                        <strong>Generate AI Images</strong>
+                        <div style="font-size: 11px; color: #666;">Create product images in multiple styles</div>
+                    </div>
+                </div>
+
+                <!-- Subscription tier affects features automatically -->
+                <div class="form-group" id="subscriptionInfo" style="display: none;">
+                    <div style="background: #f7f9ff; padding: 15px; border-radius: 8px; border: 1px solid #667eea;">
+                        <div style="font-weight: bold; color: #667eea; margin-bottom: 10px;" id="planName">Your Plan</div>
+                        <div style="font-size: 14px; color: #666;" id="planFeatures">Plan features will be shown here</div>
+                    </div>
+                </div>
+
+                <button class="generate-btn" id="generateBtn" onclick="generateDescription()">
+                    <span class="btn-text">Generate Content</span>
+                    <span class="loading-spinner" style="display: none;">
+                        <svg class="spinner" width="20" height="20" viewBox="0 0 50 50">
+                            <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5"></circle>
+                        </svg>
+                        Generating...
+                    </span>
+                </button>
+            </div>
+
+            <div class="output-section">
+                <div>
+                    <!-- Single combined view - no tabs needed -->
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <h3>Generating content...</h3>
+                        <p>Creating descriptions and images</p>
+                    </div>
+
+                    <div id="results" class="output-content" style="display: none;">
+                        <!-- Descriptions Section -->
+                        <div class="section-header">
+                            <h3>📝 Generated Descriptions</h3>
+                            <div class="variations-tabs" id="variationTabs" style="display: none;">
+                                <!-- Variation tabs will be added dynamically -->
+                            </div>
+                        </div>
+                        <div class="description-box" id="descriptionOutput">
+                            Your generated descriptions will appear here...
+                        </div>
+                        
+                        <!-- View Fullscreen Button -->
+                        <button id="viewFullscreenBtn" class="view-fullscreen-btn" onclick="openFullscreenResults()">
+                            <span style="margin-right: 8px;">⛶</span> View Full Screen
+                        </button>
+                        
+                        <!-- Images Section (appears below descriptions) -->
+                        <div class="images-section" style="margin-top: 30px;">
+                            <h3>🖼️ Generated Images</h3>
+                            <div class="image-gallery" id="imageGallery">
+                                <!-- Generated images will appear here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Video Upgrade CTA -->
+                        <div class="video-upgrade-cta" style="margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; text-align: center;">
+                            <h3 style="color: white; margin-bottom: 10px;">🎬 Turn Your Product Into a Video!</h3>
+                            <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 20px;">Create professional UGC-style videos with AI avatars to boost conversions</p>
+                            <button onclick="showVideoUpgradeModal()" style="background: white; color: #667eea; padding: 12px 30px; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.2s;">
+                                🚀 Create Video Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Video content removed - now handled by upsell -->
+                    <!-- <div id="videosContent" class="output-content">
+                        <div class="video-generator" id="videoGenerator">
+                            <h3>Generate UGC Product Videos</h3>
+                            <div class="avatar-selection">
+                                <label>Select Avatar:</label>
+                                <div class="avatar-grid">
+                                    <div class="avatar-option selected" data-avatar="amy-jcwCkr1grs">
+                                        <img src="https://via.placeholder.com/100x100?text=Amy" alt="Amy">
+                                        <span>Amy</span>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="josh-z3EqOMZKFH">
+                                        <img src="https://via.placeholder.com/100x100?text=Josh" alt="Josh">
+                                        <span>Josh</span>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="emilia-lXvtTJxGgFs">
+                                        <img src="https://via.placeholder.com/100x100?text=Emilia" alt="Emilia">
+                                        <span>Emilia</span>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="will-ZjdM0tGz0ic">
+                                        <img src="https://via.placeholder.com/100x100?text=Will" alt="Will">
+                                        <span>Will</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="voice-selection">
+                                <label for="voiceSelect">Voice:</label>
+                                <select id="voiceSelect">
+                                    <option value="en-US-JennyNeural">Jenny (US Female)</option>
+                                    <option value="en-US-GuyNeural">Guy (US Male)</option>
+                                    <option value="en-GB-SoniaNeural">Sonia (UK Female)</option>
+                                    <option value="en-GB-RyanNeural">Ryan (UK Male)</option>
+                                </select>
+                            </div>
+                            <div class="script-editor">
+                                <label for="videoScript">Video Script:</label>
+                                <textarea id="videoScript" rows="6" placeholder="Script will be auto-generated from your product description..."></textarea>
+                            </div>
+                            <button class="generate-btn" onclick="generateVideo()">Generate Video</button>
+                            <div class="video-results" id="videoResults" style="display: none;">
+                                <!-- Video results will appear here -->
+                            </div>
+                        </div>
+                    </div> -->
+
+                    <!-- Metrics removed - we're creating content not tracking it -->
+                    <!-- <div id="metricsContent" class="output-content">
+                        <div class="metrics" id="metrics">
+                            <div class="metric-card">
+                                <div class="metric-value" id="wordCount">0</div>
+                                <div class="metric-label">Words</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="seoScore">0</div>
+                                <div class="metric-label">SEO Score</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="readabilityScore">0</div>
+                                <div class="metric-label">Readability</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="variationCount">0</div>
+                                <div class="metric-label">Variations</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="imageCount">0</div>
+                                <div class="metric-label">Images</div>
+                            </div>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="image-modal" onclick="closeModal()">
+        <span class="modal-close">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <!-- Video Upsell Popup Modal -->
+    <div id="videoUpsellModal" class="modal">
+        <div class="modal-content video-upsell-content">
+            <span class="modal-close" onclick="closeVideoUpsellModal()">&times;</span>
+            <div class="video-upsell-container">
+                <h2>🎬 Transform Your Product Into a Video!</h2>
+                <p class="upsell-subtitle">Bring your product to life with AI-powered video creation</p>
+                
+                <div class="video-benefits">
+                    <div class="benefit-item">
+                        <span class="benefit-icon">📹</span>
+                        <div>
+                            <h4>Professional Quality</h4>
+                            <p>Studio-quality videos with AI avatars</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">🎯</span>
+                        <div>
+                            <h4>Higher Conversion</h4>
+                            <p>Videos increase sales by up to 80%</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">⚡</span>
+                        <div>
+                            <h4>Ready in Minutes</h4>
+                            <p>AI-generated in under 5 minutes</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-pricing-options">
+                    <div class="pricing-option">
+                        <div class="price-tag">
+                            <span class="currency">$</span>
+                            <span class="amount">29</span>
+                            <span class="period">/video</span>
+                        </div>
+                        <button class="create-video-btn single" onclick="proceedToVideoCreation('single', event)">
+                            🎥 Get Single Video
+                        </button>
+                    </div>
+                    
+                    <div class="pricing-option popular">
+                        <span class="popular-badge">MOST POPULAR</span>
+                        <div class="price-tag">
+                            <span class="currency">$</span>
+                            <span class="amount">69</span>
+                            <span class="period">/3 videos</span>
+                        </div>
+                        <div class="savings-text">Save $18!</div>
+                        <button class="create-video-btn triple" onclick="proceedToVideoCreation('triple', event)">
+                            🎬 Get 3-Video Pack
+                        </button>
+                    </div>
+                </div>
+
+                <div class="urgency-timer">
+                    <p>⏰ Limited time offer expires in: <span id="countdown">23:59:47</span></p>
+                </div>
+
+                <!-- Trust badges -->
+                <div class="trust-badges">
+                    <div class="badge">🔒 Secure Checkout</div>
+                    <div class="badge">💰 30-Day Guarantee</div>
+                    <div class="badge">⚡ Instant Delivery</div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="skip-btn" onclick="handleMaybeLater()">
+                        Maybe Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Subscription and Authentication Management
+        let userSubscription = null;
+        let monthlyUsage = {
+            descriptions: 0,
+            images: 0,
+            videos: 0
+        };
+
+        // Check subscription on page load
+        async function checkSubscription() {
+            // Check URL params for session ID (from Stripe checkout)
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session_id');
+            
+            // Check localStorage for customer ID (returning user)
+            const customerId = localStorage.getItem('stripe_customer_id');
+            
+            if (sessionId || customerId) {
+                try {
+                    const response = await fetch('/api/verify-subscription', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ sessionId, customerId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.active) {
+                        userSubscription = data;
+                        localStorage.setItem('stripe_customer_id', data.customerId);
+                        
+                        // Update UI to show premium features
+                        updateUIForSubscription();
+                        
+                        // Clear session_id from URL
+                        if (sessionId) {
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                    } else {
+                        // Show free tier limitations
+                        showFreeTierUI();
+                    }
+                } catch (error) {
+                    console.error('Subscription check failed:', error);
+                    showFreeTierUI();
+                }
+            } else {
+                showFreeTierUI();
+            }
+            
+            // Load usage from localStorage
+            const savedUsage = localStorage.getItem('monthly_usage');
+            if (savedUsage) {
+                const usage = JSON.parse(savedUsage);
+                const currentMonth = new Date().getMonth();
+                if (usage.month === currentMonth) {
+                    monthlyUsage = usage;
+                } else {
+                    // Reset usage for new month
+                    resetMonthlyUsage();
+                }
+            }
+        }
+
+        function updateUIForSubscription() {
+            // Show subscription status with plan name
+            const planName = userSubscription?.plan || 'Premium';
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'subscription-status premium';
+            statusDiv.innerHTML = `
+                <span>✨ ${planName} Plan Active</span>
+                <button onclick="openCustomerPortal()">Manage Subscription</button>
+            `;
+            document.querySelector('header').appendChild(statusDiv);
+            
+            // Show subscription info in the form
+            const subscriptionInfo = document.getElementById('subscriptionInfo');
+            if (subscriptionInfo) {
+                subscriptionInfo.style.display = 'block';
+                document.getElementById('planName').textContent = `${planName} Plan Features`;
+                
+                let features = '';
+                if (planName.toLowerCase().includes('starter')) {
+                    features = '• 100 product descriptions/month<br>• Advanced AI descriptions<br>• 3 images per product<br>• 10 AI videos/month';
+                } else if (planName.toLowerCase().includes('professional')) {
+                    features = '• 500 product descriptions/month<br>• Premium AI features<br>• Unlimited images<br>• 50 AI videos/month<br>• Bulk upload';
+                } else if (planName.toLowerCase().includes('enterprise')) {
+                    features = '• Unlimited descriptions<br>• Custom AI training<br>• API access<br>• Unlimited images & videos<br>• Dedicated support';
+                } else {
+                    features = '• Premium features enabled<br>• Generate unlimited content';
+                }
+                document.getElementById('planFeatures').innerHTML = features;
+            }
+        }
+
+        function showFreeTierUI() {
+            // Show free tier limitations
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'subscription-status free';
+            statusDiv.innerHTML = `
+                <span>Free Plan: ${5 - monthlyUsage.descriptions}/5 descriptions remaining this month</span>
+                <button onclick="showPricingModal()">View Plans</button>
+            `;
+            document.querySelector('header').appendChild(statusDiv);
+            
+            // Show free tier info in the form
+            const subscriptionInfo = document.getElementById('subscriptionInfo');
+            if (subscriptionInfo) {
+                subscriptionInfo.style.display = 'block';
+                document.getElementById('planName').textContent = 'Free Plan Limits';
+                document.getElementById('planFeatures').innerHTML = `• 5 product descriptions/month<br>• Basic AI features<br>• 1 image per product<br>• ${5 - monthlyUsage.descriptions} descriptions remaining`;
+            }
+        }
+
+        function resetMonthlyUsage() {
+            monthlyUsage = {
+                descriptions: 0,
+                images: 0,
+                videos: 0,
+                month: new Date().getMonth()
+            };
+            localStorage.setItem('monthly_usage', JSON.stringify(monthlyUsage));
+        }
+
+        function incrementUsage(type) {
+            monthlyUsage[type]++;
+            monthlyUsage.month = new Date().getMonth();
+            localStorage.setItem('monthly_usage', JSON.stringify(monthlyUsage));
+        }
+
+        function checkUsageLimits(type) {
+            if (!userSubscription) {
+                // Free tier limits
+                const limits = {
+                    descriptions: 5,
+                    images: 1,
+                    videos: 0
+                };
+                
+                if (monthlyUsage[type] >= limits[type]) {
+                    showPricingModal();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        async function openCustomerPortal() {
+            const customerId = localStorage.getItem('stripe_customer_id');
+            if (!customerId) return;
+            
+            try {
+                const response = await fetch('/api/create-portal-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        customerId,
+                        returnUrl: window.location.href
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                }
+            } catch (error) {
+                console.error('Portal session failed:', error);
+            }
+        }
+
+        function showPricingModal() {
+            // Show pricing modal
+            const modal = document.createElement('div');
+            modal.className = 'pricing-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                    <h2>Choose Your Plan</h2>
+                    <div class="pricing-grid">
+                        <div class="price-card">
+                            <h3>Starter</h3>
+                            <div class="price">$19/mo</div>
+                            <ul>
+                                <li>100 descriptions/month</li>
+                                <li>Image generation</li>
+                                <li>10 AI videos/month</li>
+                            </ul>
+                            <button onclick="checkout('starter')">Get Started</button>
+                        </div>
+                        <div class="price-card popular">
+                            <div class="badge">Most Popular</div>
+                            <h3>Professional</h3>
+                            <div class="price">$49/mo</div>
+                            <ul>
+                                <li>500 descriptions/month</li>
+                                <li>Unlimited images</li>
+                                <li>50 AI videos/month</li>
+                                <li>Bulk upload</li>
+                            </ul>
+                            <button onclick="checkout('professional')">Get Started</button>
+                        </div>
+                        <div class="price-card">
+                            <h3>Enterprise</h3>
+                            <div class="price">$149/mo</div>
+                            <ul>
+                                <li>Unlimited everything</li>
+                                <li>API access</li>
+                                <li>Custom AI training</li>
+                                <li>Priority support</li>
+                            </ul>
+                            <button onclick="checkout('enterprise')">Get Started</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Global variables for subscription and usage tracking
+        let stripe = null;
+        let stripeConfig = null;
+        let currentSubscription = null;
+        let currentUsage = null;
+        let userEmail = null;
+        
+        // Get user email from localStorage or prompt
+        function getUserEmail() {
+            if (!userEmail) {
+                userEmail = localStorage.getItem('userEmail');
+                if (!userEmail) {
+                    userEmail = prompt('Please enter your email to continue:');
+                    if (userEmail) {
+                        localStorage.setItem('userEmail', userEmail);
+                    }
+                }
+            }
+            return userEmail;
+        }
+        
+        // Check subscription status
+        async function checkSubscription() {
+            const email = getUserEmail();
+            if (!email) return null;
+            
+            try {
+                const response = await fetch('/api/check-subscription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                if (response.ok) {
+                    currentSubscription = await response.json();
+                    updateUIForSubscription();
+                    return currentSubscription;
+                }
+            } catch (error) {
+                console.error('Error checking subscription:', error);
+            }
+            return null;
+        }
+        
+        // Track usage
+        async function trackUsage(action, count = 1) {
+            const email = getUserEmail();
+            if (!email) return;
+            
+            try {
+                const response = await fetch('/api/track-usage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, action, count })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUsage = data.usage;
+                    updateUsageDisplay();
+                    return data;
+                } else if (response.status === 403) {
+                    const errorData = await response.json();
+                    showUpgradeModal(errorData);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error tracking usage:', error);
+            }
+        }
+        
+        // Get current usage
+        async function getUsage() {
+            const email = getUserEmail();
+            if (!email) return null;
+            
+            try {
+                const response = await fetch('/api/track-usage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, action: 'get' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUsage = data;
+                    updateUsageDisplay();
+                    return data;
+                }
+            } catch (error) {
+                console.error('Error getting usage:', error);
+            }
+            return null;
+        }
+        
+        // Update UI based on subscription
+        function updateUIForSubscription() {
+            if (!currentSubscription) return;
+            
+            // Add subscription badge
+            const badge = document.getElementById('subscriptionBadge') || createSubscriptionBadge();
+            badge.textContent = `${currentSubscription.plan.toUpperCase()} PLAN`;
+            badge.className = `subscription-badge ${currentSubscription.plan}`;
+            
+            // Update feature availability
+            const features = currentSubscription.features;
+            if (features.bulkUpload === false) {
+                const bulkBtn = document.querySelector('[onclick*="showBulkUpload"]');
+                if (bulkBtn) bulkBtn.style.display = 'none';
+            }
+        }
+        
+        // Create subscription badge
+        function createSubscriptionBadge() {
+            const badge = document.createElement('div');
+            badge.id = 'subscriptionBadge';
+            badge.style.cssText = 'position: fixed; top: 10px; right: 10px; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 1000;';
+            document.body.appendChild(badge);
+            return badge;
+        }
+        
+        // Update usage display
+        function updateUsageDisplay() {
+            if (!currentUsage || !currentSubscription) return;
+            
+            const usageBar = document.getElementById('usageBar') || createUsageBar();
+            const features = currentSubscription.features;
+            
+            let usageText = [];
+            if (features.descriptionsPerMonth !== -1) {
+                usageText.push(`Descriptions: ${currentUsage.descriptionsGenerated}/${features.descriptionsPerMonth}`);
+            }
+            if (features.videosPerMonth !== -1) {
+                usageText.push(`Videos: ${currentUsage.videosGenerated}/${features.videosPerMonth}`);
+            }
+            
+            if (usageText.length > 0) {
+                usageBar.innerHTML = usageText.join(' | ');
+                usageBar.style.display = 'block';
+            }
+        }
+        
+        // Create usage bar
+        function createUsageBar() {
+            const bar = document.createElement('div');
+            bar.id = 'usageBar';
+            bar.style.cssText = 'position: fixed; bottom: 10px; right: 10px; padding: 10px 20px; background: rgba(0,0,0,0.8); color: white; border-radius: 5px; font-size: 12px; z-index: 1000; display: none;';
+            document.body.appendChild(bar);
+            return bar;
+        }
+        
+        // Show upgrade modal
+        function showUpgradeModal(limitData) {
+            const modal = document.createElement('div');
+            modal.className = 'upgrade-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2>Upgrade Required</h2>
+                    <p>You've reached your ${currentSubscription.plan} plan limits:</p>
+                    <ul>${limitData.exceeded.map(e => `<li>${e}</li>`).join('')}</ul>
+                    <button onclick="showPricingModal()">View Upgrade Options</button>
+                    <button onclick="this.parentElement.parentElement.remove()">Close</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Show upgrade modal with custom message
+        function showUpgradeModalWithMessage(message) {
+            const modal = document.createElement('div');
+            modal.className = 'upgrade-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            modal.innerHTML = `
+                <div class="modal-content" style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; text-align: center;">
+                    <h2 style="color: #667eea; margin-bottom: 20px;">🎉 Free Tier Limit Reached</h2>
+                    <p style="color: #666; margin-bottom: 20px;">${message}</p>
+                    <p style="color: #999; font-size: 14px; margin-bottom: 25px;">Upgrade to continue generating amazing content!</p>
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <button onclick="showPricingModal(); this.closest('.upgrade-modal').remove();" style="padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                            View Plans
+                        </button>
+                        <button onclick="this.closest('.upgrade-modal').remove();" style="padding: 12px 30px; background: #f0f0f0; color: #666; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Check and track usage for free tier
+        async function checkAndTrackUsage() {
+            // Get or create a unique session ID for this browser
+            let sessionId = localStorage.getItem('session_id');
+            if (!sessionId) {
+                sessionId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('session_id', sessionId);
+            }
+
+            // Get monthly usage from localStorage
+            const currentMonth = new Date().getMonth() + '_' + new Date().getFullYear();
+            const usageKey = 'free_usage_' + currentMonth;
+            let monthlyUsage = JSON.parse(localStorage.getItem(usageKey) || '{"count": 0, "sessions": []}');
+
+            // Check if we're within the free tier limit
+            const FREE_TIER_LIMIT = 5;
+            if (monthlyUsage.count >= FREE_TIER_LIMIT) {
+                return {
+                    canGenerate: false,
+                    message: `You've used all ${FREE_TIER_LIMIT} free generations this month. Upgrade to unlock unlimited access!`,
+                    remaining: 0
+                };
+            }
+
+            // Increment usage
+            monthlyUsage.count++;
+            monthlyUsage.sessions.push({
+                id: sessionId,
+                timestamp: Date.now()
+            });
+            localStorage.setItem(usageKey, JSON.stringify(monthlyUsage));
+
+            // Update UI to show remaining uses
+            updateFreeUsageDisplay(FREE_TIER_LIMIT - monthlyUsage.count);
+
+            return {
+                canGenerate: true,
+                remaining: FREE_TIER_LIMIT - monthlyUsage.count
+            };
+        }
+
+        // Update free usage display
+        function updateFreeUsageDisplay(remaining) {
+            // Update subscription info if it exists
+            const planFeatures = document.getElementById('planFeatures');
+            if (planFeatures) {
+                planFeatures.innerHTML = `
+                    <div style="color: #667eea; font-weight: bold;">Free Tier</div>
+                    <div style="margin-top: 5px;">
+                        <span style="color: #666;">Generations remaining this month: </span>
+                        <span style="color: #667eea; font-weight: bold;">${remaining}/5</span>
+                    </div>
+                    ${remaining === 0 ? '<div style="color: #ff6b6b; margin-top: 5px;">Upgrade to continue!</div>' : ''}
+                `;
+            }
+
+            // Show a subtle notification
+            if (remaining <= 2 && remaining > 0) {
+                showNotification(`Only ${remaining} free generation${remaining === 1 ? '' : 's'} left this month!`, 'warning');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'warning' ? '#ff9800' : '#667eea'};
+                color: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                max-width: 300px;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+
+        // Initialize free tier on page load
+        function initializeFreeTier() {
+            // Get current month's usage
+            const currentMonth = new Date().getMonth() + '_' + new Date().getFullYear();
+            const usageKey = 'free_usage_' + currentMonth;
+            const monthlyUsage = JSON.parse(localStorage.getItem(usageKey) || '{"count": 0, "sessions": []}');
+            const FREE_TIER_LIMIT = 5;
+            const remaining = FREE_TIER_LIMIT - monthlyUsage.count;
+
+            // Update the subscription info section
+            const subscriptionInfo = document.getElementById('subscriptionInfo');
+            if (subscriptionInfo) {
+                subscriptionInfo.style.display = 'block';
+                document.getElementById('planName').innerHTML = '<span style="color: #667eea;">🎉 Free Tier</span>';
+                updateFreeUsageDisplay(remaining);
+            }
+
+            // Show welcome message for first-time users
+            const hasSeenWelcome = localStorage.getItem('has_seen_welcome');
+            if (!hasSeenWelcome && remaining === 5) {
+                setTimeout(() => {
+                    showNotification('Welcome! You have 5 free generations to try our AI tool!', 'info');
+                    localStorage.setItem('has_seen_welcome', 'true');
+                }, 1000);
+            }
+        }
+        
+        // Open customer portal
+        async function openCustomerPortal() {
+            const email = getUserEmail();
+            if (!email) return;
+            
+            try {
+                const response = await fetch('/api/create-portal-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                if (response.ok) {
+                    const { url } = await response.json();
+                    window.location.href = url;
+                } else {
+                    alert('No subscription found for this email');
+                }
+            } catch (error) {
+                console.error('Error opening portal:', error);
+            }
+        }
+        
+        // Initialize Stripe on page load
+        async function initializeStripe() {
+            try {
+                const response = await fetch('/api/stripe-config');
+                const config = await response.json();
+                
+                if (!config.isConfigured) {
+                    console.error('Stripe is not properly configured');
+                    return false;
+                }
+                
+                stripe = Stripe(config.publishableKey);
+                stripeConfig = config;
+                
+                console.log(`Stripe initialized in ${config.mode} mode`);
+                
+                // Update UI to show mode if in test mode
+                if (config.mode === 'TEST') {
+                    const modeIndicator = document.createElement('div');
+                    modeIndicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: orange; color: white; padding: 5px 10px; border-radius: 5px; z-index: 10000;';
+                    modeIndicator.textContent = '🧪 TEST MODE';
+                    document.body.appendChild(modeIndicator);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize Stripe:', error);
+                return false;
+            }
+        }
+        
+        // Call initialization
+        initializeStripe();
+        
+        async function checkout(plan) {
+            // Check if Stripe is initialized
+            if (!stripe || !stripeConfig) {
+                await initializeStripe();
+                if (!stripe) {
+                    showNotification('Payment system is not available. Please try again later.', 'error');
+                    return;
+                }
+            }
+            
+            // Use dynamic price IDs from config
+            const priceIds = {
+                starter: stripeConfig.prices.starter,
+                professional: stripeConfig.prices.professional,
+                enterprise: stripeConfig.prices.enterprise
+            };
+            
+            try {
+                // Show loading state
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Loading...';
+                button.disabled = true;
+                
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        priceId: priceIds[plan],
+                        tierName: plan.charAt(0).toUpperCase() + plan.slice(1),
+                        successUrl: window.location.origin + '/app.html?subscription=success',
+                        cancelUrl: window.location.href
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || 'Failed to create checkout session');
+                }
+                
+                const session = data;
+                
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.sessionId
+                });
+                
+                if (result.error) {
+                    showErrorMessage(result.error.message);
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            } catch (error) {
+                console.error('Checkout failed:', error);
+                showErrorMessage(error.message || 'Unable to start checkout process. Please try again later.');
+                if (event.target) {
+                    event.target.textContent = 'Get Started';
+                    event.target.disabled = false;
+                }
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is logged in and get their subscription
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (user.email) {
+                // User is logged in, check their subscription status
+                try {
+                    const response = await fetch('/api/check-subscription', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: user.email })
+                    });
+                    
+                    if (response.ok) {
+                        const subData = await response.json();
+                        
+                        // Update user object with latest subscription
+                        user.subscription = subData.plan;
+                        localStorage.setItem('user', JSON.stringify(user));
+                        
+                        // Update UI based on subscription
+                        if (subData.plan === 'enterprise' || subData.plan === 'professional' || subData.plan === 'starter') {
+                            // Show appropriate plan badge
+                            updateSubscriptionDisplay(subData.plan, subData.features);
+                        } else {
+                            // Show free tier
+                            initializeFreeTier();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking subscription:', error);
+                    initializeFreeTier();
+                }
+            } else {
+                // Not logged in - show free tier
+                initializeFreeTier();
+            }
+            
+            // Also initialize Stripe
+            await initializeStripe();
+        });
+        
+        function updateSubscriptionDisplay(plan, features) {
+            const subscriptionInfo = document.getElementById('subscriptionInfo');
+            if (subscriptionInfo) {
+                // Clear any existing content first
+                subscriptionInfo.innerHTML = '';
+                subscriptionInfo.style.display = 'block';
+                
+                // Create the proper styled container based on plan
+                if (plan === 'enterprise') {
+                    subscriptionInfo.innerHTML = `
+                        <div style="background: linear-gradient(135deg, #fff9e6 0%, #fffdf7 100%); padding: 15px; border-radius: 8px; border: 2px solid #ffd700;">
+                            <div style="font-weight: bold; color: #ffd700; margin-bottom: 10px;">
+                                <span style="font-size: 20px;">👑 Enterprise Plan</span>
+                            </div>
+                            <div style="font-size: 14px; color: #666;">
+                                <div style="color: #ffd700; font-weight: bold;">Unlimited Everything!</div>
+                                <div style="margin-top: 5px;">
+                                    ✓ Unlimited descriptions<br>
+                                    ✓ Unlimited images<br>
+                                    ✓ Unlimited videos<br>
+                                    ✓ API access & priority support
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (plan === 'professional') {
+                    subscriptionInfo.innerHTML = `
+                        <div style="background: #f7f9ff; padding: 15px; border-radius: 8px; border: 2px solid #667eea;">
+                            <div style="font-weight: bold; color: #667eea; margin-bottom: 10px;">
+                                <span style="font-size: 18px;">💎 Professional Plan</span>
+                            </div>
+                            <div style="font-size: 14px; color: #666;">
+                                <div style="color: #667eea; font-weight: bold;">Professional Features</div>
+                                <div style="margin-top: 5px;">
+                                    ✓ 500 descriptions/month<br>
+                                    ✓ Unlimited images<br>
+                                    ✓ 50 videos/month<br>
+                                    ✓ API access & priority support
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (plan === 'starter') {
+                    subscriptionInfo.innerHTML = `
+                        <div style="background: #f7f9ff; padding: 15px; border-radius: 8px; border: 1px solid #667eea;">
+                            <div style="font-weight: bold; color: #667eea; margin-bottom: 10px;">
+                                <span style="font-size: 16px;">⭐ Starter Plan</span>
+                            </div>
+                            <div style="font-size: 14px; color: #666;">
+                                <div style="color: #667eea; font-weight: bold;">Starter Features</div>
+                                <div style="margin-top: 5px;">
+                                    ✓ 100 descriptions/month<br>
+                                    ✓ 3 images per product<br>
+                                    ✓ 10 videos/month
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Make these global so they're accessible everywhere
+        window.currentVariations = [];
+        window.currentVariationIndex = 0;
+        window.generatedImages = [];
+
+        let uploadedImageBase64 = null;
+        
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const result = e.target.result;
+                    document.getElementById('imagePreview').src = result;
+                    document.getElementById('imagePreview').classList.add('active');
+                    document.getElementById('imageUploadArea').classList.add('has-image');
+                    document.getElementById('analyzeButton').style.display = 'block';
+                    
+                    // Store base64 for analysis
+                    uploadedImageBase64 = result.split(',')[1];
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        async function analyzeImage(event) {
+            event.stopPropagation();
+            
+            if (!uploadedImageBase64) {
+                alert('Please upload an image first');
+                return;
+            }
+            
+            const analyzeBtn = event.target;
+            const originalText = analyzeBtn.textContent;
+            analyzeBtn.textContent = '⏳ Analyzing...';
+            analyzeBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/analyze-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        imageBase64: uploadedImageBase64,
+                        preferredApi: 'openai' // Can be 'openai' or 'gemini'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to analyze image');
+                }
+                
+                const data = await response.json();
+                
+                // Auto-populate fields with analyzed data
+                if (data.productName && data.productName !== 'Not visible') {
+                    document.getElementById('productName').value = data.productName;
+                    document.getElementById('productNameOptional').style.display = 'inline';
+                }
+                
+                if (data.category && data.category !== 'Not visible') {
+                    const categorySelect = document.getElementById('category');
+                    // Try to match category
+                    const categoryLower = data.category.toLowerCase();
+                    for (let option of categorySelect.options) {
+                        if (option.value && categoryLower.includes(option.value)) {
+                            categorySelect.value = option.value;
+                            document.getElementById('categoryOptional').style.display = 'inline';
+                            break;
+                        }
+                    }
+                    if (!categorySelect.value) {
+                        categorySelect.value = 'other';
+                        document.getElementById('categoryOptional').style.display = 'inline';
+                    }
+                }
+                
+                if (data.features && Array.isArray(data.features)) {
+                    document.getElementById('features').value = data.features.join('\n');
+                    document.getElementById('featuresOptional').style.display = 'inline';
+                }
+                
+                if (data.targetAudience && data.targetAudience !== 'Not visible') {
+                    document.getElementById('targetAudience').value = data.targetAudience;
+                }
+                
+                if (data.suggestedTone && data.suggestedTone !== 'Not visible') {
+                    const toneSelect = document.getElementById('tone');
+                    const toneLower = data.suggestedTone.toLowerCase();
+                    for (let option of toneSelect.options) {
+                        if (option.value === toneLower) {
+                            toneSelect.value = option.value;
+                            break;
+                        }
+                    }
+                }
+                
+                // Store additional data for enhanced description generation
+                window.imageAnalysisData = data;
+                
+                // Show success message
+                analyzeBtn.textContent = '✓ Analysis Complete!';
+                analyzeBtn.style.background = '#10b981';
+                
+                // Update field labels to show they're optional now
+                const fieldsToMakeOptional = ['productName', 'category', 'features'];
+                fieldsToMakeOptional.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field && field.value) {
+                        field.placeholder = field.placeholder + ' (optional - auto-detected)';
+                    }
+                });
+                
+                setTimeout(() => {
+                    analyzeBtn.textContent = originalText;
+                    analyzeBtn.disabled = false;
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Image analysis error:', error);
+                alert('Failed to analyze image. Please try again or fill in details manually.');
+                analyzeBtn.textContent = originalText;
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        // Error handling functions
+        function hideError() {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+            }
+        }
+
+        function showErrorMessage(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                errorDiv.style.color = '#dc3545';
+                errorDiv.style.padding = '10px';
+                errorDiv.style.marginBottom = '20px';
+                errorDiv.style.backgroundColor = '#f8d7da';
+                errorDiv.style.border = '1px solid #f5c6cb';
+                errorDiv.style.borderRadius = '5px';
+            } else {
+                // Create error div if it doesn't exist
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.id = 'errorMessage';
+                newErrorDiv.textContent = message;
+                newErrorDiv.style.cssText = 'color: #dc3545; padding: 10px; margin-bottom: 20px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px;';
+                
+                const formCard = document.querySelector('.form-card');
+                if (formCard) {
+                    formCard.insertBefore(newErrorDiv, formCard.firstChild);
+                }
+            }
+            
+            // Also ensure loading is hidden and button is re-enabled
+            document.getElementById('loading').classList.remove('active');
+            const generateBtn = document.getElementById('generateBtn');
+            if (generateBtn) {
+                generateBtn.disabled = false;
+                const btnText = generateBtn.querySelector('.btn-text');
+                const loadingSpinner = generateBtn.querySelector('.loading-spinner');
+                if (btnText) btnText.style.display = 'inline';
+                if (loadingSpinner) loadingSpinner.style.display = 'none';
+            }
+        }
+
+        // Tab switching no longer needed - everything is in one view
+        function showResults() {
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('loading').classList.remove('active');
+            const generateBtn = document.querySelector('.generate-btn');
+            if (generateBtn) generateBtn.disabled = false;
+        }
+        
+        function hideResults() {
+            document.getElementById('results').style.display = 'none';
+        }
+
+        async function generateDescription() {
+            // Show loading state
+            const generateBtn = document.getElementById('generateBtn');
+            const btnText = generateBtn.querySelector('.btn-text');
+            const loadingSpinner = generateBtn.querySelector('.loading-spinner');
+            
+            // Disable button and show spinner
+            generateBtn.disabled = true;
+            btnText.style.display = 'none';
+            loadingSpinner.style.display = 'inline-flex';
+            
+            // Clear any previous errors
+            // hideError function inline to avoid scope issues
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+            }
+            
+            // Check and track usage for free tier
+            const usageCheck = await checkAndTrackUsage();
+            if (!usageCheck.canGenerate) {
+                // Show upgrade modal if limit exceeded
+                showUpgradeModalWithMessage(usageCheck.message);
+                generateBtn.disabled = false;
+                btnText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                return;
+            }
+
+            let productName = document.getElementById('productName').value;
+            let category = document.getElementById('category').value;
+            let features = document.getElementById('features').value;
+            let targetAudience = document.getElementById('targetAudience').value;
+            const tone = document.getElementById('tone').value;
+            const imageFile = document.getElementById('productImage').files[0];
+            const generateImages = document.getElementById('generateImages').checked;
+
+            // Use image analysis data if available and fields are empty
+            if (window.imageAnalysisData) {
+                if (!productName && window.imageAnalysisData.productName) {
+                    productName = window.imageAnalysisData.productName;
+                }
+                if (!category && window.imageAnalysisData.category) {
+                    category = window.imageAnalysisData.category.toLowerCase();
+                }
+                if (!features && window.imageAnalysisData.features) {
+                    features = window.imageAnalysisData.features.join('\n');
+                }
+                if (!targetAudience && window.imageAnalysisData.targetAudience) {
+                    targetAudience = window.imageAnalysisData.targetAudience;
+                }
+            }
+
+            // Validate required fields
+            if (!productName && !window.imageAnalysisData) {
+                showErrorMessage('Please provide a product name or upload an image for analysis');
+                generateBtn.disabled = false;
+                btnText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                return;
+            }
+            
+            // Validate category selection
+            if (!category || category === '') {
+                showErrorMessage('Please select a product category');
+                generateBtn.disabled = false;
+                btnText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                return;
+            }
+            
+            // Validate features (at least one feature required)
+            if (!features || features.trim() === '') {
+                showErrorMessage('Please provide at least one key feature');
+                generateBtn.disabled = false;
+                btnText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                return;
+            }
+            
+            // If we have image analysis data but still no product name, use a description
+            if (!productName && window.imageAnalysisData) {
+                productName = window.imageAnalysisData.productType || 'Product';
+            }
+
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('variationTabs').style.display = 'none';
+            document.querySelector('.generate-btn').disabled = true;
+            
+            // Add mobile-specific progress message
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            if (isMobile) {
+                const loadingElement = document.getElementById('loading');
+                if (loadingElement) {
+                    const existingText = loadingElement.querySelector('p');
+                    if (existingText) {
+                        existingText.innerHTML = 'Generating your content...<br><small>This may take a bit longer on mobile connections</small>';
+                    }
+                }
+            }
+            
+            // Track generation event
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('content_generated', {
+                    has_image: !!uploadedImageBase64,
+                    product_category: document.getElementById('category').value,
+                    features_count: document.getElementById('features').value.split('\n').filter(f => f.trim()).length,
+                    tone: document.getElementById('tone').value
+                });
+            }
+
+            try {
+                // Prepare data as JSON
+                const requestData = {
+                    productName: productName,
+                    productCategory: category,
+                    targetAudience: targetAudience,
+                    keyFeatures: features,
+                    tone: tone,
+                    tier: userSubscription?.plan?.toLowerCase() || 'free',
+                    generateImages: generateImages,
+                    // Include image analysis data for enhanced description
+                    imageAnalysis: window.imageAnalysisData || null,
+                    hasUploadedImage: !!uploadedImageBase64
+                };
+
+                // Add retry logic for better reliability
+                let response;
+                let retries = 0;
+                const maxRetries = 2;
+                
+                while (retries <= maxRetries) {
+                    try {
+                        // Detect if mobile and adjust timeout accordingly
+                        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                        const timeout = isMobile ? 60000 : 45000; // 60s for mobile, 45s for desktop
+                        
+                        response = await fetch('/api/generate-description', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                // Add keep-alive for mobile connections
+                                'Connection': isMobile ? 'keep-alive' : 'close'
+                            },
+                            body: JSON.stringify(requestData),
+                            signal: AbortSignal.timeout(timeout),
+                            // Mobile-specific fetch options
+                            keepalive: isMobile,
+                            mode: 'cors',
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (response.ok || response.status < 500) {
+                            break; // Success or client error (no retry needed)
+                        }
+                        
+                        if (retries < maxRetries) {
+                            console.log(`Retry attempt ${retries + 1} after server error`);
+                            // Longer retry delay for mobile
+                            const baseDelay = isMobile ? 2000 : 1000;
+                            await new Promise(resolve => setTimeout(resolve, baseDelay * (retries + 1))); // Exponential backoff
+                        }
+                    } catch (fetchError) {
+                        console.error('Fetch error:', fetchError);
+                        
+                        // Show mobile-specific error message
+                        if (isMobile && retries === 0) {
+                            const loadingElement = document.getElementById('loading');
+                            if (loadingElement) {
+                                const existingText = loadingElement.querySelector('p');
+                                if (existingText) {
+                                    existingText.innerHTML = 'Connection issue detected. Retrying...<br><small>Mobile networks can be slower - please wait</small>';
+                                }
+                            }
+                        }
+                        
+                        if (retries === maxRetries) {
+                            // On mobile, try one more time with simplified request
+                            if (isMobile && !requestData.simplifiedRequest) {
+                                console.log('Mobile fallback: trying simplified request without images');
+                                
+                                // Update loading message
+                                const loadingElement = document.getElementById('loading');
+                                if (loadingElement) {
+                                    const existingText = loadingElement.querySelector('p');
+                                    if (existingText) {
+                                        existingText.innerHTML = 'Switching to text-only mode for faster loading...<br><small>Images can be generated separately</small>';
+                                    }
+                                }
+                                
+                                requestData.simplifiedRequest = true;
+                                requestData.generateImages = false; // Disable image generation for faster response
+                                retries = 0; // Reset retries for simplified attempt
+                                continue;
+                            }
+                            throw fetchError;
+                        }
+                        console.log(`Retry attempt ${retries + 1} after network error`);
+                        const baseDelay = isMobile ? 2000 : 1000;
+                        await new Promise(resolve => setTimeout(resolve, baseDelay * (retries + 1)));
+                    }
+                    retries++;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Store data - handle both 'variations' and 'descriptions' keys
+                    window.currentVariations = data.variations || data.descriptions || [data.description];
+                    window.generatedImages = data.generatedImages || data.images || [];
+                    
+                    // Store in generatedContent for fullscreen view
+                    generatedContent.descriptions = window.currentVariations;
+                    generatedContent.images = window.generatedImages;
+                    
+                    console.log('API Success - Descriptions:', window.currentVariations.length, 'Images:', window.generatedImages.length);
+                    
+                    // Show the results section
+                    showResults();
+                    
+                    // Show the fullscreen button
+                    const fullscreenBtn = document.getElementById('viewFullscreenBtn');
+                    if (fullscreenBtn) {
+                        fullscreenBtn.classList.add('show');
+                    }
+                    
+                    // Display variations
+                    if (typeof displayVariations === 'function') {
+                        displayVariations();
+                    } else {
+                        console.error('displayVariations function not found');
+                    }
+                    
+                    // Display images
+                    if (typeof displayImages === 'function') {
+                        displayImages();
+                    } else {
+                        console.error('displayImages function not found');
+                    }
+                    
+                    // Store data for video upsell
+                    sessionStorage.setItem('productName', productName);
+                    sessionStorage.setItem('productDescription', window.currentVariations[0]);
+                    sessionStorage.setItem('generatedImages', JSON.stringify(window.generatedImages));
+                    sessionStorage.setItem('features', features);
+                    sessionStorage.setItem('targetAudience', targetAudience);
+                    // Store tier from subscription
+                    sessionStorage.setItem('tier', userSubscription?.plan?.toLowerCase() || 'free');
+                    
+                    // Show video upsell popup after 1.5 minutes
+                    setTimeout(() => {
+                        showVideoUpsellPopup(productName, window.currentVariations[0], window.generatedImages);
+                    }, 90000); // 90000ms = 1.5 minutes
+                } else {
+                    showErrorMessage('Error generating content: ' + (data.details || 'Please try again.'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                
+                // More specific error messages based on error type
+                let errorMessage = 'Unable to generate content. ';
+                
+                if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                    errorMessage = '❌ Network Error: Unable to connect to server. Please check your internet connection and try again.';
+                } else if (error.message.includes('500')) {
+                    errorMessage = '⚠️ Server Error: Our servers are experiencing issues. Please try again in a few moments.';
+                } else if (error.message.includes('429')) {
+                    errorMessage = '⏰ Rate Limit: Too many requests. Please wait a moment before trying again.';
+                } else if (error.message.includes('401') || error.message.includes('403')) {
+                    errorMessage = '🔒 Authentication Error: Please check your subscription status or contact support.';
+                } else if (error.message.includes('timeout')) {
+                    errorMessage = '⏱️ Request Timeout: The request took too long. Please try again with simpler inputs.';
+                } else if (error.message.includes('usage limit')) {
+                    errorMessage = '📊 ' + error.message;
+                } else {
+                    errorMessage += error.message || 'Please try again or contact support if the issue persists.';
+                }
+                
+                showErrorMessage(errorMessage);
+            } finally {
+                // Reset button state
+                generateBtn.disabled = false;
+                btnText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                document.getElementById('loading').classList.remove('active');
+            }
+        }
+
+        function displayVariations() {
+            const tabsContainer = document.getElementById('variationTabs');
+            tabsContainer.innerHTML = '';
+            
+            window.currentVariations.forEach((variation, index) => {
+                const tab = document.createElement('button');
+                tab.className = 'variation-tab' + (index === 0 ? ' active' : '');
+                tab.textContent = `V${index + 1}`;
+                tab.onclick = () => showVariation(index);
+                tabsContainer.appendChild(tab);
+            });
+
+            if (window.currentVariations.length > 1) {
+                tabsContainer.style.display = 'flex';
+            }
+
+            document.getElementById('descriptionOutput').textContent = window.currentVariations[0];
+            
+            // Add copy button if it doesn't exist
+            const outputContainer = document.getElementById('descriptionOutput').parentElement;
+            if (!outputContainer.querySelector('.copy-btn')) {
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '📋 Copy to Clipboard';
+                copyBtn.onclick = () => {
+                    const currentText = window.currentVariations[window.currentVariationIndex];
+                    copyToClipboard(currentText, copyBtn);
+                };
+                outputContainer.appendChild(copyBtn);
+            }
+        }
+
+        function showVariation(index) {
+            window.currentVariationIndex = index;
+            document.getElementById('descriptionOutput').textContent = window.currentVariations[index];
+            
+            document.querySelectorAll('.variation-tab').forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+        }
+        
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '✓ Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showErrorMessage('Failed to copy to clipboard');
+            });
+        }
+
+        function displayImages() {
+            const gallery = document.getElementById('imageGallery');
+            gallery.innerHTML = '';
+
+            if (window.generatedImages.length === 0) {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (isMobile) {
+                    gallery.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <p style="color: #666; margin-bottom: 15px;">Images not generated yet</p>
+                            <button onclick="generateImagesOnly()" style="
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                color: white;
+                                padding: 12px 24px;
+                                border: none;
+                                border-radius: 25px;
+                                font-size: 16px;
+                                cursor: pointer;
+                                font-weight: 600;
+                            ">
+                                🎨 Generate Images Now
+                            </button>
+                            <p style="color: #999; margin-top: 10px; font-size: 14px;">
+                                Mobile tip: Generate images separately for better performance
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    gallery.innerHTML = '<p style="text-align: center; color: #666;">No images generated</p>';
+                }
+                return;
+            }
+
+            window.generatedImages.forEach((image, index) => {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                card.innerHTML = `
+                    <img src="${image.url}" alt="Generated Image ${index + 1}" onclick="openModal('${image.url}')">
+                    <div class="image-info">
+                        <div class="image-style">Style: ${image.style || 'Default'}</div>
+                        <div class="image-actions">
+                            <button class="image-btn" onclick="downloadImage('${image.url}', 'product_${index + 1}.png')">
+                                💾 Download
+                            </button>
+                            <button class="image-btn" onclick="copyImageUrl('${image.url}')">
+                                📋 Copy URL
+                            </button>
+                        </div>
+                    </div>
+                `;
+                gallery.appendChild(card);
+            });
+        }
+
+        function openModal(imageUrl) {
+            document.getElementById('modalImage').src = imageUrl;
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // Generate images only function for mobile
+        async function generateImagesOnly() {
+            const gallery = document.getElementById('imageGallery');
+            gallery.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div class="loading-spinner" style="display: inline-flex;"></div>
+                    <p style="color: #666; margin-top: 10px;">Generating images...</p>
+                </div>
+            `;
+            
+            try {
+                const productName = document.getElementById('productName').value || 
+                                   sessionStorage.getItem('productName') || 
+                                   'Product';
+                
+                const response = await fetch('/api/generate-description', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productName: productName,
+                        productCategory: document.getElementById('category').value || 'general',
+                        keyFeatures: document.getElementById('features').value || 'High quality product',
+                        generateImages: true,
+                        imagesOnly: true, // Tell API to only generate images
+                        tier: userSubscription?.plan?.toLowerCase() || 'free'
+                    }),
+                    signal: AbortSignal.timeout(45000) // 45 second timeout for images
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.images) {
+                    window.generatedImages = data.images;
+                    displayImages();
+                    // Save to session storage
+                    sessionStorage.setItem('generatedImages', JSON.stringify(generatedImages));
+                } else {
+                    gallery.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <p style="color: #dc3545;">Failed to generate images</p>
+                            <button onclick="generateImagesOnly()" style="
+                                background: #dc3545;
+                                color: white;
+                                padding: 10px 20px;
+                                border: none;
+                                border-radius: 20px;
+                                margin-top: 10px;
+                                cursor: pointer;
+                            ">Retry</button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Image generation error:', error);
+                gallery.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="color: #dc3545;">Network error - please check your connection</p>
+                        <button onclick="generateImagesOnly()" style="
+                            background: #dc3545;
+                            color: white;
+                            padding: 10px 20px;
+                            border: none;
+                            border-radius: 20px;
+                            margin-top: 10px;
+                            cursor: pointer;
+                        ">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Video Upsell Modal Functions
+        function showVideoUpsellPopup(productName, description, images) {
+            const modal = document.getElementById('videoUpsellModal');
+            // Preview content removed for cleaner mobile experience
+            modal.classList.add('active');
+            
+            // Start countdown timer
+            startCountdownTimer();
+            
+            // Track modal view
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('video_modal_shown', {
+                    trigger: 'manual_click',
+                    time_on_page_seconds: Math.floor((Date.now() - pageLoadTime) / 1000)
+                });
+            }
+        }
+        
+        function startCountdownTimer() {
+            // Set end time to 24 hours from now
+            const endTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+            
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const timeLeft = endTime - now;
+                
+                if (timeLeft > 0) {
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    
+                    const countdownEl = document.getElementById('countdown');
+                    if (countdownEl) {
+                        countdownEl.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                } else {
+                    clearInterval(countdownInterval);
+                    const countdownEl = document.getElementById('countdown');
+                    if (countdownEl) {
+                        countdownEl.textContent = '00:00:00';
+                    }
+                }
+            }
+            
+            updateCountdown();
+            const countdownInterval = setInterval(updateCountdown, 1000);
+            
+            // Store interval ID to clear when modal closes
+            window.videoCountdownInterval = countdownInterval;
+        }
+
+        function closeVideoUpsellModal() {
+            document.getElementById('videoUpsellModal').classList.remove('active');
+            
+            // Clear countdown timer
+            if (window.videoCountdownInterval) {
+                clearInterval(window.videoCountdownInterval);
+            }
+        }
+
+        function handleMaybeLater() {
+            // Close the modal
+            closeVideoUpsellModal();
+            
+            // Don't show sticky header immediately - it's too aggressive
+            // Only show after user has been on the page for a while
+            setTimeout(() => {
+                // Check if user hasn't already dismissed it
+                if (!sessionStorage.getItem('videoCtaDismissed')) {
+                    document.getElementById('stickyVideoCTA').classList.add('active');
+                }
+            }, 90000); // Show after 90 seconds for better user experience
+        }
+
+        function showVideoUpsellFromSticky() {
+            // Hide sticky header
+            document.getElementById('stickyVideoCTA').classList.remove('active');
+            
+            // Get stored product data
+            const productName = sessionStorage.getItem('productName');
+            const description = sessionStorage.getItem('productDescription');
+            const images = JSON.parse(sessionStorage.getItem('generatedImages') || '[]');
+            
+            // Show video upsell popup
+            showVideoUpsellPopup(productName, description, images);
+        }
+
+        function dismissStickyHeader() {
+            document.getElementById('stickyVideoCTA').classList.remove('active');
+            
+            // Optional: Set a flag to not show it again during this session
+            sessionStorage.setItem('videoCtaDismissed', 'true');
+        }
+        
+        function showVideoUpgradeModal() {
+            // Get current product data or use stored data
+            const productName = document.getElementById('productName').value || sessionStorage.getItem('productName');
+            const description = window.currentVariations ? window.currentVariations[0] : sessionStorage.getItem('productDescription');
+            const images = window.generatedImages || JSON.parse(sessionStorage.getItem('generatedImages') || '[]');
+            
+            // Store data for later use
+            if (productName) sessionStorage.setItem('productName', productName);
+            if (description) sessionStorage.setItem('productDescription', description);
+            if (images && images.length) sessionStorage.setItem('generatedImages', JSON.stringify(images));
+            
+            // Check if user is enterprise or professional - they get direct access
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (currentUser.subscription === 'enterprise' || currentUser.subscription === 'professional') {
+                // Direct to video creation page without upsell
+                sessionStorage.setItem('videoType', 'triple'); // Enterprise gets best package
+                window.location.href = '/video-success.html?direct=true&plan=' + currentUser.subscription;
+                return;
+            }
+            
+            // Show video upsell popup for other users
+            showVideoUpsellPopup(productName, description, images);
+            
+            // Track CTA click
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('video_upgrade_cta_clicked', {
+                    source: 'results_section',
+                    product_name: productName,
+                    subscription: currentUser.subscription || 'free'
+                });
+            }
+        }
+        
+        // Better error message display
+        function showErrorMessage(message) {
+            // Create error element if it doesn't exist
+            let errorDiv = document.getElementById('errorMessage');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'errorMessage';
+                errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #ff4444; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 10000; max-width: 400px;';
+                document.body.appendChild(errorDiv);
+            }
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        async function proceedToVideoCreation(videoType = 'single', event = null) {
+            // Store data for video creation page
+            const productName = sessionStorage.getItem('productName') || document.getElementById('productName').value;
+            const description = sessionStorage.getItem('productDescription') || window.currentVariations[0];
+            const images = sessionStorage.getItem('generatedImages');
+            
+            // Track package selection
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('video_package_selected', {
+                    package: videoType,
+                    price: videoType === 'triple' ? 69 : 29,
+                    product_name: productName
+                });
+            }
+            
+            // Close modal
+            closeVideoUpsellModal();
+            
+            // Get customer email - if not available, prompt for it or leave empty
+            let customerEmail = sessionStorage.getItem('customerEmail') || '';
+            
+            // If no email stored, try to get from a logged-in user or leave empty for Stripe to collect
+            if (!customerEmail && window.userEmail) {
+                customerEmail = window.userEmail;
+            }
+            
+            // Check if user is enterprise - they get direct access without payment
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (currentUser.subscription === 'enterprise' || currentUser.subscription === 'professional') {
+                // Enterprise and Professional users get direct access to video creation
+                sessionStorage.setItem('videoType', videoType);
+                sessionStorage.setItem('productName', productName);
+                sessionStorage.setItem('productDescription', description);
+                if (images) sessionStorage.setItem('generatedImages', images);
+                
+                // Redirect directly to video creation page
+                window.location.href = '/video-success.html?direct=true&plan=' + currentUser.subscription;
+                return;
+            }
+            
+            try {
+                // Show loading state - find the correct button based on videoType
+                const buttonSelector = videoType === 'triple' ? '.create-video-btn.triple' : '.create-video-btn.single';
+                const button = event ? event.target : document.querySelector(buttonSelector);
+                const originalText = button ? button.textContent : '';
+                if (button) {
+                    button.disabled = true;
+                    button.textContent = 'Processing...';
+                }
+                
+                // Create checkout session for single video
+                const response = await fetch('/api/create-video-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        videoType: videoType,
+                        customerEmail: customerEmail || undefined, // Don't send empty string
+                        productName: productName,
+                        productDescription: description
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || errorData.error || 'Checkout failed');
+                }
+                
+                const data = await response.json();
+                
+                if (data.url) {
+                    // Redirect to Stripe checkout
+                    window.location.href = data.url;
+                } else if (data.sessionId && window.stripe) {
+                    // Fallback to client-side redirect if URL not provided
+                    const { error } = await window.stripe.redirectToCheckout({
+                        sessionId: data.sessionId
+                    });
+                    if (error) {
+                        throw new Error(error.message);
+                    }
+                } else {
+                    throw new Error('No checkout session created');
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                
+                // Show better error message
+                let errorMessage = 'Unable to process payment. ';
+                if (error.message.includes('price')) {
+                    errorMessage += 'Invalid pricing configuration. Please contact support.';
+                } else if (error.message.includes('API key')) {
+                    errorMessage += 'Payment system not configured. Please try again later.';
+                } else if (error.message.includes('network')) {
+                    errorMessage += 'Network error. Please check your connection.';
+                } else {
+                    errorMessage += error.message || 'Please try again.';
+                }
+                
+                showErrorMessage(errorMessage);
+                
+                // Reset button
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = originalText;
+                }
+            }
+        }
+
+        function downloadImage(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function copyImageUrl(url) {
+            const fullUrl = window.location.origin + url;
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                alert('Image URL copied to clipboard!');
+            });
+        }
+
+        // Avatar selection handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Video tab visibility is now based on subscription
+
+            // Avatar selection
+            document.querySelectorAll('.avatar-option').forEach(avatar => {
+                avatar.addEventListener('click', function() {
+                    document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+        });
+
+        async function generateVideo() {
+            // Check subscription tier for video access
+            const plan = userSubscription?.plan?.toLowerCase() || 'free';
+            if (plan !== 'professional' && plan !== 'enterprise') {
+                alert('Video generation is only available with Professional or Enterprise plans');
+                return;
+            }
+
+            const selectedAvatar = document.querySelector('.avatar-option.selected').dataset.avatar;
+            const voiceId = document.getElementById('voiceSelect').value;
+            let script = document.getElementById('videoScript').value;
+            
+            // If no custom script, generate from description
+            if (!script) {
+                const currentDescription = document.querySelector('.variation-tab.active')?.nextElementSibling?.textContent;
+                if (!currentDescription) {
+                    alert('Please generate a product description first');
+                    return;
+                }
+                // Create a shortened script from the description
+                script = `Hi there! Let me tell you about this amazing product. ${currentDescription.substring(0, 300)}... Try it today and see the difference for yourself!`;
+                document.getElementById('videoScript').value = script;
+            }
+
+            const productName = document.getElementById('productName').value;
+            const firstImage = generatedImages[0] || '/generated-images/placeholder.jpg';
+
+            try {
+                const response = await fetch('/api/generate-video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        script,
+                        avatarId: selectedAvatar,
+                        voiceId,
+                        productName,
+                        imageUrl: firstImage
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayVideoResult(data);
+                } else {
+                    alert('Error generating video: ' + (data.details || 'Please try again.'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error connecting to server.');
+            }
+        }
+
+        function displayVideoResult(videoData) {
+            const resultsDiv = document.getElementById('videoResults');
+            resultsDiv.style.display = 'block';
+            
+            if (videoData.demo) {
+                resultsDiv.innerHTML = `
+                    <div class="video-player">
+                        <div style="padding: 20px; background: #f8f9fa; border-radius: 10px; text-align: center;">
+                            <h4>Video Preview (Demo Mode)</h4>
+                            <p>${videoData.message}</p>
+                            <div style="margin: 20px 0; padding: 40px; background: #e0e0e0; border-radius: 10px;">
+                                <span style="font-size: 48px;">🎬</span>
+                                <p>Your UGC video would appear here</p>
+                                <p style="font-size: 12px; color: #666;">Avatar: ${videoData.avatarUsed}<br>Voice: ${videoData.voiceUsed}</p>
+                            </div>
+                            <button class="generate-btn" style="margin-top: 10px;" onclick="downloadVideo('${videoData.videoUrl}')">Download Demo Video</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="video-player">
+                        <video controls>
+                            <source src="${videoData.videoUrl}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div style="margin-top: 10px; text-align: center;">
+                            <button class="generate-btn" onclick="downloadVideo('${videoData.videoUrl}')">Download Video</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function downloadVideo(url) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `product_video_${Date.now()}.mp4`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', async function() {
+            // Initialize free tier display
+            initializeFreeTier();
+            
+            // Initialize Stripe
+            await initializeStripe();
+            
+            // Check subscription status (skip if no auth)
+            const hasAuth = localStorage.getItem('token') || localStorage.getItem('authToken');
+            if (hasAuth) {
+                await checkSubscription();
+                await getUsage();
+            }
+            
+            // Check for subscription success/cancel in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('subscription') === 'success') {
+                alert('Subscription successful! Welcome to your new plan.');
+                // Refresh subscription status
+                await checkSubscription();
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (urlParams.get('subscription') === 'cancelled') {
+                alert('Subscription cancelled. You can try again anytime.');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    </script>
+
+    <!-- Footer with Legal Links -->
+    <footer style="margin-top: 60px; padding: 30px 0; background: rgba(0,0,0,0.1); text-align: center;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div style="margin-bottom: 20px;">
+                <a href="/terms.html" style="color: white; text-decoration: none; margin: 0 15px; opacity: 0.9; transition: opacity 0.3s;">Terms of Service</a>
+                <span style="color: white; opacity: 0.5;">|</span>
+                <a href="/privacy.html" style="color: white; text-decoration: none; margin: 0 15px; opacity: 0.9; transition: opacity 0.3s;">Privacy Policy</a>
+                <span style="color: white; opacity: 0.5;">|</span>
+                <a href="/refund.html" style="color: white; text-decoration: none; margin: 0 15px; opacity: 0.9; transition: opacity 0.3s;">Refund Policy</a>
+            </div>
+            <p style="color: white; opacity: 0.7; font-size: 0.9rem; margin: 10px 0;">
+                © 2025 GTMVP Inc. All rights reserved.
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Stripe Integration -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- Full-screen Results Modal -->
+    <div id="resultsFullscreen" class="results-fullscreen">
+        <div class="results-fullscreen-header">
+            <h2 class="results-fullscreen-title">Generated Product Content</h2>
+            <button class="close-fullscreen-btn" onclick="closeFullscreenResults()">
+                <span>✕</span> Close
+            </button>
+        </div>
+        <div class="results-fullscreen-content">
+            <div class="results-grid-fullscreen" id="fullscreenResultsGrid">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Store generated content globally
+        let generatedContent = {
+            descriptions: [],
+            images: []
+        };
+        
+        // Open fullscreen results
+        function openFullscreenResults() {
+            const modal = document.getElementById('resultsFullscreen');
+            const grid = document.getElementById('fullscreenResultsGrid');
+            
+            // Clear previous content
+            grid.innerHTML = '';
+            
+            // Add descriptions
+            if (generatedContent.descriptions && generatedContent.descriptions.length > 0) {
+                generatedContent.descriptions.forEach((desc, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'result-card-fullscreen';
+                    card.innerHTML = `
+                        <h3>Variation ${index + 1}</h3>
+                        <p>${desc}</p>
+                        <button class="copy-btn" onclick="copyToClipboard('${desc.replace(/'/g, "\\'")}', this)">
+                            <span>📋</span> Copy
+                        </button>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+            
+            // Add images if available
+            if (generatedContent.images && generatedContent.images.length > 0) {
+                generatedContent.images.forEach((img, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'result-card-fullscreen';
+                    card.innerHTML = `
+                        <h3>Generated Image ${index + 1}</h3>
+                        <img src="${img}" alt="Generated product image" style="width: 100%; border-radius: 10px; margin-bottom: 15px;">
+                        <a href="${img}" download class="copy-btn" style="text-decoration: none;">
+                            <span>⬇</span> Download
+                        </a>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+            
+            // Show modal
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Close fullscreen results
+        function closeFullscreenResults() {
+            const modal = document.getElementById('resultsFullscreen');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // ESC key to close
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeFullscreenResults();
+            }
+        });
+    </script>
+</body>
+</html>
