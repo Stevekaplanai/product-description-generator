@@ -1076,9 +1076,14 @@
             document.getElementById('darkModeIcon').textContent = '☀️';
         }
         
-        // Templates
+        // Templates with tracking
         function openTemplates() {
             document.getElementById('templatesModal').classList.add('active');
+            
+            // Track template modal opened
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('templates_opened');
+            }
         }
         
         function closeTemplates() {
@@ -1086,6 +1091,10 @@
         }
         
         function applyTemplate(template) {
+            // Track template selection
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('template_applied', { template: template });
+            }
             currentTemplate = template;
             
             // Auto-fill based on template
@@ -1278,7 +1287,7 @@
             });
         }
         
-        // Share functionality
+        // Share functionality with tracking
         function toggleShare() {
             const panel = document.getElementById('sharePanel');
             panel.classList.toggle('active');
@@ -1287,6 +1296,11 @@
                 const shareId = Date.now().toString(36);
                 const shareUrl = `${window.location.origin}/share/${shareId}`;
                 document.getElementById('shareLink').value = shareUrl;
+                
+                // Track share panel opened
+                if (typeof posthog !== 'undefined') {
+                    posthog.capture('share_panel_opened');
+                }
             }
         }
         
@@ -1295,12 +1309,24 @@
             input.select();
             document.execCommand('copy');
             showNotification('Link copied to clipboard!');
+            
+            // Track share link copied
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('share_link_copied');
+            }
         }
         
-        // Export functionality
+        // Export functionality with tracking
         function exportResults() {
             const menu = document.getElementById('exportMenu');
             menu.classList.toggle('active');
+            
+            if (menu.classList.contains('active')) {
+                // Track export menu opened
+                if (typeof posthog !== 'undefined') {
+                    posthog.capture('export_menu_opened');
+                }
+            }
         }
         
         function exportAs(format) {
@@ -1420,7 +1446,7 @@
             }
         }
         
-        // Add missing switchTab function
+        // Enhanced switchTab function with full functionality
         function switchTab(tab) {
             // Remove active class from all sidebar icons
             document.querySelectorAll('.sidebar-icon').forEach(icon => {
@@ -1430,20 +1456,216 @@
             // Add active class to clicked icon
             event.target.classList.add('active');
             
+            // Track tab switch with PostHog
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('tab_switched', { tab: tab });
+            }
+            
+            // Hide all panels first
+            const inputPanel = document.getElementById('inputPanel');
+            const resultsPanel = document.getElementById('resultsPanel');
+            
             switch(tab) {
                 case 'generate':
-                    showNotification('Generate tab selected');
+                    // Show generate interface
+                    inputPanel.style.display = 'block';
+                    resultsPanel.style.display = 'block';
+                    showNotification('Generate Mode Active');
                     break;
+                    
                 case 'images':
-                    showNotification('Image generation coming soon!');
-                    // Future: Show image generation interface
+                    // Show image generation interface
+                    inputPanel.innerHTML = `
+                        <h3>🖼️ AI Image Generation</h3>
+                        <div class="form-group">
+                            <label>Product Name</label>
+                            <input type="text" id="imageProductName" placeholder="Enter product name for image">
+                        </div>
+                        <div class="form-group">
+                            <label>Image Style</label>
+                            <select id="imageStyle">
+                                <option value="product">Product Photography</option>
+                                <option value="lifestyle">Lifestyle Shot</option>
+                                <option value="minimalist">Minimalist</option>
+                                <option value="dramatic">Dramatic Lighting</option>
+                            </select>
+                        </div>
+                        <button onclick="generateImage()" style="width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px;">
+                            Generate Product Image
+                        </button>
+                    `;
+                    resultsPanel.innerHTML = '<div class="placeholder">✨ Generated images will appear here</div>';
+                    showNotification('Image Generation Mode');
                     break;
+                    
                 case 'video':
-                    showNotification('Video generation coming soon!');
-                    // Future: Show video generation interface
+                    // Show video generation interface
+                    inputPanel.innerHTML = `
+                        <h3>🎬 AI Video Creation</h3>
+                        <div class="form-group">
+                            <label>Product Name</label>
+                            <input type="text" id="videoProductName" placeholder="Enter product name for video">
+                        </div>
+                        <div class="form-group">
+                            <label>Video Script</label>
+                            <textarea id="videoScript" rows="5" placeholder="Enter your video script or use AI-generated description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Video Style</label>
+                            <select id="videoStyle">
+                                <option value="professional">Professional</option>
+                                <option value="casual">Casual</option>
+                                <option value="energetic">Energetic</option>
+                                <option value="luxury">Luxury</option>
+                            </select>
+                        </div>
+                        <button onclick="generateVideo()" style="width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px;">
+                            Create Product Video
+                        </button>
+                    `;
+                    resultsPanel.innerHTML = '<div class="placeholder">🎬 Generated videos will appear here</div>';
+                    showNotification('Video Creation Mode');
                     break;
+                    
                 default:
                     break;
+            }
+        }
+        
+        // Add image generation function
+        function generateImage() {
+            const productName = document.getElementById('imageProductName').value;
+            const imageStyle = document.getElementById('imageStyle').value;
+            
+            if (!productName) {
+                showNotification('Please enter a product name');
+                return;
+            }
+            
+            // Track image generation
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('image_generation_started', { 
+                    productName: productName,
+                    style: imageStyle 
+                });
+            }
+            
+            showNotification('Generating image... This may take a moment');
+            
+            // Call the existing image generation API
+            fetch('/api/generate-description', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productName: productName,
+                    generateImage: true,
+                    imageStyle: imageStyle
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.imageUrl) {
+                    document.getElementById('resultsPanel').innerHTML = `
+                        <div class="result-card">
+                            <h3>Generated Product Image</h3>
+                            <img src="${data.imageUrl}" alt="${productName}" style="width: 100%; border-radius: 10px; margin: 20px 0;">
+                            <button onclick="downloadImage('${data.imageUrl}', '${productName}')" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                Download Image
+                            </button>
+                        </div>
+                    `;
+                    showNotification('Image generated successfully!');
+                    
+                    if (typeof posthog !== 'undefined') {
+                        posthog.capture('image_generated', { productName: productName });
+                    }
+                }
+            })
+            .catch(error => {
+                showNotification('Error generating image. Please try again.');
+                console.error('Image generation error:', error);
+            });
+        }
+        
+        // Add video generation function
+        function generateVideo() {
+            const productName = document.getElementById('videoProductName').value;
+            const videoScript = document.getElementById('videoScript').value;
+            const videoStyle = document.getElementById('videoStyle').value;
+            
+            if (!productName || !videoScript) {
+                showNotification('Please enter product name and script');
+                return;
+            }
+            
+            // Track video generation
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('video_generation_started', { 
+                    productName: productName,
+                    style: videoStyle 
+                });
+            }
+            
+            showNotification('Creating video... This may take a few moments');
+            
+            // Call video generation API
+            fetch('/api/generate-video', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productName: productName,
+                    script: videoScript,
+                    style: videoStyle
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.videoUrl) {
+                    document.getElementById('resultsPanel').innerHTML = `
+                        <div class="result-card">
+                            <h3>Generated Product Video</h3>
+                            <video controls style="width: 100%; border-radius: 10px; margin: 20px 0;">
+                                <source src="${data.videoUrl}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                            <button onclick="downloadVideo('${data.videoUrl}', '${productName}')" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                Download Video
+                            </button>
+                        </div>
+                    `;
+                    showNotification('Video created successfully!');
+                    
+                    if (typeof posthog !== 'undefined') {
+                        posthog.capture('video_generated', { productName: productName });
+                    }
+                }
+            })
+            .catch(error => {
+                showNotification('Error creating video. Please try again.');
+                console.error('Video generation error:', error);
+            });
+        }
+        
+        // Add download functions
+        function downloadImage(url, name) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${name}_product_image.png`;
+            a.click();
+            
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('image_downloaded', { productName: name });
+            }
+        }
+        
+        function downloadVideo(url, name) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${name}_product_video.mp4`;
+            a.click();
+            
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('video_downloaded', { productName: name });
             }
         }
         
