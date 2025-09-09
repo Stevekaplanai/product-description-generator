@@ -36,14 +36,15 @@ module.exports = async (req, res) => {
     });
   }
 
-  // Test 2: Check API key validity with a simple GET request
+  // Test 2: Check API key validity with talks endpoint
   try {
     console.log('Testing D-ID API connection...');
-    // Test with the credits endpoint which should work for valid API keys
-    const testResponse = await fetch(`${D_ID_API_URL}/credits`, {
+    
+    // Test with the talks endpoint
+    const testResponse = await fetch(`${D_ID_API_URL}/talks`, {
       method: 'GET',
       headers: {
-        'Authorization': `Basic ${D_ID_API_KEY}`, // D-ID uses Basic auth with username:password format
+        'Authorization': `Basic ${D_ID_API_KEY}`,
         'accept': 'application/json'
       }
     });

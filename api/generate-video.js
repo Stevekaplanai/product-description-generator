@@ -85,12 +85,13 @@ module.exports = async (req, res) => {
         
         console.log('D-ID Request payload:', JSON.stringify(didPayload, null, 2));
         
-        // Create D-ID talk video
+        // Create D-ID talk video - API key is already in correct format
         const talkResponse = await fetch(`${D_ID_API_URL}/talks`, {
           method: 'POST',
           headers: {
             'Authorization': `Basic ${D_ID_API_KEY}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'accept': 'application/json'
           },
           body: JSON.stringify(didPayload)
         });
@@ -134,7 +135,8 @@ module.exports = async (req, res) => {
             
             const statusResponse = await fetch(`${D_ID_API_URL}/talks/${talkData.id}`, {
               headers: {
-                'Authorization': `Basic ${D_ID_API_KEY}`  // Fixed: Basic auth
+                'Authorization': `Basic ${D_ID_API_KEY}`,
+                'accept': 'application/json'
               }
             });
 
