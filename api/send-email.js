@@ -31,6 +31,26 @@ const emailTemplates = {
   upgradeSuccess: {
     subject: 'Plan Upgraded Successfully',
     template: 'upgrade_success'
+  },
+  bulkProcessingStarted: {
+    subject: 'Bulk Processing Started',
+    template: 'bulk_processing_started'
+  },
+  bulkProcessingComplete: {
+    subject: 'Your Bulk Processing is Complete!',
+    template: 'bulk_processing_complete'
+  },
+  bulkProcessingFailed: {
+    subject: 'Bulk Processing Failed - Action Required',
+    template: 'bulk_processing_failed'
+  },
+  videoGenerationComplete: {
+    subject: 'Your Product Video is Ready!',
+    template: 'video_generation_complete'
+  },
+  videoGenerationFailed: {
+    subject: 'Video Generation Failed',
+    template: 'video_generation_failed'
   }
 };
 

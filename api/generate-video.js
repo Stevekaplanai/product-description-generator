@@ -71,6 +71,10 @@ module.exports = async (req, res) => {
         console.log('D-ID Key present, length:', D_ID_API_KEY.length);
         
         // Use a simpler D-ID request that's more likely to work
+        const webhookUrl = process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}/api/webhooks/did-video`
+          : 'https://productdescriptions.io/api/webhooks/did-video';
+        
         const didPayload = {
           script: {
             type: 'text',
@@ -80,7 +84,13 @@ module.exports = async (req, res) => {
               voice_id: 'en-US-JennyNeural'
             }
           },
-          source_url: 'https://create-images-results.d-id.com/DefaultPresenters/Noelle_t/image.jpeg' // Known working presenter
+          source_url: 'https://create-images-results.d-id.com/DefaultPresenters/Noelle_t/image.jpeg', // Known working presenter
+          webhook: webhookUrl, // Add webhook for completion notification
+          user_data: JSON.stringify({
+            productName,
+            timestamp: new Date().toISOString(),
+            userId: req.headers['x-user-id'] || 'anonymous'
+          })
         };
         
         console.log('D-ID Request payload:', JSON.stringify(didPayload, null, 2));
@@ -125,6 +135,21 @@ module.exports = async (req, res) => {
         }
 
         if (talkData.id) {
+          console.log('D-ID video job created:', talkData.id);
+          
+          // Return immediately with video ID for tracking instead of polling
+          return res.status(200).json({
+            success: true,
+            videoId: talkData.id,
+            status: 'processing',
+            productName,
+            message: 'Video generation started. Use videoId to track progress.',
+            webhookUrl,
+            pollUrl: `/api/webhooks/did-video?videoId=${talkData.id}`,
+            estimatedTime: '30-60 seconds'
+          });
+          
+          /* Old polling code - replaced with webhook approach
           // Poll for video completion
           let videoUrl = null;
           let attempts = 0;

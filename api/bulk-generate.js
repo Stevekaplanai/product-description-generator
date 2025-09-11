@@ -1,10 +1,11 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { checkRateLimit } = require('./lib/rate-limiter');
+const { withRateLimit } = require('./middleware/rate-limit');
+const { sendEmail } = require('./send-email');
 
 // Initialize Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY);
 
-module.exports = async (req, res) => {
+const bulkGenerateHandler = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -35,7 +36,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { products } = req.body;
+    const { products, email, notifyOnComplete = true } = req.body;
     
     if (!products || !Array.isArray(products)) {
       return res.status(400).json({ error: 'Invalid products data' });
@@ -51,6 +52,16 @@ module.exports = async (req, res) => {
 
     // Process products in batches to avoid rate limits
     const results = [];
+    const startTime = Date.now();
+    
+    // Send start notification if email provided
+    if (email && notifyOnComplete) {
+      await sendEmail(email, 'bulkProcessingStarted', {
+        productCount: products.length,
+        estimatedTime: `${Math.ceil(products.length * 2 / 60)} minutes`
+      });
+    }
+    
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     for (const product of products) {
@@ -98,18 +109,45 @@ Format the response as plain text without any markdown or special formatting.`;
       }
     }
     
+    const successful = results.filter(r => r.success).length;
+    const processingTime = Math.round((Date.now() - startTime) / 1000);
+    
+    // Send completion notification
+    if (email && notifyOnComplete) {
+      await sendEmail(email, 'bulkProcessingComplete', {
+        productCount: products.length,
+        successCount: successful,
+        failedCount: results.length - successful,
+        processingTime: `${processingTime} seconds`,
+        downloadUrl: `/api/bulk-download?id=${Date.now()}` // Implement download endpoint
+      });
+    }
+    
     res.status(200).json({ 
       success: true,
       results,
       processed: results.length,
-      successful: results.filter(r => r.success).length
+      successful,
+      processingTime
     });
     
   } catch (error) {
     console.error('Bulk generation error:', error);
+    
+    // Send failure notification
+    if (email && notifyOnComplete) {
+      await sendEmail(email, 'bulkProcessingFailed', {
+        error: error.message,
+        productCount: products?.length || 0
+      });
+    }
+    
     res.status(500).json({ 
       error: 'Failed to process bulk generation',
       message: error.message
     });
   }
 };
+
+// Export with rate limiting
+module.exports = withRateLimit(bulkGenerateHandler, '/api/bulk-generate');

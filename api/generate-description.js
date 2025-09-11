@@ -1,8 +1,9 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const OpenAI = require('openai');
 const cloudinary = require('cloudinary').v2;
-const { checkRateLimit } = require('./lib/rate-limiter');
+const { withRateLimit } = require('./middleware/rate-limit');
 const { securityMiddleware, sanitizeInput, pseudonymizeData } = require('./lib/security-middleware');
+const { db } = require('./lib/database');
 
 // Initialize APIs - check both possible env var names
 const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
@@ -19,7 +20,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-module.exports = async (req, res) => {
+const generateDescriptionHandler = async (req, res) => {
   // Apply comprehensive security middleware
   const proceed = await securityMiddleware(req, res, {
     requireAuth: false, // Allow anonymous users for now
@@ -204,6 +205,28 @@ module.exports = async (req, res) => {
       }
     }
 
+    // Track generation in database
+    const userId = req.headers['x-user-id'] || req.headers['x-api-key'] || 'anonymous';
+    try {
+      await db.trackGeneration(userId, 'description', {
+        productName,
+        category,
+        hasImages: images.length > 0,
+        descriptionsCount: descriptions.length
+      });
+      
+      // Track image generation if applicable
+      if (images.length > 0) {
+        await db.trackGeneration(userId, 'image', {
+          productName,
+          imageCount: images.length
+        });
+      }
+    } catch (dbError) {
+      console.error('Database tracking error:', dbError);
+      // Continue even if tracking fails
+    }
+    
     res.status(200).json({
       success: true,
       product: productName,
@@ -237,3 +260,6 @@ function generateFallbackDescription(productName, category, audience, features, 
   
   return variations[variationIndex % variations.length];
 }
+
+// Export with rate limiting
+module.exports = withRateLimit(generateDescriptionHandler, '/api/generate-description');

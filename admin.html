@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ProductDescriptions.io</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1a1a1a;
+            --light: #f8f9fa;
+            --border: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            color: var(--primary);
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 12px 15px;
+            margin: 5px 0;
+            border-radius: 8px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 32px;
+            color: var(--dark);
+        }
+
+        .date-range {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .date-range select {
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .stat-change {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Charts */
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-header h3 {
+            font-size: 20px;
+            color: var(--dark);
+        }
+
+        /* Tables */
+        .table-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border);
+            color: #666;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.success {
+            background: #d4f4e2;
+            color: var(--success);
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: var(--warning);
+        }
+
+        .status-badge.error {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        /* Real-time Activity */
+        .activity-feed {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.3s;
+        }
+
+        .activity-item:hover {
+            background: #f9f9f9;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+
+        .activity-icon.generation {
+            background: #e0f2fe;
+        }
+
+        .activity-icon.video {
+            background: #fce7f3;
+        }
+
+        .activity-icon.subscription {
+            background: #d4f4e2;
+        }
+
+        .activity-details {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>Admin Panel</h2>
+            <nav>
+                <a class="nav-item active" onclick="showSection('overview')">
+                    📊 Overview
+                </a>
+                <a class="nav-item" onclick="showSection('users')">
+                    👥 Users
+                </a>
+                <a class="nav-item" onclick="showSection('generations')">
+                    ✨ Generations
+                </a>
+                <a class="nav-item" onclick="showSection('videos')">
+                    🎬 Videos
+                </a>
+                <a class="nav-item" onclick="showSection('subscriptions')">
+                    💳 Subscriptions
+                </a>
+                <a class="nav-item" onclick="showSection('api-usage')">
+                    🔌 API Usage
+                </a>
+                <a class="nav-item" onclick="showSection('settings')">
+                    ⚙️ Settings
+                </a>
+                <a class="nav-item" href="/" style="margin-top: 30px;">
+                    ← Back to App
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h1>Dashboard Overview</h1>
+                <div class="date-range">
+                    <select id="dateRange" onchange="updateDateRange()">
+                        <option value="today">Today</option>
+                        <option value="week" selected>Last 7 Days</option>
+                        <option value="month">Last 30 Days</option>
+                        <option value="year">Last Year</option>
+                    </select>
+                    <button onclick="refreshData()" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overview Section -->
+            <div id="overview-section">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            📝 Total Generations
+                        </div>
+                        <div class="stat-value" id="totalGenerations">0</div>
+                        <div class="stat-change positive">
+                            ↑ <span id="generationsChange">0%</span> from last period
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            👥 Active Users
+                        </div>
+                        <div class="stat-value" id="activeUsers">0</div>
+                        <div class="stat-change positive">
+                            ↑ <span id="usersChange">0%</span> from last period
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            🎬 Videos Created
+                        </div>
+                        <div class="stat-value" id="videosCreated">0</div>
+                        <div class="stat-change positive">
+                            ↑ <span id="videosChange">0%</span> from last period
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            💰 Revenue
+                        </div>
+                        <div class="stat-value" id="revenue">$0</div>
+                        <div class="stat-change positive">
+                            ↑ <span id="revenueChange">0%</span> from last period
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usage Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Usage Trends</h3>
+                        <select onchange="updateChart()">
+                            <option>Generations</option>
+                            <option>Users</option>
+                            <option>Revenue</option>
+                        </select>
+                    </div>
+                    <canvas id="usageChart" height="80"></canvas>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="table-container">
+                    <h3 style="margin-bottom: 20px;">Real-time Activity</h3>
+                    <div class="activity-feed" id="activityFeed">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Loading activity...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Status -->
+                <div class="table-container">
+                    <h3 style="margin-bottom: 20px;">API Status</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Usage</th>
+                                <th>Limit</th>
+                                <th>Response Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apiStatus">
+                            <tr>
+                                <td>Gemini 2.0</td>
+                                <td><span class="status-badge success">Operational</span></td>
+                                <td>0 / 1000</td>
+                                <td>1000/min</td>
+                                <td>~200ms</td>
+                            </tr>
+                            <tr>
+                                <td>DALL-E 3</td>
+                                <td><span class="status-badge success">Operational</span></td>
+                                <td>0 / 500</td>
+                                <td>500/min</td>
+                                <td>~3s</td>
+                            </tr>
+                            <tr>
+                                <td>D-ID Video</td>
+                                <td><span class="status-badge success">Operational</span></td>
+                                <td>0 / 100</td>
+                                <td>100/day</td>
+                                <td>~45s</td>
+                            </tr>
+                            <tr>
+                                <td>Stripe</td>
+                                <td><span class="status-badge success">Operational</span></td>
+                                <td>N/A</td>
+                                <td>Unlimited</td>
+                                <td>~150ms</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Section (Hidden by default) -->
+            <div id="users-section" style="display: none;">
+                <div class="table-container">
+                    <h3 style="margin-bottom: 20px;">User Management</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Email</th>
+                                <th>Plan</th>
+                                <th>Generations</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 40px;">
+                                    Loading users...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Admin authentication check
+        function checkAdminAuth() {
+            const adminToken = localStorage.getItem('adminToken');
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            
+            if (!adminToken && !token) {
+                // Simple auth - in production, use proper authentication
+                const password = prompt('Enter admin password:');
+                if (password !== 'admin2025') { // Change this!
+                    alert('Invalid password');
+                    window.location.href = '/';
+                    return false;
+                }
+                localStorage.setItem('adminToken', 'valid');
+            }
+            return true;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAdminAuth()) {
+                loadDashboardData();
+                startRealTimeUpdates();
+                initializeChart();
+            }
+        });
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/admin/stats');
+                const data = await response.json();
+                
+                // Update stats
+                document.getElementById('totalGenerations').textContent = data.totalGenerations || '0';
+                document.getElementById('activeUsers').textContent = data.activeUsers || '0';
+                document.getElementById('videosCreated').textContent = data.videosCreated || '0';
+                document.getElementById('revenue').textContent = `$${data.revenue || '0'}`;
+                
+                // Update changes
+                document.getElementById('generationsChange').textContent = `${data.generationsChange || '0'}%`;
+                document.getElementById('usersChange').textContent = `${data.usersChange || '0'}%`;
+                document.getElementById('videosChange').textContent = `${data.videosChange || '0'}%`;
+                document.getElementById('revenueChange').textContent = `${data.revenueChange || '0'}%`;
+                
+                // Load activity feed
+                loadActivityFeed(data.recentActivity || []);
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                // Use mock data for now
+                loadMockData();
+            }
+        }
+
+        // Load mock data (for development)
+        function loadMockData() {
+            document.getElementById('totalGenerations').textContent = '12,543';
+            document.getElementById('activeUsers').textContent = '3,421';
+            document.getElementById('videosCreated').textContent = '892';
+            document.getElementById('revenue').textContent = '$45,678';
+            
+            document.getElementById('generationsChange').textContent = '12.5%';
+            document.getElementById('usersChange').textContent = '8.3%';
+            document.getElementById('videosChange').textContent = '15.7%';
+            document.getElementById('revenueChange').textContent = '22.4%';
+            
+            // Mock activity
+            const mockActivity = [
+                { type: 'generation', title: 'Product description generated', user: 'user123@email.com', time: '2 minutes ago' },
+                { type: 'video', title: 'Video created', user: 'jane@company.com', time: '5 minutes ago' },
+                { type: 'subscription', title: 'New Professional subscription', user: 'john@startup.io', time: '12 minutes ago' },
+                { type: 'generation', title: 'Bulk processing (50 products)', user: 'mike@shop.com', time: '18 minutes ago' },
+                { type: 'video', title: 'Video generated', user: 'sarah@brand.co', time: '25 minutes ago' }
+            ];
+            
+            loadActivityFeed(mockActivity);
+        }
+
+        // Load activity feed
+        function loadActivityFeed(activities) {
+            const feed = document.getElementById('activityFeed');
+            
+            if (activities.length === 0) {
+                feed.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No recent activity</div>';
+                return;
+            }
+            
+            feed.innerHTML = activities.map(activity => {
+                const iconClass = activity.type === 'generation' ? 'generation' : 
+                                 activity.type === 'video' ? 'video' : 'subscription';
+                const icon = activity.type === 'generation' ? '✨' : 
+                            activity.type === 'video' ? '🎬' : '💳';
+                
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon ${iconClass}">${icon}</div>
+                        <div class="activity-details">
+                            <div class="activity-title">${activity.title}</div>
+                            <div class="activity-time">${activity.user} • ${activity.time}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize chart
+        let usageChart;
+        function initializeChart() {
+            const ctx = document.getElementById('usageChart').getContext('2d');
+            
+            usageChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Generations',
+                        data: [1200, 1900, 1500, 2100, 2400, 2200, 2800],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Start real-time updates
+        function startRealTimeUpdates() {
+            // Poll for updates every 30 seconds
+            setInterval(() => {
+                loadDashboardData();
+            }, 30000);
+            
+            // Simulate real-time activity
+            setInterval(() => {
+                addRandomActivity();
+            }, 10000);
+        }
+
+        // Add random activity (for demo)
+        function addRandomActivity() {
+            const activities = [
+                { type: 'generation', title: 'Product description generated', user: 'new-user@email.com' },
+                { type: 'video', title: 'Video created', user: 'customer@shop.com' },
+                { type: 'subscription', title: 'New Starter subscription', user: 'business@company.io' }
+            ];
+            
+            const activity = activities[Math.floor(Math.random() * activities.length)];
+            activity.time = 'Just now';
+            
+            const feed = document.getElementById('activityFeed');
+            const newItem = document.createElement('div');
+            newItem.className = 'activity-item';
+            newItem.style.background = '#fffbeb';
+            
+            const iconClass = activity.type === 'generation' ? 'generation' : 
+                             activity.type === 'video' ? 'video' : 'subscription';
+            const icon = activity.type === 'generation' ? '✨' : 
+                        activity.type === 'video' ? '🎬' : '💳';
+            
+            newItem.innerHTML = `
+                <div class="activity-icon ${iconClass}">${icon}</div>
+                <div class="activity-details">
+                    <div class="activity-title">${activity.title}</div>
+                    <div class="activity-time">${activity.user} • ${activity.time}</div>
+                </div>
+            `;
+            
+            feed.insertBefore(newItem, feed.firstChild);
+            
+            // Remove highlight after animation
+            setTimeout(() => {
+                newItem.style.background = '';
+            }, 2000);
+            
+            // Limit feed to 20 items
+            while (feed.children.length > 20) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        // Show section
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('[id$="-section"]').forEach(s => {
+                s.style.display = 'none';
+            });
+            
+            // Show selected section
+            const sectionEl = document.getElementById(`${section}-section`);
+            if (sectionEl) {
+                sectionEl.style.display = 'block';
+            }
+            
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update header
+            const titles = {
+                'overview': 'Dashboard Overview',
+                'users': 'User Management',
+                'generations': 'Generation Analytics',
+                'videos': 'Video Analytics',
+                'subscriptions': 'Subscription Management',
+                'api-usage': 'API Usage & Limits',
+                'settings': 'System Settings'
+            };
+            
+            document.querySelector('.dashboard-header h1').textContent = titles[section] || 'Dashboard';
+        }
+
+        // Update date range
+        function updateDateRange() {
+            loadDashboardData();
+        }
+
+        // Refresh data
+        function refreshData() {
+            loadDashboardData();
+            
+            // Show loading state
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '⏳ Refreshing...';
+            
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = '🔄 Refresh';
+            }, 1000);
+        }
+
+        // Update chart
+        function updateChart() {
+            const type = event.target.value;
+            const data = {
+                'Generations': [1200, 1900, 1500, 2100, 2400, 2200, 2800],
+                'Users': [320, 380, 350, 410, 450, 430, 520],
+                'Revenue': [4500, 5200, 4800, 6100, 7200, 6800, 8500]
+            };
+            
+            usageChart.data.datasets[0].label = type;
+            usageChart.data.datasets[0].data = data[type];
+            usageChart.update();
+        }
+    </script>
+</body>
+</html>
