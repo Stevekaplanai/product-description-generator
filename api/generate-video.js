@@ -95,11 +95,13 @@ module.exports = async (req, res) => {
         
         console.log('D-ID Request payload:', JSON.stringify(didPayload, null, 2));
         
-        // Create D-ID talk video - API key is already in correct format
+        // Create D-ID talk video - Use proper Basic auth format
+        // D-ID expects Basic auth with API key as username and empty password
+        const authString = Buffer.from(`${D_ID_API_KEY}:`).toString('base64');
         const talkResponse = await fetch(`${D_ID_API_URL}/talks`, {
           method: 'POST',
           headers: {
-            'Authorization': `Basic ${D_ID_API_KEY}`,
+            'Authorization': `Basic ${authString}`,
             'Content-Type': 'application/json',
             'accept': 'application/json'
           },
@@ -160,7 +162,7 @@ module.exports = async (req, res) => {
             
             const statusResponse = await fetch(`${D_ID_API_URL}/talks/${talkData.id}`, {
               headers: {
-                'Authorization': `Basic ${D_ID_API_KEY}`,
+                'Authorization': `Basic ${authString}`,
                 'accept': 'application/json'
               }
             });
