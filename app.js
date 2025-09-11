@@ -1,41 +1,38 @@
-// Product Description Generator - Refactored JavaScript
-// Using event delegation instead of inline onclick handlers
+// Enhanced Product Description Generator
+// Modern UX with history storage and Redis integration
 
 (function() {
     'use strict';
 
-    // State management
+    // Application State
     const state = {
-        generationHistory: JSON.parse(localStorage.getItem('generationHistory') || '[]'),
-        currentTemplate: null,
-        selectedPresets: [],
-        analytics: {
-            totalGenerations: parseInt(localStorage.getItem('totalGenerations') || '0'),
+        history: [],
+        currentGeneration: null,
+        stats: {
+            totalGenerations: 0,
             avgWordCount: 0,
-            seoScore: 85,
-            readabilityScore: 8.5
+            totalTimeSaved: 0,
+            seoScore: 0
         },
-        generatedDescriptions: [],
-        currentVideoId: null,
-        currentPollInterval: null,
-        currentProgressInterval: null
+        selectedPresets: new Set(),
+        darkMode: false,
+        activeTab: 'generate',
+        userId: localStorage.getItem('userId') || generateUserId()
     };
 
-    // DOM Elements
+    // Generate unique user ID if needed
+    function generateUserId() {
+        const id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('userId', id);
+        return id;
+    }
+
+    // DOM Elements Cache
     const elements = {
+        // Overlays
         progressOverlay: document.getElementById('progressOverlay'),
-        videoProgressOverlay: document.getElementById('videoProgressOverlay'),
         templatesModal: document.getElementById('templatesModal'),
-        shortcutsModal: document.getElementById('shortcutsModal'),
-        shareOptions: document.getElementById('shareOptions'),
-        exportOptions: document.getElementById('exportOptions'),
-        analyticsPanel: document.getElementById('analyticsPanel'),
-        resultsArea: document.getElementById('resultsArea'),
-        resultsPanel: document.getElementById('resultsPanel'),
-        historyList: document.getElementById('historyList'),
-        nameSuggestions: document.getElementById('nameSuggestions'),
-        imagePreview: document.getElementById('imagePreview'),
-        imageDropZone: document.getElementById('imageDropZone'),
+        
         // Form inputs
         productName: document.getElementById('productName'),
         headlineInput: document.getElementById('headlineInput'),
@@ -44,1003 +41,880 @@
         keyFeatures: document.getElementById('keyFeatures'),
         lengthSlider: document.getElementById('lengthSlider'),
         lengthValue: document.getElementById('lengthValue'),
-        languages: document.getElementById('languages'),
+        tone: document.getElementById('tone'),
         abTestMode: document.getElementById('abTestMode'),
-        videoStyle: document.getElementById('videoStyle'),
-        imageUpload: document.getElementById('imageUpload')
+        seoOptimized: document.getElementById('seoOptimized'),
+        imageUpload: document.getElementById('imageUpload'),
+        imageDropZone: document.getElementById('imageDropZone'),
+        imagePreview: document.getElementById('imagePreview'),
+        previewImg: document.getElementById('previewImg'),
+        
+        // Results areas
+        resultsArea: document.getElementById('resultsArea'),
+        historyList: document.getElementById('historyList'),
+        statsPanel: document.getElementById('statsPanel'),
+        
+        // Stats
+        totalGenerations: document.getElementById('totalGenerations'),
+        avgWordCount: document.getElementById('avgWordCount'),
+        seoScore: document.getElementById('seoScore'),
+        savedTime: document.getElementById('savedTime')
     };
 
-    // Initialize application
+    // Initialize Application
     function init() {
+        console.log('Initializing enhanced app...');
+        
+        // Load saved state
+        loadState();
+        
+        // Setup event listeners
         setupEventListeners();
+        
+        // Load history from localStorage and server
         loadHistory();
-        updateAnalytics();
-        setupKeyboardShortcuts();
+        
+        // Update UI
+        updateStats();
+        renderHistory();
+        
+        // Apply saved preferences
+        applyPreferences();
+        
+        // Start auto-save
         startAutoSave();
-        loadDraft();
         
-        // Initialize dark mode from preference
-        if (localStorage.getItem('darkMode') === 'true') {
-            document.body.classList.add('dark-mode');
-        }
-        
-        // Feature detection
-        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-            console.log('Voice input available');
-        }
+        // Setup keyboard shortcuts
+        setupKeyboardShortcuts();
     }
 
-    // Event Listeners using delegation
+    // Setup Event Listeners
     function setupEventListeners() {
-        // Main click handler for all buttons and clickable elements
-        document.addEventListener('click', handleClick);
+        // Global click handler
+        document.addEventListener('click', handleGlobalClick);
         
-        // Form input events
-        elements.productName?.addEventListener('input', handleProductNameInput);
+        // Form events
+        elements.lengthSlider?.addEventListener('input', updateLengthDisplay);
         elements.headlineInput?.addEventListener('blur', analyzeHeadline);
-        elements.lengthSlider?.addEventListener('input', updateLengthValue);
         
-        // Drag and drop for images
+        // Image upload
         setupImageUpload();
         
-        // Close modals on backdrop click
+        // Modal close on backdrop click
         elements.templatesModal?.addEventListener('click', (e) => {
             if (e.target === elements.templatesModal) {
-                closeTemplates();
-            }
-        });
-        
-        elements.shortcutsModal?.addEventListener('click', (e) => {
-            if (e.target === elements.shortcutsModal) {
-                closeShortcuts();
+                closeModal();
             }
         });
     }
 
-    // Main click handler
-    function handleClick(e) {
-        const target = e.target.closest('[data-action], [data-tab], [data-template], [data-preset], [data-export], .history-item, .suggestion-item');
+    // Global Click Handler
+    function handleGlobalClick(e) {
+        const target = e.target.closest('[data-action], [data-tab], [data-template], [data-preset], .history-card');
         
         if (!target) return;
         
-        // Handle data-action buttons
+        // Handle actions
         if (target.dataset.action) {
             handleAction(target.dataset.action, target);
         }
         
-        // Handle tab switches
+        // Handle tabs
         if (target.dataset.tab) {
             switchTab(target.dataset.tab);
         }
         
-        // Handle template selection
+        // Handle templates
         if (target.dataset.template) {
             applyTemplate(target.dataset.template);
-            closeTemplates();
         }
         
-        // Handle preset selection
+        // Handle presets
         if (target.dataset.preset) {
-            selectPreset(target, target.dataset.preset);
+            togglePreset(target, target.dataset.preset);
         }
         
-        // Handle export options
-        if (target.dataset.export) {
-            exportAs(target.dataset.export);
-        }
-        
-        // Handle history item click
-        if (target.classList.contains('history-item')) {
-            loadFromHistory(JSON.parse(target.dataset.item));
-        }
-        
-        // Handle suggestion item click
-        if (target.classList.contains('suggestion-item')) {
-            applySuggestion(target.textContent);
+        // Handle history items
+        if (target.classList.contains('history-card')) {
+            loadHistoryItem(target.dataset.id);
         }
     }
 
-    // Handle various actions
-    function handleAction(action, target) {
+    // Action Handler
+    function handleAction(action, element) {
         switch(action) {
+            case 'generate':
+                generateDescription();
+                break;
             case 'toggle-dark-mode':
                 toggleDarkMode();
                 break;
             case 'toggle-analytics':
                 toggleAnalytics();
                 break;
-            case 'show-shortcuts':
+            case 'shortcuts':
                 showShortcuts();
                 break;
-            case 'open-templates':
-                openTemplates();
-                break;
-            case 'close-templates':
-                closeTemplates();
-                break;
-            case 'close-shortcuts':
-                closeShortcuts();
-                break;
-            case 'toggle-share':
-                toggleShare();
-                break;
-            case 'export-results':
-                exportResults();
-                break;
-            case 'copy-link':
-                copyShareLink();
-                break;
-            case 'generate-content':
-                generateContent();
-                break;
-            case 'generate-image':
-                generateImage();
-                break;
-            case 'generate-video':
-                generateVideo();
+            case 'settings':
+                showSettings();
                 break;
             case 'analyze-headline':
                 analyzeHeadline();
                 break;
-            case 'image-upload':
-                elements.imageUpload?.click();
-                break;
             case 'remove-image':
                 removeImage();
                 break;
-            case 'cancel-generation':
-                cancelVideoGeneration();
+            case 'clear-history':
+                clearHistory();
                 break;
-            case 'copy-description':
-                copyText(target.dataset.description);
+            case 'close-modal':
+                closeModal();
                 break;
-            case 'edit-description':
-                editDescription(parseInt(target.dataset.index));
+            case 'copy':
+                copyToClipboard(element.dataset.content);
+                break;
+            case 'edit':
+                editDescription(element.dataset.id);
+                break;
+            case 'delete':
+                deleteFromHistory(element.dataset.id);
+                break;
+            case 'share':
+                shareContent();
+                break;
+            case 'export':
+                exportContent();
                 break;
         }
     }
 
-    // Core Functions
-    async function generateContent() {
-        const productName = elements.productName?.value;
+    // Generate Description
+    async function generateDescription() {
+        const productName = elements.productName?.value.trim();
+        
         if (!productName) {
-            showNotification('Please enter a product name', 'error');
+            showToast('Please enter a product name', 'error');
             return;
         }
         
-        showProgress();
+        // Show progress
+        showProgress('Generating description...');
         
-        const requestData = {
+        // Prepare data
+        const formData = {
             productName,
             category: elements.category?.value,
             targetAudience: elements.targetAudience?.value,
             keyFeatures: elements.keyFeatures?.value,
-            length: elements.lengthSlider?.value,
-            languages: Array.from(elements.languages?.selectedOptions || []).map(o => o.value),
-            template: state.currentTemplate,
-            presets: state.selectedPresets,
-            abTest: elements.abTestMode?.checked
+            tone: elements.tone?.value || 'professional',
+            wordCount: parseInt(elements.lengthSlider?.value || 150),
+            abTestMode: elements.abTestMode?.checked,
+            seoOptimized: elements.seoOptimized?.checked,
+            presets: Array.from(state.selectedPresets),
+            userId: state.userId
         };
         
-        try {
-            // Use relative path for API calls to avoid CORS issues
-            const apiUrl = '/api/generate-description';
-                
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestData)
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                const descriptions = data.descriptions || [data.description];
-                displayResults(descriptions);
-                saveToHistory(productName, descriptions[0]);
-                
-                // Update analytics
-                state.analytics.totalGenerations++;
-                state.analytics.avgWordCount = descriptions[0].split(' ').length;
-                localStorage.setItem('totalGenerations', state.analytics.totalGenerations);
-                updateAnalytics();
-                
-                // Track with PostHog if available
-                if (typeof posthog !== 'undefined') {
-                    posthog.capture('content_generated', { productName });
-                }
-            }
-        } catch (error) {
-            console.error('Generation error:', error);
-            showNotification('Error generating content', 'error');
-        } finally {
-            hideProgress();
+        // Add image if uploaded
+        if (state.uploadedImage) {
+            formData.imageAnalysis = state.imageAnalysis;
+            formData.hasUploadedImage = true;
         }
-    }
-
-    async function generateImage() {
-        const productName = elements.productName?.value;
-        if (!productName) {
-            showNotification('Please enter a product name', 'error');
-            return;
-        }
-        
-        showProgress();
         
         try {
-            // Use relative path for API calls to avoid CORS issues
-            const apiUrl = '/api/generate-description';
-                
-            const response = await fetch(apiUrl, {
+            // Call API
+            const response = await fetch('/api/generate-description', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    productName,
-                    keyFeatures: elements.keyFeatures?.value,
-                    imagesOnly: true
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success && data.images?.length > 0) {
-                const imagesPanel = document.getElementById('imagesPanel');
-                if (imagesPanel) {
-                    imagesPanel.innerHTML = '<h3>Generated Images:</h3>';
-                    data.images.forEach(img => {
-                        const imgContainer = document.createElement('div');
-                        imgContainer.style.margin = '20px 0';
-                        imgContainer.innerHTML = `
-                            <img src="${img.url}" style="width: 100%; max-width: 500px; border-radius: 10px;" />
-                            <p>Style: ${img.style}</p>
-                            <button class="btn btn-secondary" data-action="download-image" data-url="${img.url}" data-name="${productName}">
-                                Download Image
-                            </button>
-                        `;
-                        imagesPanel.appendChild(imgContainer);
-                    });
-                }
-                showNotification('Image generated successfully!');
-                
-                if (typeof posthog !== 'undefined') {
-                    posthog.capture('image_generated', { productName });
-                }
-            }
-        } catch (error) {
-            console.error('Image generation error:', error);
-            showNotification('Error generating image', 'error');
-        } finally {
-            hideProgress();
-        }
-    }
-
-    async function generateVideo() {
-        const productName = elements.productName?.value;
-        if (!productName) {
-            showNotification('Please enter a product name', 'error');
-            return;
-        }
-        
-        showVideoProgress();
-        
-        try {
-            // Use relative path for API calls to avoid CORS issues
-            const apiUrl = '/api/generate-video';
-                
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    productName,
-                    productDescription: elements.keyFeatures?.value || 'Premium quality product',
-                    features: elements.keyFeatures?.value,
-                    style: elements.videoStyle?.value
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                if (data.videoUrl) {
-                    // Video is ready
-                    displayVideoResult(data.videoUrl, productName);
-                    showNotification('Video generated successfully!');
-                } else if (data.videoId) {
-                    // Video is processing
-                    state.currentVideoId = data.videoId;
-                    pollVideoStatus(data.videoId, productName);
-                } else {
-                    // Show status message
-                    showNotification(data.message || 'Video generation in progress', 'info');
-                }
-                
-                if (typeof posthog !== 'undefined') {
-                    posthog.capture('video_generated', { productName });
-                }
-            } else {
-                showNotification('Video generation failed', 'error');
-            }
-        } catch (error) {
-            console.error('Video generation error:', error);
-            showNotification('Error generating video', 'error');
-        } finally {
-            if (!state.currentVideoId) {
-                hideVideoProgress();
-            }
-        }
-    }
-
-    function displayResults(descriptions) {
-        const resultsArea = elements.resultsArea;
-        if (!resultsArea) return;
-        
-        state.generatedDescriptions = descriptions;
-        
-        resultsArea.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3>Generated Descriptions</h3>
-                <div>
-                    <button class="btn btn-secondary" data-action="export-results">📥 Export</button>
-                    <button class="btn btn-secondary" data-action="toggle-share">🔗 Share</button>
-                </div>
-            </div>
-        `;
-        
-        descriptions.forEach((desc, index) => {
-            const card = document.createElement('div');
-            card.className = 'result-card';
-            card.innerHTML = `
-                <h3>Variation ${index + 1}</h3>
-                <p style="line-height: 1.8; margin-bottom: 15px;">${desc}</p>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-secondary" data-action="copy-description" data-description="${desc.replace(/"/g, '&quot;')}">
-                        📋 Copy
-                    </button>
-                    <button class="btn btn-secondary" data-action="edit-description" data-index="${index}">
-                        ✏️ Edit
-                    </button>
-                </div>
-            `;
-            resultsArea.appendChild(card);
-        });
-    }
-
-    function displayVideoResult(videoUrl, productName) {
-        const resultsPanel = elements.resultsPanel;
-        if (!resultsPanel) return;
-        
-        resultsPanel.innerHTML = `
-            <div class="result-card">
-                <h3>Generated Product Video</h3>
-                <video controls style="width: 100%; border-radius: 10px; margin: 20px 0;">
-                    <source src="${videoUrl}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-                <button class="btn btn-secondary" data-action="download-video" data-url="${videoUrl}" data-name="${productName}">
-                    Download Video
-                </button>
-            </div>
-        `;
-    }
-
-    function pollVideoStatus(videoId, productName) {
-        let pollCount = 0;
-        const maxPolls = 60;
-        
-        state.currentPollInterval = setInterval(async () => {
-            pollCount++;
-            
-            try {
-                const response = await fetch(`/api/webhooks/did-video?videoId=${videoId}`);
-                const data = await response.json();
-                
-                updateVideoProgress(pollCount, data.status);
-                
-                if (data.status === 'done' && data.result_url) {
-                    clearInterval(state.currentPollInterval);
-                    clearInterval(state.currentProgressInterval);
-                    hideVideoProgress();
-                    displayVideoResult(data.result_url, productName);
-                    showNotification('Video generated successfully!');
-                } else if (data.status === 'error' || pollCount >= maxPolls) {
-                    clearInterval(state.currentPollInterval);
-                    clearInterval(state.currentProgressInterval);
-                    hideVideoProgress();
-                    showNotification('Video generation failed', 'error');
-                }
-            } catch (error) {
-                console.error('Polling error:', error);
-            }
-        }, 2000);
-    }
-
-    function updateVideoProgress(seconds, status) {
-        const progressFill = document.getElementById('progressFill');
-        const statusText = document.getElementById('statusText');
-        
-        if (progressFill) {
-            const progress = Math.min((seconds * 2 / 120) * 100, 95);
-            progressFill.style.width = `${progress}%`;
-        }
-        
-        if (statusText) {
-            if (status === 'done') {
-                statusText.textContent = 'Video ready!';
-            } else if (status === 'error') {
-                statusText.textContent = 'Generation failed';
-            } else {
-                statusText.textContent = `Processing... (${seconds * 2}s)`;
-            }
-        }
-    }
-
-    // UI Functions
-    function switchTab(tab) {
-        // Hide all tabs
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        // Remove active from all icons
-        document.querySelectorAll('.sidebar-icon').forEach(icon => icon.classList.remove('active'));
-        
-        // Show selected tab
-        const tabElement = document.getElementById(tab + 'Tab');
-        if (tabElement) {
-            tabElement.classList.add('active');
-        }
-        
-        // Activate icon
-        const icon = document.querySelector(`.sidebar-icon[data-tab="${tab}"]`);
-        if (icon) {
-            icon.classList.add('active');
-        }
-    }
-
-    function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode');
-        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-    }
-
-    function toggleAnalytics() {
-        const panel = elements.analyticsPanel;
-        if (panel) {
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        }
-    }
-
-    function updateAnalytics() {
-        document.getElementById('totalGenerations').textContent = state.analytics.totalGenerations;
-        document.getElementById('avgWordCount').textContent = state.analytics.avgWordCount;
-        document.getElementById('seoScore').textContent = state.analytics.seoScore;
-        document.getElementById('readabilityScore').textContent = state.analytics.readabilityScore;
-    }
-
-    function showProgress() {
-        elements.progressOverlay?.classList.add('active');
-    }
-
-    function hideProgress() {
-        elements.progressOverlay?.classList.remove('active');
-    }
-
-    function showVideoProgress() {
-        elements.videoProgressOverlay?.classList.add('active');
-        
-        // Start progress animation
-        let progress = 0;
-        state.currentProgressInterval = setInterval(() => {
-            progress += 1;
-            const progressFill = document.getElementById('progressFill');
-            if (progressFill) {
-                progressFill.style.width = `${Math.min(progress, 95)}%`;
-            }
-        }, 600);
-    }
-
-    function hideVideoProgress() {
-        elements.videoProgressOverlay?.classList.remove('active');
-        if (state.currentProgressInterval) {
-            clearInterval(state.currentProgressInterval);
-        }
-    }
-
-    function showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.animation = 'slideDown 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-
-    function openTemplates() {
-        elements.templatesModal?.classList.add('active');
-    }
-
-    function closeTemplates() {
-        elements.templatesModal?.classList.remove('active');
-    }
-
-    function showShortcuts() {
-        elements.shortcutsModal?.classList.add('active');
-    }
-
-    function closeShortcuts() {
-        elements.shortcutsModal?.classList.remove('active');
-    }
-
-    function toggleShare() {
-        elements.shareOptions?.classList.toggle('active');
-    }
-
-    function exportResults() {
-        elements.exportOptions?.classList.toggle('active');
-    }
-
-    function copyShareLink() {
-        const url = window.location.href;
-        navigator.clipboard.writeText(url);
-        showNotification('Link copied to clipboard!');
-    }
-
-    function copyText(text) {
-        navigator.clipboard.writeText(text);
-        showNotification('Copied to clipboard!');
-    }
-
-    function editDescription(index) {
-        const desc = state.generatedDescriptions[index];
-        if (desc) {
-            const newDesc = prompt('Edit description:', desc);
-            if (newDesc) {
-                state.generatedDescriptions[index] = newDesc;
-                displayResults(state.generatedDescriptions);
-            }
-        }
-    }
-
-    function exportAs(format) {
-        const descriptions = state.generatedDescriptions;
-        if (!descriptions.length) {
-            showNotification('No content to export', 'error');
-            return;
-        }
-        
-        let content = '';
-        let filename = 'product-descriptions';
-        let mimeType = 'text/plain';
-        
-        switch(format) {
-            case 'txt':
-                content = descriptions.join('\n\n');
-                filename += '.txt';
-                break;
-            case 'html':
-                content = `<!DOCTYPE html><html><body>${descriptions.map(d => `<p>${d}</p>`).join('')}</body></html>`;
-                filename += '.html';
-                mimeType = 'text/html';
-                break;
-            case 'json':
-                content = JSON.stringify({ descriptions, metadata: { date: new Date(), product: elements.productName?.value } }, null, 2);
-                filename += '.json';
-                mimeType = 'application/json';
-                break;
-            case 'docx':
-                // For Word export, we'd need a library - for now just use HTML
-                content = descriptions.join('\n\n');
-                filename += '.docx';
-                showNotification('Word export requires additional setup', 'info');
-                return;
-        }
-        
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-        
-        showNotification(`Exported as ${format.toUpperCase()}`);
-    }
-
-    function applyTemplate(template) {
-        const templates = {
-            electronics: {
-                category: 'electronics',
-                targetAudience: 'Tech enthusiasts and gadget lovers',
-                keyFeatures: 'Advanced features, cutting-edge technology, user-friendly interface'
-            },
-            fashion: {
-                category: 'fashion',
-                targetAudience: 'Fashion-conscious individuals',
-                keyFeatures: 'Trendy design, premium materials, comfortable fit'
-            },
-            food: {
-                category: 'food',
-                targetAudience: 'Food lovers and culinary enthusiasts',
-                keyFeatures: 'Delicious taste, natural ingredients, nutritious'
-            },
-            beauty: {
-                category: 'beauty',
-                targetAudience: 'Beauty enthusiasts',
-                keyFeatures: 'Natural ingredients, dermatologist tested, visible results'
-            },
-            home: {
-                category: 'home',
-                targetAudience: 'Homeowners and interior design enthusiasts',
-                keyFeatures: 'Modern design, durable materials, space-saving'
-            },
-            sports: {
-                category: 'sports',
-                targetAudience: 'Athletes and fitness enthusiasts',
-                keyFeatures: 'Performance-enhancing, durable construction, ergonomic design'
-            }
-        };
-        
-        const templateData = templates[template];
-        if (templateData) {
-            elements.category.value = templateData.category;
-            elements.targetAudience.value = templateData.targetAudience;
-            elements.keyFeatures.value = templateData.keyFeatures;
-            state.currentTemplate = template;
-            showNotification(`Applied ${template} template`);
-        }
-    }
-
-    function selectPreset(btn, preset) {
-        btn.classList.toggle('active');
-        const index = state.selectedPresets.indexOf(preset);
-        if (index > -1) {
-            state.selectedPresets.splice(index, 1);
-        } else {
-            state.selectedPresets.push(preset);
-        }
-    }
-
-    // History Functions
-    function loadHistory() {
-        const historyList = elements.historyList;
-        if (!historyList) return;
-        
-        historyList.innerHTML = '';
-        state.generationHistory.slice(0, 10).forEach(item => {
-            const historyItem = document.createElement('div');
-            historyItem.className = 'history-item';
-            historyItem.dataset.item = JSON.stringify(item);
-            historyItem.innerHTML = `
-                <strong>${item.productName}</strong>
-                <p style="font-size: 12px; color: #666; margin-top: 5px;">
-                    ${new Date(item.timestamp).toLocaleDateString()}
-                </p>
-            `;
-            historyList.appendChild(historyItem);
-        });
-    }
-
-    function saveToHistory(productName, description) {
-        const item = {
-            productName,
-            description,
-            timestamp: Date.now()
-        };
-        state.generationHistory.unshift(item);
-        state.generationHistory = state.generationHistory.slice(0, 50);
-        localStorage.setItem('generationHistory', JSON.stringify(state.generationHistory));
-        loadHistory();
-    }
-
-    function loadFromHistory(item) {
-        elements.productName.value = item.productName;
-        showNotification('Loaded from history');
-    }
-
-    // Auto-save Functions
-    function startAutoSave() {
-        setInterval(() => {
-            const productName = elements.productName?.value;
-            if (productName) {
-                localStorage.setItem('draftProduct', JSON.stringify({
-                    productName,
-                    category: elements.category?.value,
-                    targetAudience: elements.targetAudience?.value,
-                    keyFeatures: elements.keyFeatures?.value
-                }));
-            }
-        }, 10000);
-    }
-
-    function loadDraft() {
-        const draft = localStorage.getItem('draftProduct');
-        if (draft) {
-            try {
-                const data = JSON.parse(draft);
-                elements.productName.value = data.productName || '';
-                elements.category.value = data.category || '';
-                elements.targetAudience.value = data.targetAudience || '';
-                elements.keyFeatures.value = data.keyFeatures || '';
-            } catch (e) {
-                console.error('Error loading draft:', e);
-            }
-        }
-    }
-
-    // Keyboard Shortcuts
-    function setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'Enter':
-                        e.preventDefault();
-                        generateContent();
-                        break;
-                    case 'e':
-                        e.preventDefault();
-                        exportResults();
-                        break;
-                    case 'd':
-                        e.preventDefault();
-                        toggleDarkMode();
-                        break;
-                    case 't':
-                        e.preventDefault();
-                        openTemplates();
-                        break;
-                }
-            }
-        });
-    }
-
-    // Input Handlers
-    function handleProductNameInput(e) {
-        const value = e.target.value;
-        if (value.length > 2) {
-            showAISuggestions(value);
-        } else {
-            elements.nameSuggestions?.classList.remove('active');
-        }
-    }
-
-    function showAISuggestions(value) {
-        const suggestionsDiv = elements.nameSuggestions;
-        if (!suggestionsDiv) return;
-        
-        const suggestions = generateAISuggestions(value);
-        
-        suggestionsDiv.innerHTML = '';
-        suggestions.forEach(s => {
-            const item = document.createElement('div');
-            item.className = 'suggestion-item';
-            item.textContent = s;
-            suggestionsDiv.appendChild(item);
-        });
-        
-        suggestionsDiv.classList.add('active');
-    }
-
-    function generateAISuggestions(input) {
-        const suggestions = [];
-        const keywords = input.toLowerCase().split(' ');
-        
-        if (keywords.includes('wireless') || keywords.includes('bluetooth')) {
-            suggestions.push(input + ' - Premium Audio Experience');
-            suggestions.push(input + ' with Active Noise Cancellation');
-            suggestions.push(input + ' - Professional Grade');
-        } else {
-            suggestions.push(input + ' - Premium Edition');
-            suggestions.push(input + ' - Professional Series');
-            suggestions.push(input + ' - Limited Edition');
-        }
-        
-        return suggestions.slice(0, 3);
-    }
-
-    function applySuggestion(suggestion) {
-        elements.productName.value = suggestion;
-        elements.nameSuggestions?.classList.remove('active');
-    }
-
-    function updateLengthValue(e) {
-        const value = e.target.value;
-        const lengthValue = document.getElementById('lengthValue');
-        if (lengthValue) {
-            lengthValue.textContent = `${value} words`;
-        }
-    }
-
-    // Headline Analysis
-    async function analyzeHeadline() {
-        const headline = elements.headlineInput?.value;
-        if (!headline) {
-            showNotification('Please enter a headline to analyze', 'error');
-            return;
-        }
-        
-        showNotification('Analyzing headline...', 'info');
-        
-        try {
-            const response = await fetch('/api/analyze-headline', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ headline })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
             });
             
             if (!response.ok) {
-                performClientSideAnalysis(headline);
-                return;
+                throw new Error('Failed to generate description');
             }
             
-            const data = await response.json();
-            autoFillForm(data);
+            const result = await response.json();
+            
+            // Store in history (both locally and in Redis via API)
+            const historyItem = {
+                id: Date.now().toString(),
+                productName,
+                descriptions: result.descriptions,
+                metadata: formData,
+                timestamp: new Date().toISOString(),
+                wordCount: result.descriptions[0]?.split(' ').length || 0
+            };
+            
+            // Save to local history
+            addToHistory(historyItem);
+            
+            // Track generation in Redis
+            await trackGeneration(historyItem);
+            
+            // Display results
+            displayResults(result.descriptions);
+            
+            // Update stats
+            updateStats();
+            
+            // Show success
+            showToast('Description generated successfully!', 'success');
+            
         } catch (error) {
-            performClientSideAnalysis(headline);
+            console.error('Generation error:', error);
+            showToast('Failed to generate description. Please try again.', 'error');
+        } finally {
+            hideProgress();
         }
     }
 
-    function performClientSideAnalysis(headline) {
-        const analysis = {
-            productName: '',
-            category: '',
-            targetAudience: '',
-            features: []
-        };
-        
-        // Extract product name
-        const nameMatch = headline.match(/^([^,\-–—]+?)(?:\s+(?:with|for|featuring|\-|–|—)|$)/i);
-        analysis.productName = nameMatch ? nameMatch[1].trim() : headline.split(' ').slice(0, 4).join(' ');
-        
-        // Detect category
-        const categories = {
-            'electronics': ['headphones', 'phone', 'laptop', 'tablet', 'camera', 'speaker', 'wireless', 'bluetooth', 'smart'],
-            'fashion': ['shirt', 'dress', 'shoes', 'bag', 'jacket', 'jeans', 'style', 'fashion', 'wear'],
-            'home': ['furniture', 'decor', 'kitchen', 'bathroom', 'bed', 'sofa', 'table', 'chair', 'home'],
-            'beauty': ['cream', 'serum', 'makeup', 'skincare', 'perfume', 'cosmetic', 'beauty', 'skin'],
-            'sports': ['fitness', 'gym', 'sport', 'exercise', 'workout', 'training', 'athletic'],
-            'food': ['food', 'drink', 'snack', 'beverage', 'organic', 'natural', 'healthy']
-        };
-        
-        const lowerHeadline = headline.toLowerCase();
-        for (const [cat, keywords] of Object.entries(categories)) {
-            if (keywords.some(keyword => lowerHeadline.includes(keyword))) {
-                analysis.category = cat;
-                break;
-            }
+    // Track generation in Redis
+    async function trackGeneration(historyItem) {
+        try {
+            await fetch('/api/track-generation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: state.userId,
+                    type: 'description',
+                    data: historyItem
+                })
+            });
+        } catch (error) {
+            console.error('Failed to track generation:', error);
         }
-        
-        // Extract target audience
-        const audienceMatch = headline.match(/for\s+([^,\.\-–—]+)/i);
-        if (audienceMatch) {
-            analysis.targetAudience = audienceMatch[1].trim();
-        }
-        
-        // Extract features
-        const featureMatch = headline.match(/with\s+([^,\.\-–—]+)/gi);
-        if (featureMatch) {
-            analysis.features = featureMatch.map(f => f.replace(/^with\s+/i, '').trim());
-        }
-        
-        autoFillForm(analysis);
     }
 
-    function autoFillForm(data) {
-        if (data.productName) {
-            elements.productName.value = data.productName;
-        }
-        if (data.category) {
-            elements.category.value = data.category;
-        }
-        if (data.targetAudience) {
-            elements.targetAudience.value = data.targetAudience;
-        }
-        if (data.features && data.features.length > 0) {
-            elements.keyFeatures.value = data.features.join(', ');
+    // Display Results
+    function displayResults(descriptions) {
+        if (!descriptions || descriptions.length === 0) {
+            elements.resultsArea.innerHTML = '<p>No descriptions generated</p>';
+            return;
         }
         
-        showNotification('Form auto-filled from headline analysis');
+        const html = descriptions.map((desc, index) => `
+            <div class="result-card" style="animation-delay: ${index * 0.1}s">
+                <div class="result-header">
+                    <h3 class="result-title">Variation ${index + 1}</h3>
+                    <div class="result-actions">
+                        <button class="action-btn" data-action="copy" data-content="${escapeHtml(desc)}" title="Copy">
+                            📋
+                        </button>
+                        <button class="action-btn" data-action="edit" data-id="${index}" title="Edit">
+                            ✏️
+                        </button>
+                    </div>
+                </div>
+                <div class="result-content">
+                    ${escapeHtml(desc)}
+                </div>
+                <div class="result-meta">
+                    <div class="meta-item">
+                        <span>📝</span>
+                        <span>${desc.split(' ').length} words</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>📊</span>
+                        <span>SEO Score: ${calculateSEOScore(desc)}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>📖</span>
+                        <span>Readability: ${calculateReadability(desc)}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        elements.resultsArea.innerHTML = html;
     }
 
-    // Image Upload
+    // Add to History
+    function addToHistory(item) {
+        // Add to beginning of array
+        state.history.unshift(item);
+        
+        // Limit history to 50 items
+        if (state.history.length > 50) {
+            state.history = state.history.slice(0, 50);
+        }
+        
+        // Save to localStorage
+        saveHistory();
+        
+        // Re-render history
+        renderHistory();
+    }
+
+    // Render History
+    function renderHistory() {
+        if (!elements.historyList) return;
+        
+        if (state.history.length === 0) {
+            elements.historyList.innerHTML = `
+                <div style="text-align: center; padding: 24px; color: var(--text-light);">
+                    <p>No history yet. Generate your first description!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const html = state.history.slice(0, 10).map(item => `
+            <div class="history-card" data-id="${item.id}">
+                <button class="action-btn" data-action="delete" data-id="${item.id}" 
+                        style="position: absolute; top: 12px; right: 12px;">
+                    🗑️
+                </button>
+                <div class="history-time">${formatTime(item.timestamp)}</div>
+                <div class="history-title">${escapeHtml(item.productName)}</div>
+                <div class="history-preview">
+                    ${escapeHtml(item.descriptions[0]?.substring(0, 100) || '')}...
+                </div>
+            </div>
+        `).join('');
+        
+        elements.historyList.innerHTML = html;
+    }
+
+    // Load History Item
+    function loadHistoryItem(id) {
+        const item = state.history.find(h => h.id === id);
+        if (!item) return;
+        
+        // Populate form
+        if (elements.productName) elements.productName.value = item.metadata.productName;
+        if (elements.category) elements.category.value = item.metadata.category || '';
+        if (elements.targetAudience) elements.targetAudience.value = item.metadata.targetAudience || '';
+        if (elements.keyFeatures) elements.keyFeatures.value = item.metadata.keyFeatures || '';
+        if (elements.tone) elements.tone.value = item.metadata.tone || 'professional';
+        
+        // Display results
+        displayResults(item.descriptions);
+        
+        showToast('Loaded from history', 'info');
+    }
+
+    // Image Upload Setup
     function setupImageUpload() {
         const dropZone = elements.imageDropZone;
         const fileInput = elements.imageUpload;
         
         if (!dropZone || !fileInput) return;
         
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-        });
+        // Click to upload
+        dropZone.addEventListener('click', () => fileInput.click());
         
-        function preventDefaults(e) {
+        // File input change
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
+            dropZone.classList.add('drag-over');
         });
         
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
         });
         
-        dropZone.addEventListener('drop', handleDrop, false);
-        fileInput.addEventListener('change', handleImageUpload, false);
-        
-        function handleDrop(e) {
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
             const files = e.dataTransfer.files;
             if (files.length > 0) {
-                handleImageFile(files[0]);
+                handleFile(files[0]);
             }
-        }
+        });
     }
 
-    async function handleImageUpload(event) {
-        const file = event.target.files[0];
+    // Handle File Select
+    function handleFileSelect(e) {
+        const file = e.target.files[0];
         if (file) {
-            handleImageFile(file);
+            handleFile(file);
         }
     }
 
-    async function handleImageFile(file) {
+    // Handle File
+    async function handleFile(file) {
         if (!file.type.startsWith('image/')) {
-            showNotification('Please upload an image file', 'error');
+            showToast('Please upload an image file', 'error');
             return;
         }
         
+        // Show preview
         const reader = new FileReader();
-        reader.onload = async (e) => {
-            const previewImg = document.getElementById('previewImg');
-            if (previewImg) {
-                previewImg.src = e.target.result;
+        reader.onload = (e) => {
+            if (elements.previewImg) {
+                elements.previewImg.src = e.target.result;
                 elements.imagePreview.style.display = 'block';
                 elements.imageDropZone.style.display = 'none';
             }
-            
-            // Analyze image
-            try {
-                const base64 = e.target.result.split(',')[1];
-                const response = await fetch('/api/analyze-image', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: base64 })
-                });
-                
-                if (response.ok) {
-                    const analysis = await response.json();
-                    if (analysis.suggestedDescription) {
-                        elements.keyFeatures.value = analysis.suggestedDescription;
-                        showNotification('Image analyzed successfully');
-                    }
-                }
-            } catch (error) {
-                console.error('Image analysis error:', error);
-            }
         };
         reader.readAsDataURL(file);
+        
+        // Analyze image
+        showProgress('Analyzing image...');
+        
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            const response = await fetch('/api/analyze-image', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) throw new Error('Image analysis failed');
+            
+            const analysis = await response.json();
+            
+            // Store analysis
+            state.uploadedImage = file;
+            state.imageAnalysis = analysis;
+            
+            // Auto-fill form
+            if (analysis.productName && elements.productName) {
+                elements.productName.value = analysis.productName;
+            }
+            if (analysis.category && elements.category) {
+                elements.category.value = analysis.category;
+            }
+            if (analysis.features && elements.keyFeatures) {
+                elements.keyFeatures.value = analysis.features.join(', ');
+            }
+            
+            showToast('Image analyzed successfully!', 'success');
+            
+        } catch (error) {
+            console.error('Image analysis error:', error);
+            showToast('Failed to analyze image', 'error');
+        } finally {
+            hideProgress();
+        }
     }
 
+    // Remove Image
     function removeImage() {
-        elements.imagePreview.style.display = 'none';
-        elements.imageDropZone.style.display = 'block';
-        elements.imageUpload.value = '';
+        state.uploadedImage = null;
+        state.imageAnalysis = null;
+        
+        if (elements.imagePreview) {
+            elements.imagePreview.style.display = 'none';
+        }
+        if (elements.imageDropZone) {
+            elements.imageDropZone.style.display = 'block';
+        }
+        if (elements.imageUpload) {
+            elements.imageUpload.value = '';
+        }
     }
 
-    function cancelVideoGeneration() {
-        if (state.currentPollInterval) {
-            clearInterval(state.currentPollInterval);
+    // Analyze Headline
+    async function analyzeHeadline() {
+        const headline = elements.headlineInput?.value.trim();
+        if (!headline) return;
+        
+        showProgress('Analyzing headline...');
+        
+        try {
+            // Simple AI-like analysis (in production, this would call an API)
+            const analysis = parseHeadline(headline);
+            
+            // Auto-fill form
+            if (analysis.productName && elements.productName) {
+                elements.productName.value = analysis.productName;
+            }
+            if (analysis.category && elements.category) {
+                elements.category.value = analysis.category;
+            }
+            if (analysis.features && elements.keyFeatures) {
+                elements.keyFeatures.value = analysis.features.join(', ');
+            }
+            if (analysis.audience && elements.targetAudience) {
+                elements.targetAudience.value = analysis.audience;
+            }
+            
+            showToast('Form auto-filled from headline!', 'success');
+            
+        } catch (error) {
+            console.error('Headline analysis error:', error);
+        } finally {
+            hideProgress();
         }
-        if (state.currentProgressInterval) {
-            clearInterval(state.currentProgressInterval);
-        }
-        hideVideoProgress();
-        showNotification('Video generation cancelled');
     }
 
-    // Initialize app when DOM is ready
+    // Parse Headline (simplified version)
+    function parseHeadline(headline) {
+        const lower = headline.toLowerCase();
+        
+        // Extract product name (first few words)
+        const productName = headline.split(' ').slice(0, 4).join(' ');
+        
+        // Detect category
+        let category = 'other';
+        if (lower.includes('headphone') || lower.includes('speaker') || lower.includes('wireless')) {
+            category = 'electronics';
+        } else if (lower.includes('shirt') || lower.includes('dress') || lower.includes('shoe')) {
+            category = 'fashion';
+        } else if (lower.includes('beauty') || lower.includes('skincare') || lower.includes('makeup')) {
+            category = 'beauty';
+        }
+        
+        // Extract features
+        const features = [];
+        if (lower.includes('wireless')) features.push('Wireless connectivity');
+        if (lower.includes('noise cancell')) features.push('Noise cancellation');
+        if (lower.includes('premium')) features.push('Premium quality');
+        if (lower.includes('eco') || lower.includes('sustainable')) features.push('Eco-friendly');
+        
+        // Detect audience
+        let audience = 'General consumers';
+        if (lower.includes('professional') || lower.includes('pro')) {
+            audience = 'Professionals';
+        } else if (lower.includes('music lover') || lower.includes('audiophile')) {
+            audience = 'Music enthusiasts';
+        } else if (lower.includes('gamer') || lower.includes('gaming')) {
+            audience = 'Gamers';
+        }
+        
+        return { productName, category, features, audience };
+    }
+
+    // Toggle Preset
+    function togglePreset(element, preset) {
+        element.classList.toggle('active');
+        
+        if (state.selectedPresets.has(preset)) {
+            state.selectedPresets.delete(preset);
+        } else {
+            state.selectedPresets.add(preset);
+        }
+    }
+
+    // Apply Template
+    function applyTemplate(template) {
+        const templates = {
+            electronics: {
+                category: 'electronics',
+                tone: 'technical',
+                features: 'High-performance, cutting-edge technology, user-friendly interface',
+                audience: 'Tech enthusiasts and early adopters'
+            },
+            fashion: {
+                category: 'fashion',
+                tone: 'luxury',
+                features: 'Premium materials, trendy design, comfortable fit',
+                audience: 'Fashion-conscious individuals'
+            },
+            food: {
+                category: 'food',
+                tone: 'casual',
+                features: 'Fresh ingredients, delicious taste, healthy options',
+                audience: 'Food lovers and health-conscious consumers'
+            },
+            beauty: {
+                category: 'beauty',
+                tone: 'luxury',
+                features: 'Natural ingredients, clinically tested, visible results',
+                audience: 'Beauty enthusiasts seeking quality skincare'
+            },
+            home: {
+                category: 'home',
+                tone: 'professional',
+                features: 'Durable construction, modern design, space-saving',
+                audience: 'Homeowners and interior design enthusiasts'
+            },
+            sports: {
+                category: 'sports',
+                tone: 'casual',
+                features: 'High-performance, durable, comfortable',
+                audience: 'Athletes and fitness enthusiasts'
+            }
+        };
+        
+        const tmpl = templates[template];
+        if (!tmpl) return;
+        
+        // Apply template values
+        if (elements.category) elements.category.value = tmpl.category;
+        if (elements.tone) elements.tone.value = tmpl.tone;
+        if (elements.keyFeatures) elements.keyFeatures.value = tmpl.features;
+        if (elements.targetAudience) elements.targetAudience.value = tmpl.audience;
+        
+        closeModal();
+        showToast(`Applied ${template} template`, 'success');
+    }
+
+    // Update Stats
+    function updateStats() {
+        // Calculate stats from history
+        state.stats.totalGenerations = state.history.length;
+        
+        if (state.history.length > 0) {
+            const totalWords = state.history.reduce((sum, item) => sum + (item.wordCount || 0), 0);
+            state.stats.avgWordCount = Math.round(totalWords / state.history.length);
+            state.stats.totalTimeSaved = Math.round(state.history.length * 15 / 60); // Assume 15 min saved per generation
+            state.stats.seoScore = 85; // Placeholder
+        }
+        
+        // Update UI
+        if (elements.totalGenerations) {
+            elements.totalGenerations.textContent = state.stats.totalGenerations;
+        }
+        if (elements.avgWordCount) {
+            elements.avgWordCount.textContent = state.stats.avgWordCount;
+        }
+        if (elements.seoScore) {
+            elements.seoScore.textContent = state.stats.seoScore;
+        }
+        if (elements.savedTime) {
+            elements.savedTime.textContent = state.stats.totalTimeSaved + 'h';
+        }
+    }
+
+    // Calculate SEO Score (simplified)
+    function calculateSEOScore(text) {
+        let score = 70; // Base score
+        
+        // Check for keywords density
+        if (text.length > 100) score += 5;
+        if (text.length > 200) score += 5;
+        
+        // Check for power words
+        const powerWords = ['premium', 'quality', 'best', 'innovative', 'exclusive'];
+        powerWords.forEach(word => {
+            if (text.toLowerCase().includes(word)) score += 2;
+        });
+        
+        // Cap at 100
+        return Math.min(score, 100);
+    }
+
+    // Calculate Readability
+    function calculateReadability(text) {
+        const sentences = text.split(/[.!?]+/).length;
+        const words = text.split(' ').length;
+        const avgWordsPerSentence = words / sentences;
+        
+        if (avgWordsPerSentence < 15) return 'Easy';
+        if (avgWordsPerSentence < 20) return 'Medium';
+        return 'Complex';
+    }
+
+    // Toggle Dark Mode
+    function toggleDarkMode() {
+        state.darkMode = !state.darkMode;
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', state.darkMode);
+        showToast(state.darkMode ? 'Dark mode enabled' : 'Light mode enabled', 'info');
+    }
+
+    // Toggle Analytics
+    function toggleAnalytics() {
+        const panel = elements.statsPanel;
+        if (panel) {
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+    }
+
+    // Setup Keyboard Shortcuts
+    function setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + Enter to generate
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                generateDescription();
+            }
+            
+            // Ctrl/Cmd + D for dark mode
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                toggleDarkMode();
+            }
+            
+            // Ctrl/Cmd + S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveCurrentWork();
+            }
+            
+            // Escape to close modals
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    }
+
+    // Show/Hide Progress
+    function showProgress(message) {
+        if (elements.progressOverlay) {
+            elements.progressOverlay.classList.add('active');
+            const messageEl = elements.progressOverlay.querySelector('h3');
+            if (messageEl) messageEl.textContent = message;
+        }
+    }
+
+    function hideProgress() {
+        if (elements.progressOverlay) {
+            elements.progressOverlay.classList.remove('active');
+        }
+    }
+
+    // Show Toast Notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <span>${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'}</span>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Copy to Clipboard
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Copied to clipboard!', 'success');
+        }).catch(() => {
+            showToast('Failed to copy', 'error');
+        });
+    }
+
+    // Close Modal
+    function closeModal() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.classList.remove('active');
+        });
+    }
+
+    // Clear History
+    function clearHistory() {
+        if (confirm('Are you sure you want to clear all history?')) {
+            state.history = [];
+            saveHistory();
+            renderHistory();
+            updateStats();
+            showToast('History cleared', 'info');
+        }
+    }
+
+    // Delete from History
+    function deleteFromHistory(id) {
+        state.history = state.history.filter(item => item.id !== id);
+        saveHistory();
+        renderHistory();
+        updateStats();
+    }
+
+    // Save/Load State
+    function saveHistory() {
+        localStorage.setItem('generationHistory', JSON.stringify(state.history));
+    }
+
+    function loadHistory() {
+        try {
+            const saved = localStorage.getItem('generationHistory');
+            if (saved) {
+                state.history = JSON.parse(saved);
+            }
+        } catch (error) {
+            console.error('Failed to load history:', error);
+        }
+    }
+
+    function loadState() {
+        // Load dark mode preference
+        state.darkMode = localStorage.getItem('darkMode') === 'true';
+        
+        // Load history
+        loadHistory();
+    }
+
+    function applyPreferences() {
+        if (state.darkMode) {
+            document.body.classList.add('dark-mode');
+        }
+    }
+
+    // Auto-save
+    function startAutoSave() {
+        setInterval(() => {
+            saveCurrentWork();
+        }, 30000); // Every 30 seconds
+    }
+
+    function saveCurrentWork() {
+        const draft = {
+            productName: elements.productName?.value,
+            category: elements.category?.value,
+            targetAudience: elements.targetAudience?.value,
+            keyFeatures: elements.keyFeatures?.value,
+            tone: elements.tone?.value
+        };
+        
+        localStorage.setItem('draft', JSON.stringify(draft));
+    }
+
+    // Update Length Display
+    function updateLengthDisplay() {
+        if (elements.lengthValue && elements.lengthSlider) {
+            elements.lengthValue.textContent = elements.lengthSlider.value + ' words';
+        }
+    }
+
+    // Utility: Escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Utility: Format Time
+    function formatTime(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = now - date;
+        
+        if (diff < 60000) return 'Just now';
+        if (diff < 3600000) return Math.floor(diff / 60000) + ' min ago';
+        if (diff < 86400000) return Math.floor(diff / 3600000) + ' hours ago';
+        
+        return date.toLocaleDateString();
+    }
+
+    // Switch Tab
+    function switchTab(tab) {
+        // Update nav icons
+        document.querySelectorAll('.nav-icon').forEach(icon => {
+            icon.classList.remove('active');
+            if (icon.dataset.tab === tab) {
+                icon.classList.add('active');
+            }
+        });
+        
+        state.activeTab = tab;
+        
+        // Handle special tabs
+        if (tab === 'templates') {
+            document.getElementById('templatesModal')?.classList.add('active');
+        }
+    }
+
+    // Initialize on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
+
 })();
