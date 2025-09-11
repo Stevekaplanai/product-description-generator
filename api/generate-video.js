@@ -97,7 +97,17 @@ module.exports = async (req, res) => {
         
         // Create D-ID talk video - Use proper Basic auth format
         // D-ID expects Basic auth with API key as username and empty password
-        const authString = Buffer.from(`${D_ID_API_KEY}:`).toString('base64');
+        // Create base64 string compatible with Node.js environment
+        const authBuffer = Buffer.from(`${D_ID_API_KEY}:`, 'utf8');
+        const authString = authBuffer.toString('base64');
+        
+        console.log('D-ID Auth debug:', {
+          hasApiKey: !!D_ID_API_KEY,
+          apiKeyLength: D_ID_API_KEY ? D_ID_API_KEY.length : 0,
+          authStringLength: authString.length,
+          authStringPreview: authString.substring(0, 20) + '...'
+        });
+        
         const talkResponse = await fetch(`${D_ID_API_URL}/talks`, {
           method: 'POST',
           headers: {
