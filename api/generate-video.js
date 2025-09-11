@@ -96,25 +96,14 @@ module.exports = async (req, res) => {
         console.log('D-ID Request payload:', JSON.stringify(didPayload, null, 2));
         
         // Create D-ID talk video - Use proper Basic auth format
-        // D-ID API key might already be in username:password format
-        let authString;
-        
-        // Check if the API key already contains a colon (username:password format)
-        if (D_ID_API_KEY.includes(':')) {
-          // API key is already in username:password format, encode it directly
-          authString = Buffer.from(D_ID_API_KEY, 'utf8').toString('base64');
-          console.log('D-ID Auth: Using API key as username:password format');
-        } else {
-          // API key is just the key, add empty password
-          authString = Buffer.from(`${D_ID_API_KEY}:`, 'utf8').toString('base64');
-          console.log('D-ID Auth: Using API key with empty password');
-        }
+        // D-ID expects API key as username with empty password in Basic auth
+        const authString = Buffer.from(`${D_ID_API_KEY}:`, 'utf8').toString('base64');
         
         console.log('D-ID Auth debug:', {
           hasApiKey: !!D_ID_API_KEY,
           apiKeyLength: D_ID_API_KEY ? D_ID_API_KEY.length : 0,
-          hasColon: D_ID_API_KEY.includes(':'),
-          authStringLength: authString.length
+          authStringLength: authString.length,
+          authMethod: 'Basic auth with API key as username'
         });
         
         const talkResponse = await fetch(`${D_ID_API_URL}/talks`, {
