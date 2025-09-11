@@ -574,6 +574,75 @@
             border-left: 4px solid var(--warning);
         }
 
+        /* Bulk Upload Styles */
+        .bulk-upload-container {
+            margin-top: 20px;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius);
+            padding: 40px;
+            text-align: center;
+            background: var(--light);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .upload-area:hover {
+            background: rgba(99, 102, 241, 0.05);
+            border-color: var(--primary-dark);
+        }
+
+        .upload-area.drag-over {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary-dark);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .csv-template {
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        .csv-template a {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .csv-preview {
+            margin-top: 20px;
+            padding: 16px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .csv-preview table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .csv-preview th,
+        .csv-preview td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .csv-preview th {
+            background: var(--light);
+            font-weight: 600;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .app-container {
@@ -654,6 +723,11 @@
                             <div class="start-icon">✍️</div>
                             <div class="start-option-title">Manual Entry</div>
                             <div class="start-option-desc">Full control over all details</div>
+                        </div>
+                        <div class="start-option" data-method="bulk">
+                            <div class="start-icon">📊</div>
+                            <div class="start-option-title">Bulk Upload</div>
+                            <div class="start-option-desc">Process multiple products via CSV</div>
                         </div>
                     </div>
                 </div>
@@ -772,6 +846,27 @@
                             </div>
                         </div>
 
+                        <!-- Bulk Upload Section (shown for bulk method) -->
+                        <div class="form-section bulk-section" style="display: none;">
+                            <h3 class="section-title">Bulk CSV Upload</h3>
+                            <div class="bulk-upload-container">
+                                <div class="upload-area" id="uploadArea">
+                                    <div class="upload-icon">📁</div>
+                                    <h4>Drop your CSV file here</h4>
+                                    <p>or click to browse</p>
+                                    <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                                </div>
+                                <div class="csv-template">
+                                    <p>Need a template? <a href="/template.csv" download>Download CSV Template</a></p>
+                                    <p class="help-text">CSV should include: Product Name, Category, Features, Target Audience</p>
+                                </div>
+                                <div id="csvPreview" class="csv-preview" style="display: none;">
+                                    <h4>Preview</h4>
+                                    <div id="previewContent"></div>
+                                </div>
+                            </div>
+                        </div>
+
                         <button type="submit" class="submit-btn">Generate Descriptions</button>
                     </form>
                 </div>
@@ -803,6 +898,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
 </body>
 </html>

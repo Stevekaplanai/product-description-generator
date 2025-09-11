@@ -127,8 +127,17 @@
                     break;
                 case 'manual':
                     document.querySelectorAll('.form-section').forEach(function(section) {
-                        section.style.display = 'block';
+                        if (!section.classList.contains('bulk-section')) {
+                            section.style.display = 'block';
+                        }
                     });
+                    break;
+                case 'bulk':
+                    const bulkSection = document.querySelector('.bulk-section');
+                    if (bulkSection) {
+                        bulkSection.style.display = 'block';
+                        this.initBulkUpload();
+                    }
                     break;
             }
 
@@ -247,6 +256,13 @@
 
         generateDescriptions: function() {
             const self = this;
+            
+            // Check if this is a bulk upload
+            if (this.state.selectedMethod === 'bulk') {
+                this.processBulkProducts();
+                return;
+            }
+            
             const formData = new FormData(document.getElementById('productForm'));
             const data = {};
             formData.forEach(function(value, key) {
@@ -482,6 +498,142 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        },
+
+        initBulkUpload: function() {
+            const self = this;
+            const uploadArea = document.getElementById('uploadArea');
+            const csvFile = document.getElementById('csvFile');
+            
+            if (uploadArea && csvFile) {
+                // Click to upload
+                uploadArea.addEventListener('click', function() {
+                    csvFile.click();
+                });
+                
+                // File selection
+                csvFile.addEventListener('change', function(e) {
+                    if (e.target.files.length > 0) {
+                        self.handleCSVFile(e.target.files[0]);
+                    }
+                });
+                
+                // Drag and drop
+                uploadArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    uploadArea.classList.add('drag-over');
+                });
+                
+                uploadArea.addEventListener('dragleave', function() {
+                    uploadArea.classList.remove('drag-over');
+                });
+                
+                uploadArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    uploadArea.classList.remove('drag-over');
+                    
+                    if (e.dataTransfer.files.length > 0) {
+                        self.handleCSVFile(e.dataTransfer.files[0]);
+                    }
+                });
+            }
+        },
+
+        handleCSVFile: function(file) {
+            const self = this;
+            
+            if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+                this.showNotification('Please upload a CSV file', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                const products = self.parseCSV(csv);
+                
+                if (products.length > 0) {
+                    self.showCSVPreview(products);
+                    self.state.bulkProducts = products;
+                } else {
+                    self.showNotification('No valid products found in CSV', 'error');
+                }
+            };
+            
+            reader.readAsText(file);
+        },
+
+        parseCSV: function(csv) {
+            const lines = csv.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const products = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = lines[i].split(',');
+                    const product = {};
+                    
+                    headers.forEach(function(header, index) {
+                        product[header] = values[index] ? values[index].trim() : '';
+                    });
+                    
+                    if (product['product name'] || product['name']) {
+                        products.push(product);
+                    }
+                }
+            }
+            
+            return products;
+        },
+
+        showCSVPreview: function(products) {
+            const preview = document.getElementById('csvPreview');
+            const content = document.getElementById('previewContent');
+            
+            if (preview && content) {
+                let html = '<table><tr>';
+                const headers = Object.keys(products[0]);
+                
+                headers.forEach(function(header) {
+                    html += '<th>' + header + '</th>';
+                });
+                html += '</tr>';
+                
+                products.slice(0, 5).forEach(function(product) {
+                    html += '<tr>';
+                    headers.forEach(function(header) {
+                        html += '<td>' + (product[header] || '') + '</td>';
+                    });
+                    html += '</tr>';
+                });
+                
+                if (products.length > 5) {
+                    html += '<tr><td colspan="' + headers.length + '">... and ' + (products.length - 5) + ' more products</td></tr>';
+                }
+                
+                html += '</table>';
+                content.innerHTML = html;
+                preview.style.display = 'block';
+                
+                this.showNotification('Loaded ' + products.length + ' products', 'success');
+            }
+        },
+
+        processBulkProducts: function() {
+            const self = this;
+            
+            if (!this.state.bulkProducts || this.state.bulkProducts.length === 0) {
+                this.showNotification('No products to process', 'error');
+                return;
+            }
+            
+            this.state.currentStep = 'results';
+            this.updateUI();
+            this.showLoading();
+            
+            // For now, redirect to bulk.html with the data
+            // In production, this would process via API
+            window.location.href = '/bulk.html';
         }
     };
 
