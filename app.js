@@ -223,10 +223,8 @@
         };
         
         try {
-            // Handle CORS for www subdomain
-            const apiUrl = window.location.hostname.includes('www.') 
-                ? 'https://productdescriptions.io/api/generate-description'
-                : '/api/generate-description';
+            // Use relative path for API calls to avoid CORS issues
+            const apiUrl = '/api/generate-description';
                 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -270,9 +268,8 @@
         showProgress();
         
         try {
-            const apiUrl = window.location.hostname.includes('www.') 
-                ? 'https://productdescriptions.io/api/generate-description'
-                : '/api/generate-description';
+            // Use relative path for API calls to avoid CORS issues
+            const apiUrl = '/api/generate-description';
                 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -327,9 +324,8 @@
         showVideoProgress();
         
         try {
-            const apiUrl = window.location.hostname.includes('www.') 
-                ? 'https://productdescriptions.io/api/generate-video'
-                : '/api/generate-video';
+            // Use relative path for API calls to avoid CORS issues
+            const apiUrl = '/api/generate-video';
                 
             const response = await fetch(apiUrl, {
                 method: 'POST',
