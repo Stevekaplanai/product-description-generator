@@ -96,16 +96,25 @@ module.exports = async (req, res) => {
         console.log('D-ID Request payload:', JSON.stringify(didPayload, null, 2));
         
         // Create D-ID talk video - Use proper Basic auth format
-        // D-ID expects Basic auth with API key as username and empty password
-        // Create base64 string compatible with Node.js environment
-        const authBuffer = Buffer.from(`${D_ID_API_KEY}:`, 'utf8');
-        const authString = authBuffer.toString('base64');
+        // D-ID API key might already be in username:password format
+        let authString;
+        
+        // Check if the API key already contains a colon (username:password format)
+        if (D_ID_API_KEY.includes(':')) {
+          // API key is already in username:password format, encode it directly
+          authString = Buffer.from(D_ID_API_KEY, 'utf8').toString('base64');
+          console.log('D-ID Auth: Using API key as username:password format');
+        } else {
+          // API key is just the key, add empty password
+          authString = Buffer.from(`${D_ID_API_KEY}:`, 'utf8').toString('base64');
+          console.log('D-ID Auth: Using API key with empty password');
+        }
         
         console.log('D-ID Auth debug:', {
           hasApiKey: !!D_ID_API_KEY,
           apiKeyLength: D_ID_API_KEY ? D_ID_API_KEY.length : 0,
-          authStringLength: authString.length,
-          authStringPreview: authString.substring(0, 20) + '...'
+          hasColon: D_ID_API_KEY.includes(':'),
+          authStringLength: authString.length
         });
         
         const talkResponse = await fetch(`${D_ID_API_URL}/talks`, {
@@ -118,7 +127,18 @@ module.exports = async (req, res) => {
           body: JSON.stringify(didPayload)
         });
 
-        const talkData = await talkResponse.json();
+        // Parse response carefully as D-ID might return HTML on error
+        let talkData;
+        const contentType = talkResponse.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+          talkData = await talkResponse.json();
+        } else {
+          // Response is not JSON, likely an error page
+          const text = await talkResponse.text();
+          console.error('D-ID returned non-JSON response:', text.substring(0, 500));
+          throw new Error('D-ID API returned invalid response format');
+        }
         
         console.log('D-ID API Response:', {
           status: talkResponse.status,
