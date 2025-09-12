@@ -273,6 +273,129 @@
             padding-bottom: 10px;
             border-bottom: 1px solid #e0e0e0;
         }
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .header p {
+                font-size: 1em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .section {
+                margin-bottom: 30px;
+            }
+            
+            .section-title {
+                font-size: 1.3em;
+            }
+            
+            .avatar-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .avatar-card {
+                padding: 12px;
+            }
+            
+            .avatar-image {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .voice-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-control {
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+            
+            .generate-button {
+                position: fixed;
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                z-index: 100;
+                box-shadow: 0 -5px 20px rgba(102, 126, 234, 0.3);
+            }
+            
+            .video-player {
+                margin-bottom: 60px; /* Space for fixed button */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                margin: 0;
+                border-radius: 8px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .section {
+                margin-bottom: 20px;
+                padding: 15px;
+            }
+            
+            .avatar-grid {
+                gap: 10px;
+            }
+            
+            .avatar-card {
+                padding: 8px;
+            }
+            
+            .avatar-image {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .avatar-name {
+                font-size: 0.9em;
+            }
+            
+            .avatar-description {
+                font-size: 0.75em;
+            }
+            
+            .voice-option {
+                padding: 10px;
+            }
+            
+            .form-group label {
+                font-size: 0.9em;
+            }
+        }
     </style>
 </head>
 <body>

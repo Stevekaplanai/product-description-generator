@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Product Description Generator - Enhanced Version</title>
+    <meta name="description" content="Generate professional product descriptions with AI. Simple, fast, and effective.">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Improvements CSS -->
+    <link rel="stylesheet" href="/css/improvements.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #5046e5;
+            --primary-light: #6366f1;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f9fafb;
+            --dark: #111827;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Skip Link for Accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 32px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: var(--transition);
+            opacity: 0.5;
+        }
+
+        .step.active {
+            opacity: 1;
+            background: var(--light);
+            box-shadow: var(--shadow);
+        }
+
+        .step.completed {
+            opacity: 1;
+            color: var(--success);
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .step.active .step-number {
+            background: var(--primary);
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            display: flex;
+            gap: 24px;
+            flex: 1;
+        }
+
+        /* Start Options */
+        .start-section {
+            flex: 1;
+            background: white;
+            border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .start-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .start-option {
+            background: var(--light);
+            border: 2px solid transparent;
+            border-radius: var(--radius);
+            padding: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .start-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .start-option i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        .start-option h3 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .start-option p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Form Container */
+        .form-container {
+            flex: 1;
+            background: white;
+            border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            position: relative;
+        }
+
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(80, 70, 229, 0.1);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* Image Upload Area */
+        .image-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--light);
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .image-upload-area.drag-over {
+            border-color: var(--primary);
+            background: rgba(80, 70, 229, 0.05);
+        }
+
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Buttons */
+        .button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            min-height: 44px;
+        }
+
+        .button-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .button-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .button-secondary:hover {
+            background: var(--text-light);
+            color: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        /* Results Container */
+        .results-container {
+            flex: 1;
+            background: white;
+            border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            position: relative;
+        }
+
+        .results-content {
+            margin-top: 24px;
+        }
+
+        .description-card {
+            background: var(--light);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .description-text {
+            line-height: 1.8;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .description-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* History Sidebar */
+        .history-sidebar {
+            width: 280px;
+            background: white;
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow-lg);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            transition: var(--transition);
+        }
+
+        .history-sidebar.collapsed {
+            width: 60px;
+            padding: 12px;
+        }
+
+        .history-sidebar.collapsed .history-content {
+            display: none;
+        }
+
+        .history-toggle {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .history-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .history-item:hover {
+            background: var(--border);
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .progress-steps {
+                gap: 16px;
+                padding: 12px;
+                flex-wrap: wrap;
+            }
+
+            .step {
+                font-size: 0.9rem;
+            }
+
+            .main-content {
+                flex-direction: column;
+            }
+
+            .history-sidebar {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-height: 50vh;
+                border-radius: var(--radius) var(--radius) 0 0;
+                z-index: 100;
+                transform: translateY(calc(100% - 60px));
+                transition: transform 0.3s ease;
+            }
+
+            .history-sidebar.expanded {
+                transform: translateY(0);
+            }
+
+            .start-options {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+            }
+
+            /* Touch-friendly sizes */
+            .form-control {
+                font-size: 16px; /* Prevent zoom */
+                padding: 14px;
+            }
+
+            .button {
+                min-height: 48px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .header p {
+                font-size: 0.95rem;
+            }
+
+            .step-label {
+                display: none;
+            }
+
+            .form-container,
+            .results-container {
+                padding: 20px;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --light: #1f2937;
+                --text: #f9fafb;
+                --text-light: #d1d5db;
+                --border: #374151;
+            }
+
+            body {
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            }
+
+            .header,
+            .form-container,
+            .results-container,
+            .history-sidebar,
+            .progress-steps {
+                background: #111827;
+            }
+
+            .start-option,
+            .description-card,
+            .history-item {
+                background: #1f2937;
+            }
+
+            .form-control {
+                background: #1f2937;
+                color: #f9fafb;
+                border-color: #374151;
+            }
+        }
+
+        /* Accessibility - Focus visible */
+        *:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#main" class="skip-link">Skip to main content</a>
+    
+    <div class="app-container">
+        <header class="header">
+            <h1>AI Product Description Generator</h1>
+            <p>Create compelling product content in seconds</p>
+        </header>
+
+        <div class="progress-steps" role="navigation" aria-label="Progress">
+            <div class="step active" data-step="choose">
+                <div class="step-number">1</div>
+                <span class="step-label">Choose Method</span>
+            </div>
+            <div class="step" data-step="fill">
+                <div class="step-number">2</div>
+                <span class="step-label">Fill Details</span>
+            </div>
+            <div class="step" data-step="generate">
+                <div class="step-number">3</div>
+                <span class="step-label">Generate</span>
+            </div>
+        </div>
+
+        <main id="main" class="main-content">
+            <!-- Start Section -->
+            <div class="start-section">
+                <h2>How would you like to start?</h2>
+                <div class="start-options">
+                    <div class="start-option" data-method="template" tabindex="0" role="button" aria-label="Use template method">
+                        <i class="fas fa-layer-group"></i>
+                        <h3>Use Template</h3>
+                        <p>Quick start with pre-built templates</p>
+                    </div>
+                    <div class="start-option" data-method="image" tabindex="0" role="button" aria-label="Upload image method">
+                        <i class="fas fa-image"></i>
+                        <h3>Upload Image</h3>
+                        <p>Extract details from product photos</p>
+                    </div>
+                    <div class="start-option" data-method="manual" tabindex="0" role="button" aria-label="Manual entry method">
+                        <i class="fas fa-keyboard"></i>
+                        <h3>Manual Entry</h3>
+                        <p>Full control over every detail</p>
+                    </div>
+                    <div class="start-option" data-method="bulk" tabindex="0" role="button" aria-label="Bulk upload method">
+                        <i class="fas fa-file-csv"></i>
+                        <h3>Bulk Upload</h3>
+                        <p>Process multiple products via CSV</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div class="form-container">
+                <button class="button button-secondary back-btn">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                
+                <form id="productForm">
+                    <!-- Template Section -->
+                    <div class="form-section template-section" style="display: none;">
+                        <h3>Select a Template</h3>
+                        <select class="form-control" id="templateSelect">
+                            <option value="">Choose a template...</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="clothing">Clothing & Fashion</option>
+                            <option value="home">Home & Garden</option>
+                            <option value="beauty">Beauty & Personal Care</option>
+                            <option value="sports">Sports & Outdoors</option>
+                            <option value="food">Food & Beverage</option>
+                        </select>
+                    </div>
+
+                    <!-- Image Section -->
+                    <div class="form-section image-section" style="display: none;">
+                        <h3>Upload Product Images</h3>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--primary); margin-bottom: 16px;"></i>
+                            <p>Drag & drop images here or click to browse</p>
+                            <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+                        </div>
+                        <div class="image-preview-container" id="imagePreviewContainer"></div>
+                    </div>
+
+                    <!-- Basic Section -->
+                    <div class="form-section basic-section">
+                        <h3>Basic Information</h3>
+                        <div class="form-group">
+                            <label for="productName">Product Name *</label>
+                            <input type="text" class="form-control" id="productName" name="productName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productCategory">Category</label>
+                            <input type="text" class="form-control" id="productCategory" name="productCategory">
+                        </div>
+                        <div class="form-group">
+                            <label for="keyFeatures">Key Features</label>
+                            <textarea class="form-control" id="keyFeatures" name="keyFeatures" 
+                                placeholder="List main features, separated by commas"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Section -->
+                    <div class="form-section advanced-section" style="display: none;">
+                        <h3>Advanced Details</h3>
+                        <div class="form-group">
+                            <label for="targetAudience">Target Audience</label>
+                            <input type="text" class="form-control" id="targetAudience" name="targetAudience">
+                        </div>
+                        <div class="form-group">
+                            <label for="tone">Writing Tone</label>
+                            <select class="form-control" id="tone" name="tone">
+                                <option value="professional">Professional</option>
+                                <option value="casual">Casual</option>
+                                <option value="enthusiastic">Enthusiastic</option>
+                                <option value="technical">Technical</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Section -->
+                    <div class="form-section bulk-section" style="display: none;">
+                        <h3>Upload CSV File</h3>
+                        <div class="image-upload-area" id="csvUploadArea">
+                            <i class="fas fa-file-csv" style="font-size: 3rem; color: var(--primary); margin-bottom: 16px;"></i>
+                            <p>Drag & drop CSV file here or click to browse</p>
+                            <input type="file" id="csvInput" accept=".csv" style="display: none;">
+                        </div>
+                        <div id="csvPreview" style="display: none;">
+                            <h4>Preview</h4>
+                            <div id="csvPreviewContent"></div>
+                        </div>
+                        <div id="bulkProgress" style="display: none;"></div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="button button-primary">
+                            <i class="fas fa-magic"></i> Generate Descriptions
+                        </button>
+                        <button type="button" class="button button-secondary" id="saveBtn">
+                            <i class="fas fa-save"></i> Save Draft
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Container -->
+            <div class="results-container">
+                <button class="button button-secondary back-btn">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                
+                <h2>Generated Descriptions</h2>
+                <div class="results-content" id="resultsContent">
+                    <!-- Results will be inserted here -->
+                </div>
+            </div>
+
+            <!-- History Sidebar -->
+            <aside class="history-sidebar" role="complementary" aria-label="History">
+                <button class="history-toggle" aria-label="Toggle history">
+                    <i class="fas fa-history"></i> <span class="history-label">History</span>
+                </button>
+                <div class="history-content">
+                    <div class="history-list" id="historyList">
+                        <p style="color: var(--text-light); text-align: center;">No history yet</p>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Load utilities -->
+    <script src="/js/utils.js"></script>
+    
+    <script>
+        // Initialize improvements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize loading spinner
+            const spinner = new AppUtils.LoadingSpinner();
+            
+            // Initialize form validation
+            const form = document.getElementById('productForm');
+            const validator = new AppUtils.FormValidator(form);
+            
+            // Add custom validators
+            validator.addValidator('productName', 
+                (value) => value.length >= 3, 
+                'Product name must be at least 3 characters'
+            );
+            
+            // Initialize auto-save
+            const autoSave = new AppUtils.AutoSave(form);
+            
+            // Initialize keyboard shortcuts
+            const shortcuts = new AppUtils.KeyboardShortcuts();
+            
+            // Add shortcuts
+            shortcuts.add('enter', () => {
+                if (document.activeElement.tagName !== 'TEXTAREA') {
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }, { ctrl: true, description: 'Generate descriptions' });
+            
+            shortcuts.add('s', () => {
+                autoSave.save();
+            }, { ctrl: true, description: 'Save draft' });
+            
+            // Initialize touch gestures for mobile
+            if (window.innerWidth <= 768) {
+                const mainContent = document.querySelector('.main-content');
+                const gestures = new AppUtils.TouchGestures(mainContent);
+                
+                mainContent.addEventListener('swipeleft', () => {
+                    // Next step
+                    console.log('Swipe left - next step');
+                });
+                
+                mainContent.addEventListener('swiperight', () => {
+                    // Previous step
+                    console.log('Swipe right - previous step');
+                });
+            }
+            
+            // Image upload with compression
+            const imageInput = document.getElementById('imageInput');
+            const imageUploadArea = document.getElementById('imageUploadArea');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            
+            imageUploadArea.addEventListener('click', () => {
+                imageInput.click();
+            });
+            
+            imageUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                imageUploadArea.classList.add('drag-over');
+            });
+            
+            imageUploadArea.addEventListener('dragleave', () => {
+                imageUploadArea.classList.remove('drag-over');
+            });
+            
+            imageUploadArea.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                imageUploadArea.classList.remove('drag-over');
+                
+                const files = Array.from(e.dataTransfer.files);
+                for (const file of files) {
+                    if (file.type.startsWith('image/')) {
+                        // Compress image
+                        const compressed = await AppUtils.compressImage(file);
+                        // Create preview
+                        await AppUtils.createImagePreview(compressed, imagePreviewContainer);
+                    }
+                }
+            });
+            
+            imageInput.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files);
+                for (const file of files) {
+                    // Compress image
+                    const compressed = await AppUtils.compressImage(file);
+                    // Create preview
+                    await AppUtils.createImagePreview(compressed, imagePreviewContainer);
+                }
+            });
+            
+            // CSV upload with progress
+            const csvInput = document.getElementById('csvInput');
+            const csvUploadArea = document.getElementById('csvUploadArea');
+            const bulkProgress = document.getElementById('bulkProgress');
+            
+            csvUploadArea.addEventListener('click', () => {
+                csvInput.click();
+            });
+            
+            csvInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    // Initialize progress bar
+                    const progressBar = new AppUtils.ProgressBar(bulkProgress);
+                    bulkProgress.style.display = 'block';
+                    
+                    // Simulate processing
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress += 10;
+                        progressBar.update(progress, 100, `Processing ${progress}%`);
+                        
+                        if (progress >= 100) {
+                            clearInterval(interval);
+                            progressBar.complete('Upload complete!');
+                        }
+                    }, 200);
+                }
+            });
+            
+            // Form submission with loading state
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (!validator.validateAll()) {
+                    return;
+                }
+                
+                // Show loading spinner
+                spinner.show('.form-container', 'Generating descriptions...');
+                
+                try {
+                    // Simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Hide spinner
+                    spinner.hide();
+                    
+                    // Show results
+                    document.querySelector('.form-container').style.display = 'none';
+                    document.querySelector('.results-container').style.display = 'block';
+                    
+                    // Update progress steps
+                    document.querySelector('.step[data-step="fill"]').classList.add('completed');
+                    document.querySelector('.step[data-step="generate"]').classList.add('active');
+                    
+                } catch (error) {
+                    spinner.hide();
+                    alert('Error generating descriptions');
+                }
+            });
+            
+            // Method selection
+            document.querySelectorAll('.start-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    const method = e.currentTarget.dataset.method;
+                    selectMethod(method);
+                });
+                
+                // Keyboard support
+                option.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        const method = e.currentTarget.dataset.method;
+                        selectMethod(method);
+                    }
+                });
+            });
+            
+            function selectMethod(method) {
+                document.querySelector('.start-section').style.display = 'none';
+                document.querySelector('.form-container').style.display = 'block';
+                
+                // Show relevant sections
+                document.querySelectorAll('.form-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                switch(method) {
+                    case 'template':
+                        document.querySelector('.template-section').style.display = 'block';
+                        document.querySelector('.basic-section').style.display = 'block';
+                        break;
+                    case 'image':
+                        document.querySelector('.image-section').style.display = 'block';
+                        document.querySelector('.basic-section').style.display = 'block';
+                        break;
+                    case 'manual':
+                        document.querySelector('.basic-section').style.display = 'block';
+                        document.querySelector('.advanced-section').style.display = 'block';
+                        break;
+                    case 'bulk':
+                        document.querySelector('.bulk-section').style.display = 'block';
+                        break;
+                }
+                
+                // Update progress
+                document.querySelector('.step[data-step="choose"]').classList.add('completed');
+                document.querySelector('.step[data-step="fill"]').classList.add('active');
+            }
+            
+            // Back buttons
+            document.querySelectorAll('.back-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelector('.start-section').style.display = 'block';
+                    document.querySelector('.form-container').style.display = 'none';
+                    document.querySelector('.results-container').style.display = 'none';
+                    
+                    // Reset progress
+                    document.querySelectorAll('.step').forEach(step => {
+                        step.classList.remove('active', 'completed');
+                    });
+                    document.querySelector('.step[data-step="choose"]').classList.add('active');
+                });
+            });
+            
+            // History toggle for mobile
+            const historyToggle = document.querySelector('.history-toggle');
+            const historySidebar = document.querySelector('.history-sidebar');
+            
+            historyToggle.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    historySidebar.classList.toggle('expanded');
+                } else {
+                    historySidebar.classList.toggle('collapsed');
+                }
+            });
+            
+            // Save button
+            document.getElementById('saveBtn').addEventListener('click', () => {
+                autoSave.save();
+            });
+        });
+    </script>
+</body>
+</html>
