@@ -435,11 +435,18 @@
         },
 
         addToHistory: function(formData, result) {
+            // Ensure formData has all necessary fields for image generation
+            const enrichedFormData = {
+                ...formData,
+                keyFeatures: formData.keyFeatures || (result.descriptions && result.descriptions[0] ? result.descriptions[0].substring(0, 200) : ''),
+                productCategory: formData.productCategory || formData.category || ''
+            };
+            
             const historyItem = {
                 id: Date.now(),
                 timestamp: new Date().toISOString(),
                 productName: formData.productName,
-                formData: formData,
+                formData: enrichedFormData,
                 results: result
             };
 
@@ -475,6 +482,18 @@
                 productName = this.state.formData.productName;
                 features = this.state.formData.keyFeatures || '';
                 category = this.state.formData.productCategory || this.state.formData.category || '';
+                
+                // If features are empty and we have results, extract from descriptions
+                if (!features && this.state.results && this.state.results.descriptions) {
+                    console.log('Extracting features from descriptions');
+                    const firstDesc = Array.isArray(this.state.results.descriptions) 
+                        ? this.state.results.descriptions[0] 
+                        : this.state.results.descriptions.version1;
+                    if (firstDesc) {
+                        // Extract key features from the description (first 200 chars as features)
+                        features = firstDesc.substring(0, 200);
+                    }
+                }
             }
             // Then try to get from results if we have them
             else if (this.state.results && this.state.results.product) {
