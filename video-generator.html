@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Generator - ProductDescriptions.io</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .avatar-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .avatar-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .avatar-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .avatar-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        .avatar-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .avatar-description {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .voice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .voice-option {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .voice-option:hover {
+            border-color: #667eea;
+        }
+
+        .voice-option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .voice-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .voice-details {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .generate-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .generate-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .video-player {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .video-player video {
+            width: 100%;
+            display: block;
+        }
+
+        .video-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .download-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .download-button:hover {
+            background: #218838;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .category-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 AI Video Generator</h1>
+            <p>Create professional product videos with AI avatars</p>
+        </div>
+
+        <div class="content">
+            <!-- Product Info Section -->
+            <div class="section">
+                <h2 class="section-title">📦 Product Information</h2>
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" class="form-control" placeholder="Enter your product name">
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Product Description</label>
+                    <textarea id="productDescription" class="form-control" placeholder="Enter a brief description of your product"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="keyFeatures">Key Features (Optional)</label>
+                    <input type="text" id="keyFeatures" class="form-control" placeholder="e.g., Eco-friendly, Fast shipping, 30-day guarantee">
+                </div>
+            </div>
+
+            <!-- Avatar Selection -->
+            <div class="section">
+                <h2 class="section-title">👤 Choose Your Avatar</h2>
+                <div id="avatarGrid" class="avatar-grid">
+                    <!-- Avatars will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Voice Selection -->
+            <div class="section">
+                <h2 class="section-title">🎙️ Select Voice</h2>
+                <div id="voiceGrid" class="voice-grid">
+                    <!-- Voices will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Script Section -->
+            <div class="section">
+                <h2 class="section-title">📝 Video Script</h2>
+                <div class="form-group">
+                    <label for="videoScript">Script (Auto-generated or customize)</label>
+                    <textarea id="videoScript" class="form-control" placeholder="Script will be auto-generated based on your product information, or you can write your own..."></textarea>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="generateBtn" class="generate-button" onclick="generateVideo()">
+                Generate Video
+            </button>
+
+            <!-- Results Section -->
+            <div id="results" style="display: none;">
+                <!-- Results will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedAvatar = 'professional-female';
+        let selectedVoice = 'en-US-JennyNeural';
+        let avatarData = {};
+        let voiceData = {};
+
+        // Load avatars and voices on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadAvatarsAndVoices();
+            setupEventListeners();
+        });
+
+        async function loadAvatarsAndVoices() {
+            try {
+                const response = await fetch('/api/get-avatars');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderAvatars(data.avatarsByCategory);
+                    renderVoices(data.voices);
+                    
+                    // Store data for later use
+                    data.avatars.forEach(avatar => {
+                        avatarData[avatar.id] = avatar;
+                    });
+                    data.voices.forEach(voice => {
+                        voiceData[voice.id] = voice;
+                    });
+                    
+                    // Set defaults
+                    selectedAvatar = data.defaultAvatar;
+                    selectedVoice = data.defaultVoice;
+                }
+            } catch (error) {
+                console.error('Failed to load avatars:', error);
+            }
+        }
+
+        function renderAvatars(avatarsByCategory) {
+            const grid = document.getElementById('avatarGrid');
+            let html = '';
+            
+            Object.entries(avatarsByCategory).forEach(([category, avatars]) => {
+                avatars.forEach(avatar => {
+                    html += `
+                        <div class="avatar-card ${avatar.id === selectedAvatar ? 'selected' : ''}" 
+                             data-avatar-id="${avatar.id}">
+                            <img src="${avatar.imageUrl}" alt="${avatar.name}" class="avatar-image">
+                            <div class="avatar-name">${avatar.name}</div>
+                            <div class="avatar-description">${avatar.description}</div>
+                        </div>
+                    `;
+                });
+            });
+            
+            grid.innerHTML = html;
+        }
+
+        function renderVoices(voices) {
+            const grid = document.getElementById('voiceGrid');
+            let html = '';
+            
+            voices.forEach(voice => {
+                html += `
+                    <div class="voice-option ${voice.id === selectedVoice ? 'selected' : ''}" 
+                         data-voice-id="${voice.id}">
+                        <div class="voice-name">${voice.name} (${voice.accent})</div>
+                        <div class="voice-details">${voice.description}</div>
+                    </div>
+                `;
+            });
+            
+            grid.innerHTML = html;
+        }
+
+        function setupEventListeners() {
+            // Avatar selection
+            document.getElementById('avatarGrid').addEventListener('click', (e) => {
+                const card = e.target.closest('.avatar-card');
+                if (card) {
+                    document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedAvatar = card.dataset.avatarId;
+                }
+            });
+            
+            // Voice selection
+            document.getElementById('voiceGrid').addEventListener('click', (e) => {
+                const option = e.target.closest('.voice-option');
+                if (option) {
+                    document.querySelectorAll('.voice-option').forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedVoice = option.dataset.voiceId;
+                }
+            });
+            
+            // Auto-generate script when product info changes
+            document.getElementById('productName').addEventListener('input', generateScript);
+            document.getElementById('productDescription').addEventListener('input', generateScript);
+            document.getElementById('keyFeatures').addEventListener('input', generateScript);
+        }
+
+        function generateScript() {
+            const productName = document.getElementById('productName').value;
+            const productDescription = document.getElementById('productDescription').value;
+            const keyFeatures = document.getElementById('keyFeatures').value;
+            
+            if (productName || productDescription) {
+                const avatarName = avatarData[selectedAvatar]?.name || 'your presenter';
+                let script = `Hi there! I'm ${avatarName}, and I'm excited to tell you about`;
+                
+                if (productName) {
+                    script += ` ${productName}.`;
+                }
+                
+                if (productDescription) {
+                    script += ` ${productDescription}`;
+                }
+                
+                if (keyFeatures) {
+                    script += ` Some key benefits include: ${keyFeatures}.`;
+                }
+                
+                script += ` Don't miss out on this amazing product. Get yours today!`;
+                
+                document.getElementById('videoScript').placeholder = script;
+            }
+        }
+
+        async function generateVideo() {
+            const productName = document.getElementById('productName').value;
+            const productDescription = document.getElementById('productDescription').value;
+            const keyFeatures = document.getElementById('keyFeatures').value;
+            const customScript = document.getElementById('videoScript').value;
+            
+            if (!productName) {
+                alert('Please enter a product name');
+                return;
+            }
+            
+            const generateBtn = document.getElementById('generateBtn');
+            const resultsDiv = document.getElementById('results');
+            
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating Video...';
+            
+            resultsDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Creating your video... This may take 30-60 seconds</p>
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/generate-video', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productName,
+                        productDescription,
+                        features: keyFeatures,
+                        avatarId: selectedAvatar,
+                        voice: selectedVoice,
+                        customScript: customScript || null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.status === 'processing') {
+                        // Video is being processed, show status
+                        resultsDiv.innerHTML = `
+                            <div class="result-container">
+                                <h3>✅ Video Generation Started!</h3>
+                                <p>Video ID: <code>${data.videoId}</code></p>
+                                <p>Avatar: ${data.avatarUsed}</p>
+                                <p>Status: Processing (typically takes 30-60 seconds)</p>
+                                <p>The video will be available at the webhook URL when complete.</p>
+                                <button class="download-button" onclick="checkVideoStatus('${data.videoId}')">
+                                    Check Status
+                                </button>
+                            </div>
+                        `;
+                    } else if (data.videoUrl) {
+                        // Video is ready
+                        resultsDiv.innerHTML = `
+                            <div class="result-container">
+                                <h3>🎉 Your Video is Ready!</h3>
+                                <div class="video-player">
+                                    <video controls>
+                                        <source src="${data.videoUrl}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                                <div class="video-info">
+                                    <p><strong>Product:</strong> ${productName}</p>
+                                    <p><strong>Avatar:</strong> ${avatarData[selectedAvatar]?.name}</p>
+                                    <p><strong>Voice:</strong> ${voiceData[selectedVoice]?.name}</p>
+                                </div>
+                                <a href="${data.videoUrl}" download="${productName}-video.mp4" class="download-button">
+                                    Download Video
+                                </a>
+                            </div>
+                        `;
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to generate video');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error-message">
+                        <h3>❌ Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Video';
+            }
+        }
+        
+        async function checkVideoStatus(videoId) {
+            try {
+                const response = await fetch(`/api/webhooks/did-video?videoId=${videoId}`);
+                const data = await response.json();
+                
+                const resultsDiv = document.getElementById('results');
+                
+                if (data.status === 'done' && data.videoUrl) {
+                    resultsDiv.innerHTML = `
+                        <div class="result-container">
+                            <h3>🎉 Your Video is Ready!</h3>
+                            <div class="video-player">
+                                <video controls>
+                                    <source src="${data.videoUrl}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                            <a href="${data.videoUrl}" download="product-video.mp4" class="download-button">
+                                Download Video
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    alert(`Video status: ${data.status || 'checking...'}`);
+                }
+            } catch (error) {
+                alert('Failed to check video status');
+            }
+        }
+    </script>
+</body>
+</html>

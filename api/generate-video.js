@@ -20,6 +20,51 @@ console.log('Cloudinary Config:', {
 const D_ID_API_KEY = process.env.D_ID_API_KEY;
 const D_ID_API_URL = 'https://api.d-id.com';
 
+// Predefined avatar options with valid public image URLs
+// Using smaller, direct image URLs without query parameters for D-ID compatibility
+const AVATAR_OPTIONS = {
+  'professional-male': {
+    name: 'Alex',
+    imageUrl: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
+    description: 'Professional male presenter'
+  },
+  'professional-female': {
+    name: 'Sarah', 
+    imageUrl: 'https://cdn.pixabay.com/photo/2018/01/15/07/51/woman-3083383_640.jpg',
+    description: 'Professional female presenter'
+  },
+  'casual-male': {
+    name: 'Mike',
+    imageUrl: 'https://cdn.pixabay.com/photo/2016/11/21/12/42/beard-1845166_640.jpg',
+    description: 'Friendly casual male'
+  },
+  'casual-female': {
+    name: 'Emma',
+    imageUrl: 'https://cdn.pixabay.com/photo/2017/08/07/14/15/portrait-2604283_640.jpg', 
+    description: 'Friendly casual female'
+  },
+  'young-male': {
+    name: 'Tyler',
+    imageUrl: 'https://cdn.pixabay.com/photo/2018/04/27/03/50/portrait-3353699_640.jpg',
+    description: 'Young energetic male'
+  },
+  'young-female': {
+    name: 'Zoe',
+    imageUrl: 'https://cdn.pixabay.com/photo/2016/01/19/17/48/woman-1149911_640.jpg',
+    description: 'Young energetic female'  
+  },
+  'mature-male': {
+    name: 'Robert',
+    imageUrl: 'https://cdn.pixabay.com/photo/2015/01/08/18/29/entrepreneur-593358_640.jpg',
+    description: 'Mature professional male'
+  },
+  'mature-female': {
+    name: 'Diana',
+    imageUrl: 'https://cdn.pixabay.com/photo/2018/01/13/19/39/fashion-3080644_640.jpg',
+    description: 'Mature professional female'
+  }
+};
+
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -40,9 +85,10 @@ module.exports = async (req, res) => {
       productDescription, 
       features,
       images = [],
-      avatar = 'amy-Aq6OmGZpMt',
+      avatarId = 'professional-female', // Default avatar
       voice = 'en-US-JennyNeural',
-      generateProductShowcase = false
+      generateProductShowcase = false,
+      customScript = null // Allow custom script override
     } = req.body;
 
     if (!productName || !productDescription) {
@@ -51,8 +97,11 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Generate video script
-    const script = `Hey everyone! Let me tell you about the amazing ${productName}. ${productDescription} ${features ? `Key features include: ${features}` : ''} This is definitely worth checking out!`;
+    // Get selected avatar
+    const selectedAvatar = AVATAR_OPTIONS[avatarId] || AVATAR_OPTIONS['professional-female'];
+    
+    // Generate video script or use custom one
+    const script = customScript || `Hey everyone! Let me tell you about the amazing ${productName}. ${productDescription} ${features ? `Key features include: ${features}` : ''} This is definitely worth checking out!`;
 
     // Debug logging for API keys
     console.log('Video generation config:', {
@@ -84,12 +133,13 @@ module.exports = async (req, res) => {
               voice_id: 'en-US-JennyNeural'
             }
           },
-          source_url: 'https://create-images-results.d-id.com/DefaultPresenters/Noelle_t/image.jpeg', // Known working presenter
+          // Use the selected avatar's image URL
+          source_url: selectedAvatar.imageUrl,
           webhook: webhookUrl, // Add webhook for completion notification
           user_data: JSON.stringify({
             productName,
             timestamp: new Date().toISOString(),
-            userId: req.headers['x-user-id'] || 'anonymous'
+            userId: (req.headers && req.headers['x-user-id']) || 'anonymous'
           })
         };
         
@@ -164,100 +214,15 @@ module.exports = async (req, res) => {
             videoId: talkData.id,
             status: 'processing',
             productName,
+            avatarUsed: selectedAvatar.name,
             message: 'Video generation started. Use videoId to track progress.',
             webhookUrl,
             pollUrl: `/api/webhooks/did-video?videoId=${talkData.id}`,
             estimatedTime: '30-60 seconds'
           });
           
-          /* Old polling code - replaced with webhook approach
-          // Poll for video completion
-          let videoUrl = null;
-          let attempts = 0;
-          const maxAttempts = 30;
-
-          while (!videoUrl && attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            const statusResponse = await fetch(`${D_ID_API_URL}/talks/${talkData.id}`, {
-              headers: {
-                'Authorization': `Basic ${authString}`,
-                'accept': 'application/json'
-              }
-            });
-
-            const statusData = await statusResponse.json();
-            
-            if (statusData.status === 'done' && statusData.result_url) {
-              // Download video immediately and upload to Cloudinary
-              const videoResponse = await fetch(statusData.result_url);
-              const videoBuffer = await videoResponse.buffer();
-              
-              // Upload to Cloudinary
-              const cloudinaryResult = await new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                  {
-                    resource_type: 'video',
-                    folder: 'product-videos',
-                    public_id: `${productName.replace(/\s+/g, '_')}_${Date.now()}`,
-                    format: 'mp4'
-                  },
-                  (error, result) => {
-                    if (error) reject(error);
-                    else resolve(result);
-                  }
-                );
-                uploadStream.end(videoBuffer);
-              });
-
-              videoUrl = cloudinaryResult.secure_url;
-
-              // If user wants product showcase, create a composite video using Cloudinary transformations
-              if (generateProductShowcase && images.length > 0 && videoUrl) {
-                // Create a video with product images overlay using Cloudinary transformations
-                const showcaseUrl = cloudinary.url(cloudinaryResult.public_id, {
-                  resource_type: 'video',
-                  transformation: [
-                    { width: 1280, height: 720, crop: 'fill' },
-                    { 
-                      overlay: images[0].replace(/^.*\//, '').replace(/\.[^.]+$/, ''),
-                      width: 400,
-                      height: 400,
-                      gravity: 'east',
-                      x: 50,
-                      crop: 'fill'
-                    },
-                    { quality: 'auto', fetch_format: 'auto' }
-                  ]
-                });
-
-                return res.status(200).json({
-                  success: true,
-                  videoUrl: showcaseUrl,
-                  originalVideoUrl: videoUrl,
-                  productName,
-                  message: 'Product showcase video created successfully',
-                  cloudinaryVideo: true
-                });
-              }
-
-              break;
-            } else if (statusData.status === 'error') {
-              throw new Error('D-ID video generation failed');
-            }
-            
-            attempts++;
-          }
-
-          if (videoUrl) {
-            return res.status(200).json({
-              success: true,
-              videoUrl,
-              productName,
-              message: 'Video generated and stored in Cloudinary',
-              cloudinaryVideo: true
-            });
-          }
+          // Video generation started successfully
+          // The webhook will handle completion
         }
       } catch (error) {
         console.error('D-ID API error:', error.message);
