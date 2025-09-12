@@ -1,0 +1,43 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: 3 credits remaining
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - heading "Product Description Generator" [level=1] [ref=e5]
+      - paragraph [ref=e6]: Create compelling product descriptions in seconds
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: "1"
+        - generic [ref=e10]: Choose Method
+      - generic [ref=e11]:
+        - generic [ref=e12]: "2"
+        - generic [ref=e13]: Enter Details
+      - generic [ref=e14]:
+        - generic [ref=e15]: "3"
+        - generic [ref=e16]: Get Results
+    - generic [ref=e17]:
+      - generic [ref=e19]:
+        - heading "How would you like to start?" [level=2] [ref=e20]
+        - generic [ref=e21]:
+          - generic [ref=e22] [cursor=pointer]:
+            - generic [ref=e23] [cursor=pointer]: 📝
+            - generic [ref=e24] [cursor=pointer]: Use a Template
+            - generic [ref=e25] [cursor=pointer]: Quick start with pre-built templates
+          - generic [ref=e26] [cursor=pointer]:
+            - generic [ref=e27] [cursor=pointer]: 🖼️
+            - generic [ref=e28] [cursor=pointer]: From Image/URL
+            - generic [ref=e29] [cursor=pointer]: Extract info from product page
+          - generic [ref=e30] [cursor=pointer]:
+            - generic [ref=e31] [cursor=pointer]: ✍️
+            - generic [ref=e32] [cursor=pointer]: Manual Entry
+            - generic [ref=e33] [cursor=pointer]: Full control over all details
+          - generic [ref=e34] [cursor=pointer]:
+            - generic [ref=e35] [cursor=pointer]: 📊
+            - generic [ref=e36] [cursor=pointer]: Bulk Upload
+            - generic [ref=e37] [cursor=pointer]: Process multiple products via CSV
+      - generic [ref=e39]:
+        - heading "History" [level=3] [ref=e40]
+        - button "📚" [ref=e41] [cursor=pointer]
+```

@@ -526,10 +526,11 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    product: productName,
-                    features: features,
-                    category: category,
-                    types: ['hero', 'lifestyle', 'detail']
+                    productName: productName,  // Fixed: API expects productName not product
+                    keyFeatures: features,     // Fixed: API expects keyFeatures not features
+                    productCategory: category,  // Fixed: API expects productCategory not category
+                    targetAudience: this.state.formData?.targetAudience || 'General Consumers',
+                    imageTypes: ['hero', 'lifestyle', 'detail']  // Fixed: API expects imageTypes not types
                 })
             })
             .then(function(response) { return response.json(); })
