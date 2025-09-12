@@ -469,23 +469,25 @@
             let features = '';
             let category = '';
             
-            // First try formData
+            // First try formData (this should be set when loading from history)
             if (this.state.formData && this.state.formData.productName) {
                 console.log('Using formData from state');
                 productName = this.state.formData.productName;
                 features = this.state.formData.keyFeatures || '';
                 category = this.state.formData.productCategory || this.state.formData.category || '';
             }
-            // Then try to get from history if we have results
+            // Then try to get from results if we have them
             else if (this.state.results && this.state.results.product) {
                 console.log('Using product info from results');
                 productName = this.state.results.product;
-                // Try to get from the last history item if it matches
+                // Also check if we have the formData in history
                 if (this.state.history && this.state.history.length > 0) {
                     const lastItem = this.state.history[0];
-                    if (lastItem.productName === productName) {
+                    if (lastItem.productName === productName || lastItem.formData.productName === productName) {
                         features = lastItem.formData.keyFeatures || '';
                         category = lastItem.formData.productCategory || lastItem.formData.category || '';
+                        // Update formData for consistency
+                        this.state.formData = lastItem.formData;
                     }
                 }
             }
@@ -781,8 +783,13 @@
                 return;
             }
 
-            // Restore form data
+            // Restore form data and ensure it persists
             this.state.formData = item.formData;
+            // Also ensure the results have the product name for compatibility
+            if (!item.results.product && item.formData.productName) {
+                item.results.product = item.formData.productName;
+            }
+            
             Object.entries(item.formData).forEach(function(entry) {
                 const field = document.querySelector('[name="' + entry[0] + '"]');
                 if (field) field.value = entry[1];
@@ -791,6 +798,7 @@
             // Restore results and show them
             this.state.results = item.results;
             this.state.currentStep = 'results';
+            console.log('Restored formData:', this.state.formData);
             console.log('Restored results:', this.state.results);
             this.updateUI();
         },
