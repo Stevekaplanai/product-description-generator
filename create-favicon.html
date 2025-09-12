@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favicon Generator</title>
+</head>
+<body>
+    <canvas id="canvas" width="32" height="32"></canvas>
+    <script>
+        // Create a simple favicon with gradient
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Create gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 32, 32);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+        
+        // Fill background
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 32, 32);
+        
+        // Add "P" letter in white
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('P', 16, 16);
+        
+        // Convert to data URL and create download link
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'favicon-32x32.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+    </script>
+</body>
+</html>

@@ -1,46 +1,31 @@
-// Public configuration endpoint
-// Returns non-sensitive configuration that frontend needs
-
 module.exports = async (req, res) => {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  // Cache for 1 hour to reduce API calls
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  // Return public configuration
-  res.status(200).json({
-    // PostHog analytics key (safe to expose - it's meant to be public)
-    posthogKey: process.env.POSTHOG_API_KEY || null,
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     
-    // Google OAuth Client ID (safe to expose - it's meant to be public)
-    googleClientId: process.env.GOOGLE_CLIENT_ID || null,
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
     
-    // Stripe Publishable Key (safe to expose)
-    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null,
+    // Return configuration (only non-sensitive data)
+    const config = {
+        posthogKey: process.env.POSTHOG_API_KEY || null,
+        stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null,
+        features: {
+            vertexAI: !!process.env.GOOGLE_CLOUD_PROJECT,
+            dalle: !!process.env.OPENAI_API_KEY,
+            gemini: !!process.env.GEMINI_API_KEY,
+            cloudinary: !!process.env.CLOUDINARY_CLOUD_NAME,
+            did: !!process.env.D_ID_API_KEY
+        },
+        limits: {
+            maxFileSize: 10 * 1024 * 1024, // 10MB
+            maxBulkItems: 1000,
+            maxDescriptionLength: 5000
+        }
+    };
     
-    // Feature flags
-    features: {
-      videoUpsell: true,
-      bulkUpload: true,
-      imageAnalysis: true,
-      googleAuth: true,
-      guestMode: true
-    },
-    
-    // Public pricing info
-    pricing: {
-      singleVideo: 29,
-      tripleVideo: 69
-    },
-    
-    // Environment
-    environment: process.env.NODE_ENV || 'production'
-  });
+    return res.status(200).json(config);
 };

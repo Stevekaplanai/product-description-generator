@@ -49,27 +49,59 @@ const generateDescriptionHandler = async (req, res) => {
       console.log('Images-only request received');
       const images = [];
       
-      // Generate images with DALL-E if available
-      if (openai && process.env.OPENAI_API_KEY) {
+      // Generate images with Nano Banana (Gemini) if available
+      if (gemini) {
         try {
-          console.log('Generating image with DALL-E 3 for:', productName);
-          const imageResponse = await openai.images.generate({
-            model: "dall-e-3",
-            prompt: `Professional product photo of ${productName}. ${keyFeatures || ''}. High quality, clean background, commercial photography style.`,
-            n: 1,
-            size: "1024x1024",
-            quality: "standard",
-            style: "natural"
-          });
+          console.log('Generating image with Nano Banana for:', productName);
+          const model = gemini.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
           
-          if (imageResponse.data && imageResponse.data[0]) {
-            images.push({
-              url: imageResponse.data[0].url,
-              style: 'AI Generated'
-            });
+          // Professional product photography prompt using best practices
+          const imagePrompt = `Generate a photorealistic product photograph of ${productName}. 
+          ${keyFeatures ? `Product features: ${keyFeatures}.` : ''}
+          ${actualCategory ? `Product category: ${actualCategory}.` : ''}
+          
+          Shot type: Hero product shot with clean composition
+          Lighting: Professional studio lighting with soft shadows, creating depth and highlighting product details
+          Background: Clean, minimalist white or light gradient background for e-commerce
+          Camera: Shot with professional DSLR, 50mm lens, f/8 aperture for sharp product focus
+          Style: Commercial product photography, high-resolution, crisp details
+          Mood: Premium, trustworthy, and appealing to ${targetAudience || 'online shoppers'}
+          Format: Square aspect ratio (1:1) for versatile use across platforms
+          
+          The image should showcase the product's best features, materials, and quality in a way that makes customers want to purchase it immediately.`;
+          
+          const result = await model.generateContent(imagePrompt);
+          const response = await result.response;
+          
+          // Check if response contains image data
+          if (response.candidates && response.candidates[0]) {
+            const candidate = response.candidates[0];
+            if (candidate.content && candidate.content.parts) {
+              for (const part of candidate.content.parts) {
+                if (part.inlineData && part.inlineData.mimeType.startsWith('image/')) {
+                  // Convert base64 to data URL
+                  const imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                  images.push({
+                    url: imageUrl,
+                    style: 'Nano Banana AI Generated',
+                    model: 'gemini-2.0-flash-exp'
+                  });
+                  console.log('Nano Banana image generated successfully');
+                } else if (part.fileData) {
+                  // Handle file-based response
+                  images.push({
+                    url: part.fileData.fileUri,
+                    style: 'Nano Banana AI Generated',
+                    model: 'gemini-2.0-flash-exp'
+                  });
+                }
+              }
+            }
           }
         } catch (error) {
-          console.error('Image generation error:', error.message);
+          console.error('Nano Banana image generation error:', error.message);
+          // Fall back to text if image generation fails
+          console.log('Falling back to text-only generation');
         }
       }
       
@@ -150,57 +182,96 @@ const generateDescriptionHandler = async (req, res) => {
       );
     }
 
-    // Generate images if OpenAI is available and requested
+    // Generate images with Nano Banana (Gemini) if requested
     const images = [];
-    if (openai && req.body.generateImages !== false) {
+    if (gemini && req.body.generateImages !== false) {
       try {
-        console.log('Generating image with DALL-E 3');
-        const imagePrompt = `Product photography of ${productName}: ${keyFeatures || 'professional, high-quality, commercial style'}. ${productCategory ? `Category: ${productCategory}.` : ''} Clean, modern, e-commerce style product image on white background.`;
+        console.log('Generating image with Nano Banana (Gemini)');
+        const model = gemini.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
         
-        const imageResponse = await openai.images.generate({
-          model: "dall-e-3",
-          prompt: imagePrompt,
-          n: 1,
-          size: "1024x1024",
-          quality: "standard",
-          style: "natural"
-        });
-        
-        if (imageResponse.data && imageResponse.data[0]) {
-          // Upload to Cloudinary if configured
-          let finalImageUrl = imageResponse.data[0].url;
+        // Create professional product photography prompts
+        const imagePrompts = [
+          // Hero shot
+          `A photorealistic hero product shot of ${productName}. ${keyFeatures ? `Highlighting: ${keyFeatures}.` : ''}
+          Professional studio lighting with soft gradients, shot on white seamless background.
+          Camera: DSLR with 85mm lens at f/5.6, emphasizing product details and textures.
+          Style: Premium e-commerce photography, ultra-sharp focus, commercial quality.
+          Mood: Aspirational and trustworthy for ${targetAudience || 'online shoppers'}.
+          Composition: Centered with subtle depth, 1:1 aspect ratio.`,
           
-          if (process.env.CLOUDINARY_CLOUD_NAME) {
-            try {
-              console.log('Uploading DALL-E image to Cloudinary');
-              const uploadResult = await cloudinary.uploader.upload(imageResponse.data[0].url, {
-                folder: 'product-images',
-                public_id: `${productName.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`,
-                resource_type: 'image',
-                transformation: [
-                  { width: 1024, height: 1024, crop: 'limit' },
-                  { quality: 'auto:good' },
-                  { fetch_format: 'auto' }
-                ]
-              });
-              
-              finalImageUrl = uploadResult.secure_url;
-              console.log('Image uploaded to Cloudinary:', finalImageUrl);
-            } catch (uploadError) {
-              console.error('Cloudinary upload error:', uploadError.message);
-              // Fall back to original DALL-E URL
+          // Lifestyle context shot
+          `Generate a photorealistic lifestyle product image of ${productName} in use.
+          ${actualCategory ? `Product category: ${actualCategory}.` : ''}
+          Setting: Modern, clean environment that appeals to ${targetAudience || 'target customers'}.
+          Lighting: Natural daylight with soft shadows, creating warmth and authenticity.
+          Camera: Wide-angle lens showing product in context, shallow depth of field.
+          Style: Premium lifestyle photography that shows the product's value and use case.
+          Format: High-resolution, suitable for marketing materials.`
+        ];
+        
+        // Try to generate multiple angles/styles
+        for (let i = 0; i < Math.min(imagePrompts.length, 2); i++) {
+          try {
+            const result = await model.generateContent(imagePrompts[i]);
+            const response = await result.response;
+            
+            // Extract image from response
+            if (response.candidates && response.candidates[0]) {
+              const candidate = response.candidates[0];
+              if (candidate.content && candidate.content.parts) {
+                for (const part of candidate.content.parts) {
+                  if (part.inlineData && part.inlineData.mimeType.startsWith('image/')) {
+                    const imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                    // Note: In production, you'd want to upload this to Cloudinary
+                    // For now, we'll use the base64 data URL
+                    images.push({
+                      url: imageUrl,
+                      style: i === 0 ? 'Hero Shot' : 'Lifestyle',
+                      model: 'Nano Banana (Gemini 2.0)'
+                    });
+                    console.log(`Nano Banana image ${i + 1} generated successfully`);
+                    break;
+                  }
+                }
+              }
+            }
+          } catch (imgError) {
+            console.error(`Failed to generate image ${i + 1}:`, imgError.message);
+          }
+        }
+        
+        // Upload base64 images to Cloudinary if configured and we have images
+        if (process.env.CLOUDINARY_CLOUD_NAME && images.length > 0) {
+          for (let idx = 0; idx < images.length; idx++) {
+            const img = images[idx];
+            if (img.url.startsWith('data:')) {
+              try {
+                console.log(`Uploading Nano Banana image ${idx + 1} to Cloudinary`);
+                const uploadResult = await cloudinary.uploader.upload(img.url, {
+                  folder: 'product-images',
+                  public_id: `${productName.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}_${idx}`,
+                  resource_type: 'image',
+                  transformation: [
+                    { width: 1024, height: 1024, crop: 'limit' },
+                    { quality: 'auto:good' },
+                    { fetch_format: 'auto' }
+                  ]
+                });
+                
+                images[idx].url = uploadResult.secure_url;
+                images[idx].cloudinary = true;
+                console.log(`Image ${idx + 1} uploaded to Cloudinary:`, uploadResult.secure_url);
+              } catch (uploadError) {
+                console.error(`Cloudinary upload error for image ${idx + 1}:`, uploadError.message);
+                // Keep the base64 URL as fallback
+              }
             }
           }
-          
-          images.push({
-            url: finalImageUrl,
-            style: 'AI Generated',
-            cloudinary: finalImageUrl.includes('cloudinary')
-          });
-          console.log('Image generated successfully');
         }
+        
+        console.log(`Generated ${images.length} product images with Nano Banana`);
       } catch (error) {
-        console.error('DALL-E generation error:', error.message);
+        console.error('Nano Banana generation error:', error.message);
         // Continue without images
       }
     }

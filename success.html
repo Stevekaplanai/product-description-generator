@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - AI Product Description Generator</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .success-container {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .checkmark {
+            width: 50px;
+            height: 50px;
+            stroke: white;
+            stroke-width: 3;
+            fill: none;
+            animation: drawCheck 0.5s ease-out 0.3s both;
+        }
+        
+        @keyframes drawCheck {
+            from {
+                stroke-dasharray: 100;
+                stroke-dashoffset: 100;
+            }
+            to {
+                stroke-dasharray: 100;
+                stroke-dashoffset: 0;
+            }
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #6b7280;
+            margin-bottom: 40px;
+        }
+        
+        .details {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+            text-align: left;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+        
+        .benefits {
+            margin-bottom: 40px;
+        }
+        
+        .benefits h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+        }
+        
+        .benefit-list {
+            display: grid;
+            gap: 12px;
+            text-align: left;
+        }
+        
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .benefit-icon {
+            width: 24px;
+            height: 24px;
+            background: #e0f2fe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0ea5e9;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #f3f4f6;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">
+            <svg class="checkmark" viewBox="0 0 52 52">
+                <path d="M14 27l10 10 20-20" />
+            </svg>
+        </div>
+        
+        <h1>Payment Successful!</h1>
+        <p class="subtitle">Welcome to your new subscription</p>
+        
+        <div class="details">
+            <div class="detail-row">
+                <span class="detail-label">Plan</span>
+                <span class="detail-value" id="planName">Professional</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value" id="amount">$79/month</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value" style="color: #10b981;">Active</span>
+            </div>
+        </div>
+        
+        <div class="benefits">
+            <h3>What's Included</h3>
+            <div class="benefit-list">
+                <div class="benefit-item">
+                    <div class="benefit-icon">✓</div>
+                    <span>Unlimited product descriptions</span>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">✓</div>
+                    <span>500 AI-generated images per month</span>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">✓</div>
+                    <span>10 UGC videos per month</span>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">✓</div>
+                    <span>Priority customer support</span>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">✓</div>
+                    <span>API access for integrations</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cta-buttons">
+            <a href="/app.html" class="btn btn-primary">Start Creating</a>
+            <a href="/dashboard" class="btn btn-secondary">View Dashboard</a>
+        </div>
+    </div>
+    
+    <script>
+        // Update plan details from URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get('session_id');
+        
+        if (sessionId) {
+            // Store session for verification
+            localStorage.setItem('stripeSession', sessionId);
+            localStorage.setItem('userSubscription', 'active');
+            localStorage.setItem('userCredits', '500'); // Professional plan credits
+            
+            // Update plan display based on session
+            // In production, verify session with backend
+        }
+        
+        // Redirect to app after 5 seconds
+        setTimeout(() => {
+            window.location.href = '/app.html';
+        }, 5000);
+    </script>
+</body>
+</html>

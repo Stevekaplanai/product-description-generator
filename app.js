@@ -19,6 +19,7 @@
             this.updateUI();
             this.loadHistory();
             this.initUserId();
+            this.updateCreditsDisplay(); // Initialize credits display
             console.log('AppUX initialized successfully');
         },
 
@@ -87,8 +88,10 @@
                 if (e.target.classList.contains('copy-btn')) {
                     self.copyToClipboard(e.target);
                 }
-                if (e.target.classList.contains('history-item')) {
-                    self.loadFromHistory(e.target.dataset.id);
+                // Fix history click - check if clicked on history item or its children
+                const historyItem = e.target.closest('.history-item');
+                if (historyItem) {
+                    self.loadFromHistory(historyItem.dataset.id);
                 }
                 if (e.target.classList.contains('tab-btn')) {
                     self.switchTab(e.target.dataset.tab);
@@ -306,16 +309,39 @@
 
         displayResults: function() {
             const self = this;
-            if (!this.state.results) return;
+            if (!this.state.results) {
+                console.error('No results to display');
+                return;
+            }
 
             const container = document.querySelector('.results-content');
-            if (!container) return;
+            if (!container) {
+                console.error('Results container not found');
+                return;
+            }
 
-            const descriptions = [
-                this.state.results.description1 || '',
-                this.state.results.description2 || '',
-                this.state.results.description3 || ''
-            ];
+            // Handle both array format (new) and individual properties (legacy)
+            let descriptions;
+            if (this.state.results.descriptions && Array.isArray(this.state.results.descriptions)) {
+                descriptions = this.state.results.descriptions;
+                console.log('Using array format descriptions:', descriptions.length, 'items');
+            } else {
+                descriptions = [
+                    this.state.results.description1 || '',
+                    this.state.results.description2 || '',
+                    this.state.results.description3 || ''
+                ];
+                console.log('Using legacy format descriptions');
+            }
+            
+            // Filter out empty descriptions
+            descriptions = descriptions.filter(function(desc) { return desc && desc.trim(); });
+            
+            if (descriptions.length === 0) {
+                console.error('No valid descriptions found');
+                container.innerHTML = '<div class="error-state">No descriptions were generated. Please try again.</div>';
+                return;
+            }
 
             let html = '<div class="results-tabs"><div class="tab-buttons">';
             
@@ -326,7 +352,8 @@
             html += '</div><div class="tab-content">';
             
             descriptions.forEach(function(desc, i) {
-                const wordCount = desc ? desc.split(' ').length : 0;
+                if (!desc || !desc.trim()) return; // Skip empty descriptions
+                const wordCount = desc.split(' ').length;
                 html += '<div class="tab-pane ' + (i === 0 ? 'active' : '') + '" id="description' + (i + 1) + '">';
                 html += '<div class="description-card">';
                 html += '<div class="description-text">' + self.formatDescription(desc) + '</div>';
@@ -336,7 +363,53 @@
                 html += '</div></div></div>';
             });
             
-            html += '</div></div>';
+            html += '</div>';
+            
+            // Add image and video generation section
+            html += '<div class="generation-options">';
+            html += '<h3 class="options-title">Enhance Your Product</h3>';
+            html += '<div class="options-grid">';
+            
+            // Image Generation
+            html += '<div class="option-card">';
+            html += '<div class="option-icon">🎨</div>';
+            html += '<h4>Generate Product Images</h4>';
+            html += '<p>Create professional product photos with AI</p>';
+            html += '<div class="option-features">';
+            html += '<span class="feature-tag">Hero Shots</span>';
+            html += '<span class="feature-tag">Lifestyle</span>';
+            html += '<span class="feature-tag">4K Quality</span>';
+            html += '</div>';
+            html += '<button class="generate-btn" onclick="AppUX.generateImages()">Generate Images</button>';
+            html += '</div>';
+            
+            // Video Generation
+            html += '<div class="option-card">';
+            html += '<div class="option-icon">🎬</div>';
+            html += '<h4>Create UGC Videos</h4>';
+            html += '<p>AI avatars present your product</p>';
+            html += '<div class="option-features">';
+            html += '<span class="feature-tag">100+ Avatars</span>';
+            html += '<span class="feature-tag">29 Languages</span>';
+            html += '<span class="feature-tag">HD Video</span>';
+            html += '</div>';
+            html += '<button class="generate-btn" onclick="AppUX.generateVideo()">Create Video</button>';
+            html += '</div>';
+            
+            // Bulk Export
+            html += '<div class="option-card">';
+            html += '<div class="option-icon">📊</div>';
+            html += '<h4>Bulk Export</h4>';
+            html += '<p>Download all content in multiple formats</p>';
+            html += '<div class="option-features">';
+            html += '<span class="feature-tag">CSV</span>';
+            html += '<span class="feature-tag">JSON</span>';
+            html += '<span class="feature-tag">PDF</span>';
+            html += '</div>';
+            html += '<button class="generate-btn" onclick="AppUX.exportContent()">Export All</button>';
+            html += '</div>';
+            
+            html += '</div></div></div>';
             container.innerHTML = html;
         },
 
@@ -352,7 +425,9 @@
 
         formatDescription: function(text) {
             if (!text) return '';
-            return text
+            // First escape HTML to prevent XSS, then format
+            const escaped = this.escapeHtml(text);
+            return escaped
                 .replace(/\n\n/g, '</p><p>')
                 .replace(/\n/g, '<br>')
                 .replace(/^/, '<p>')
@@ -377,6 +452,277 @@
             this.updateHistoryUI();
         },
 
+        generateImages: function() {
+            const self = this;
+            
+            console.log('generateImages called');
+            console.log('Current formData:', this.state.formData);
+            
+            // Check if user has credits or subscription
+            if (!this.checkCredits('image')) {
+                this.showPaywall('image');
+                return;
+            }
+            
+            // Try to get product info from multiple sources
+            let productName = '';
+            let features = '';
+            let category = '';
+            
+            // First try formData
+            if (this.state.formData && this.state.formData.productName) {
+                console.log('Using formData from state');
+                productName = this.state.formData.productName;
+                features = this.state.formData.keyFeatures || '';
+                category = this.state.formData.productCategory || this.state.formData.category || '';
+            }
+            // Then try to get from history if we have results
+            else if (this.state.results && this.state.results.product) {
+                console.log('Using product info from results');
+                productName = this.state.results.product;
+                // Try to get from the last history item if it matches
+                if (this.state.history && this.state.history.length > 0) {
+                    const lastItem = this.state.history[0];
+                    if (lastItem.productName === productName) {
+                        features = lastItem.formData.keyFeatures || '';
+                        category = lastItem.formData.productCategory || lastItem.formData.category || '';
+                    }
+                }
+            }
+            // Finally try to get from current form if visible
+            else {
+                console.log('Trying to get from form fields');
+                const nameField = document.querySelector('[name="productName"]');
+                const featuresField = document.querySelector('[name="keyFeatures"]');
+                const categoryField = document.querySelector('[name="productCategory"]');
+                
+                if (nameField && nameField.value) {
+                    productName = nameField.value;
+                    features = featuresField ? featuresField.value : '';
+                    category = categoryField ? categoryField.value : '';
+                    
+                    // Store for future use
+                    this.state.formData = {
+                        productName: productName,
+                        keyFeatures: features,
+                        productCategory: category
+                    };
+                }
+            }
+            
+            console.log('Product details:', { productName, features, category });
+            
+            if (!productName) {
+                console.error('No product name found');
+                this.showError('Product name is required. Please enter product details first.');
+                return;
+            }
+            
+            this.showLoadingModal('Generating product images...');
+            
+            fetch('/api/generate-image-hybrid', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product: productName,
+                    features: features,
+                    category: category,
+                    types: ['hero', 'lifestyle', 'detail']
+                })
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(result) {
+                self.hideLoadingModal();
+                if (result.success) {
+                    self.displayImageResults(result.images);
+                    self.updateCredits(-1);
+                } else {
+                    throw new Error(result.error || 'Image generation failed');
+                }
+            })
+            .catch(function(error) {
+                self.hideLoadingModal();
+                self.showError('Failed to generate images: ' + error.message);
+            });
+        },
+        
+        generateVideo: function() {
+            const self = this;
+            
+            // Check if user has credits or subscription
+            if (!this.checkCredits('video')) {
+                this.showPaywall('video');
+                return;
+            }
+            
+            this.showComingSoon('Video generation');
+        },
+        
+        exportContent: function() {
+            const self = this;
+            
+            // Check if user has subscription
+            if (!this.checkSubscription()) {
+                this.showPaywall('export');
+                return;
+            }
+            
+            // Create export data
+            const exportData = {
+                productName: this.state.formData.productName,
+                descriptions: this.state.results,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Download as JSON
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'product-content.json';
+            a.click();
+        },
+        
+        checkCredits: function(type) {
+            // Check user credits from state or localStorage
+            const credits = parseInt(localStorage.getItem('userCredits') || '3');
+            return credits > 0;
+        },
+        
+        checkSubscription: function() {
+            // Check if user has active subscription
+            const subscription = localStorage.getItem('userSubscription');
+            return subscription === 'active';
+        },
+        
+        updateCredits: function(amount) {
+            const credits = parseInt(localStorage.getItem('userCredits') || '3');
+            const newCredits = Math.max(0, credits + amount);
+            localStorage.setItem('userCredits', newCredits.toString());
+            this.updateCreditsDisplay();
+        },
+        
+        updateCreditsDisplay: function() {
+            const credits = parseInt(localStorage.getItem('userCredits') || '3');
+            const display = document.querySelector('.credits-display');
+            if (display) {
+                display.textContent = credits + ' credits remaining';
+            }
+        },
+        
+        showPaywall: function(feature) {
+            const modal = document.createElement('div');
+            modal.className = 'paywall-modal';
+            modal.innerHTML = `
+                <div class="paywall-content">
+                    <button class="close-modal" onclick="this.parentElement.parentElement.remove()">×</button>
+                    <h2>🔐 Upgrade to Continue</h2>
+                    <p>You've used your free credits. Upgrade to generate unlimited content!</p>
+                    
+                    <div class="pricing-options">
+                        <div class="price-card">
+                            <h3>Starter</h3>
+                            <div class="price">$29/mo</div>
+                            <ul>
+                                <li>✓ 100 descriptions/month</li>
+                                <li>✓ 50 images/month</li>
+                                <li>✓ Basic support</li>
+                            </ul>
+                            <button class="upgrade-btn" onclick="AppUX.subscribePlan('starter')">Choose Starter</button>
+                        </div>
+                        
+                        <div class="price-card featured">
+                            <div class="badge">MOST POPULAR</div>
+                            <h3>Professional</h3>
+                            <div class="price">$79/mo</div>
+                            <ul>
+                                <li>✓ Unlimited descriptions</li>
+                                <li>✓ 500 images/month</li>
+                                <li>✓ 10 videos/month</li>
+                                <li>✓ Priority support</li>
+                            </ul>
+                            <button class="upgrade-btn primary" onclick="AppUX.subscribePlan('professional')">Choose Professional</button>
+                        </div>
+                        
+                        <div class="price-card">
+                            <h3>Enterprise</h3>
+                            <div class="price">Custom</div>
+                            <ul>
+                                <li>✓ Everything unlimited</li>
+                                <li>✓ Custom AI models</li>
+                                <li>✓ API access</li>
+                                <li>✓ Dedicated support</li>
+                            </ul>
+                            <button class="upgrade-btn" onclick="AppUX.contactSales()">Contact Sales</button>
+                        </div>
+                    </div>
+                    
+                    <p class="guarantee">✓ 14-day money-back guarantee • Cancel anytime</p>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        },
+        
+        subscribePlan: function(plan) {
+            // Redirect to Stripe checkout
+            const prices = {
+                starter: process.env.STRIPE_PRICE_STARTER,
+                professional: process.env.STRIPE_PRICE_PROFESSIONAL
+            };
+            
+            window.location.href = '/api/create-checkout?plan=' + plan;
+        },
+        
+        contactSales: function() {
+            window.location.href = 'mailto:sales@productdescriptions.io?subject=Enterprise%20Plan%20Inquiry';
+        },
+        
+        showLoadingModal: function(message) {
+            const modal = document.createElement('div');
+            modal.className = 'loading-modal';
+            modal.innerHTML = '<div class="loading-content"><div class="spinner"></div><p>' + message + '</p></div>';
+            document.body.appendChild(modal);
+        },
+        
+        hideLoadingModal: function() {
+            const modal = document.querySelector('.loading-modal');
+            if (modal) modal.remove();
+        },
+        
+        showComingSoon: function(feature) {
+            alert(feature + ' is coming soon! Join our Professional plan to get early access.');
+        },
+        
+        showError: function(message) {
+            const modal = document.createElement('div');
+            modal.className = 'error-modal';
+            modal.innerHTML = '<div class="error-content"><p>' + message + '</p><button onclick="this.parentElement.parentElement.remove()">OK</button></div>';
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+            modal.querySelector('.error-content').style.cssText = 'background:white;padding:30px;border-radius:10px;max-width:400px;text-align:center;';
+            document.body.appendChild(modal);
+        },
+        
+        displayImageResults: function(images) {
+            const modal = document.createElement('div');
+            modal.className = 'image-results-modal';
+            let html = '<div class="image-results-content">';
+            html += '<button class="close-modal" onclick="this.parentElement.parentElement.remove()">×</button>';
+            html += '<h2>Your Generated Images</h2>';
+            html += '<div class="images-grid">';
+            
+            images.forEach(function(img) {
+                html += '<div class="image-card">';
+                html += '<img src="' + img.url + '" alt="' + img.type + '">';
+                html += '<div class="image-actions">';
+                html += '<button onclick="window.open(\'' + img.url + '\', \'_blank\')">Download</button>';
+                html += '</div></div>';
+            });
+            
+            html += '</div></div>';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+        },
+        
         trackGeneration: function(formData, result) {
             fetch('/api/track-generation', {
                 method: 'POST',
@@ -428,16 +774,24 @@
         },
 
         loadFromHistory: function(id) {
+            console.log('Loading from history:', id);
             const item = this.state.history.find(function(h) { return h.id == id; });
-            if (!item) return;
+            if (!item) {
+                console.error('History item not found:', id);
+                return;
+            }
 
+            // Restore form data
+            this.state.formData = item.formData;
             Object.entries(item.formData).forEach(function(entry) {
                 const field = document.querySelector('[name="' + entry[0] + '"]');
                 if (field) field.value = entry[1];
             });
 
+            // Restore results and show them
             this.state.results = item.results;
             this.state.currentStep = 'results';
+            console.log('Restored results:', this.state.results);
             this.updateUI();
         },
 

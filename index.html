@@ -12,6 +12,10 @@
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://productdescriptions.io/">
     
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
@@ -32,6 +36,66 @@
             overflow-x: hidden;
         }
 
+        /* Navigation Menu */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #667eea;
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            padding: 10px 20px;
+            border-radius: 25px;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
         /* Trust Indicators Bar */
         .trust-bar {
             background: linear-gradient(90deg, #1e293b 0%, #334155 100%);
@@ -39,7 +103,7 @@
             padding: 10px 0;
             font-size: 14px;
             position: sticky;
-            top: 0;
+            top: 60px;
             z-index: 1000;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
@@ -533,10 +597,41 @@
             .security-badges {
                 gap: 15px;
             }
+
+            .nav-menu {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Navigation Menu -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <i class="fas fa-rocket"></i>
+                <span>AI Product Generator</span>
+            </a>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#features" class="nav-link">Features</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#pricing" class="nav-link">Pricing</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#demo" class="nav-link">Demo</a>
+                </li>
+                <li class="nav-item">
+                    <a href="app.html" class="nav-link nav-cta">Try Now</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
     <!-- Trust Indicators Bar -->
     <div class="trust-bar">
         <div class="trust-bar-content">
@@ -552,14 +647,6 @@
                 <i class="fas fa-check-circle"></i>
                 <span>SOC 2 Type II</span>
             </div>
-            <div class="trust-item">
-                <i class="fas fa-credit-card"></i>
-                <span>PCI DSS Compliant</span>
-            </div>
-            <div class="trust-item">
-                <i class="fas fa-users"></i>
-                <span>50,000+ Users</span>
-            </div>
         </div>
     </div>
 
@@ -572,7 +659,7 @@
                 <span>Limited Time: 30% OFF All Plans - Ends in 48 Hours</span>
             </div>
 
-            <h1>Complete E-commerce Content in 2 Minutes</h1>
+            <h1>AI Product Description Generator</h1>
             <p class="hero-subtitle">
                 AI-powered descriptions, images, and videos for your products. 
                 Trusted by 50,000+ sellers to boost conversions by 40%
@@ -604,7 +691,7 @@
             <!-- CTA Section -->
             <div class="cta-section">
                 <div class="cta-buttons">
-                    <a href="/app.html" class="btn btn-primary">
+                    <a href="app.html" class="btn btn-primary">
                         <i class="fas fa-rocket"></i>
                         Start Free Trial
                     </a>
@@ -655,7 +742,7 @@
     </div>
 
     <!-- Features Section -->
-    <section class="features-section">
+    <section class="features-section" id="features">
         <h2 class="section-title">Everything You Need to Sell Online</h2>
         <p class="section-subtitle">
             Complete product content generation suite powered by the latest AI models
@@ -778,9 +865,132 @@
         </div>
     </section>
 
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricing">
+        <h2 class="section-title">Simple, Transparent Pricing</h2>
+        <p class="section-subtitle">
+            Choose the perfect plan for your business. All plans include a 14-day money-back guarantee.
+        </p>
+
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3 style="font-size: 1.5rem; margin-bottom: 10px;">Starter</h3>
+                <div style="font-size: 2.5rem; font-weight: bold; margin: 20px 0;">
+                    $29<span style="font-size: 1rem; color: #666;">/month</span>
+                </div>
+                <ul style="list-style: none; padding: 0; margin: 30px 0;">
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        100 products/month
+                    </li>
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        Basic AI models
+                    </li>
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        Email support
+                    </li>
+                </ul>
+                <a href="app.html" class="btn btn-primary" style="width: 100%; text-align: center;">Start Free Trial</a>
+            </div>
+
+            <div class="pricing-card featured">
+                <div class="pricing-badge">MOST POPULAR</div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 10px;">Professional</h3>
+                <div style="font-size: 2.5rem; font-weight: bold; margin: 20px 0;">
+                    $79<span style="font-size: 1rem; color: #666;">/month</span>
+                </div>
+                <ul style="list-style: none; padding: 0; margin: 30px 0;">
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        1,000 products/month
+                    </li>
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        Advanced AI models
+                    </li>
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        Priority support
+                    </li>
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        API access
+                    </li>
+                </ul>
+                <a href="app.html" class="btn btn-primary" style="width: 100%; text-align: center;">Start Free Trial</a>
+            </div>
+
+            <div class="pricing-card">
+                <h3 style="font-size: 1.5rem; margin-bottom: 10px;">Enterprise</h3>
+                <div style="font-size: 2.5rem; font-weight: bold; margin: 20px 0;">
+                    Custom
+                </div>
+                <ul style="list-style: none; padding: 0; margin: 30px 0;">
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        Unlimited products
+                    </li>
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        Custom AI models
+                    </li>
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        Dedicated support
+                    </li>
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <i class="fas fa-check" style="color: #10b981; margin-right: 10px;"></i>
+                        SLA guarantee
+                    </li>
+                </ul>
+                <a href="mailto:sales@productdescriptions.io" class="btn btn-secondary" style="width: 100%; text-align: center; border-color: #667eea; color: #667eea;">Contact Sales</a>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px;">
+                <div>
+                    <h4 style="margin-bottom: 20px; color: white;">Product</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px;"><a href="app.html" style="color: #999; text-decoration: none;">Generator App</a></li>
+                        <li style="margin-bottom: 10px;"><a href="#features" style="color: #999; text-decoration: none;">Features</a></li>
+                        <li style="margin-bottom: 10px;"><a href="#pricing" style="color: #999; text-decoration: none;">Pricing</a></li>
+                        <li style="margin-bottom: 10px;"><a href="#demo" style="color: #999; text-decoration: none;">Demo</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 20px; color: white;">Company</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px;"><a href="/about" style="color: #999; text-decoration: none;">About Us</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/blog" style="color: #999; text-decoration: none;">Blog</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/careers" style="color: #999; text-decoration: none;">Careers</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/contact" style="color: #999; text-decoration: none;">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 20px; color: white;">Legal</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px;"><a href="/privacy" style="color: #999; text-decoration: none;">Privacy Policy</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/terms" style="color: #999; text-decoration: none;">Terms of Service</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/cookies" style="color: #999; text-decoration: none;">Cookie Policy</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/gdpr" style="color: #999; text-decoration: none;">GDPR</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 20px; color: white;">Support</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px;"><a href="/help" style="color: #999; text-decoration: none;">Help Center</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/docs" style="color: #999; text-decoration: none;">Documentation</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/api" style="color: #999; text-decoration: none;">API Reference</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/status" style="color: #999; text-decoration: none;">System Status</a></li>
+                    </ul>
+                </div>
+            </div>
             <div class="footer-trust">
                 <div class="footer-trust-item">
                     <i class="fas fa-shield-alt"></i>
