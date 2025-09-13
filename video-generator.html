@@ -137,68 +137,6 @@
             resize: vertical;
         }
 
-        .voice-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .voice-option {
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .voice-option:hover {
-            border-color: #667eea;
-        }
-
-        .voice-option.selected {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .voice-name {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .voice-details {
-            font-size: 0.85em;
-            color: #666;
-            margin-bottom: 8px;
-        }
-
-        .voice-sample-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8em;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .voice-sample-btn:hover {
-            background: #5a67d8;
-        }
-
-        .voice-sample-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .loading-icon {
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
 
         .generate-button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -461,13 +399,6 @@
                 </div>
             </div>
 
-            <!-- Voice Selection -->
-            <div class="section">
-                <h2 class="section-title">🎙️ Select Voice</h2>
-                <div id="voiceGrid" class="voice-grid">
-                    <!-- Voices will be loaded here -->
-                </div>
-            </div>
 
             <!-- Script Section -->
             <div class="section">
@@ -492,36 +423,29 @@
 
     <script>
         let selectedAvatar = 'professional-female';
-        let selectedVoice = 'en-US-JennyNeural';
         let avatarData = {};
-        let voiceData = {};
 
-        // Load avatars and voices on page load
+        // Load avatars on page load
         window.addEventListener('DOMContentLoaded', async () => {
-            await loadAvatarsAndVoices();
+            await loadAvatars();
             setupEventListeners();
         });
 
-        async function loadAvatarsAndVoices() {
+        async function loadAvatars() {
             try {
                 const response = await fetch('/api/get-avatars');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     renderAvatars(data.avatarsByCategory);
-                    renderVoices(data.voices);
-                    
+
                     // Store data for later use
                     data.avatars.forEach(avatar => {
                         avatarData[avatar.id] = avatar;
                     });
-                    data.voices.forEach(voice => {
-                        voiceData[voice.id] = voice;
-                    });
-                    
-                    // Set defaults
+
+                    // Set default
                     selectedAvatar = data.defaultAvatar;
-                    selectedVoice = data.defaultVoice;
                 }
             } catch (error) {
                 console.error('Failed to load avatars:', error);
@@ -548,25 +472,6 @@
             grid.innerHTML = html;
         }
 
-        function renderVoices(voices) {
-            const grid = document.getElementById('voiceGrid');
-            let html = '';
-
-            voices.forEach(voice => {
-                html += `
-                    <div class="voice-option ${voice.id === selectedVoice ? 'selected' : ''}"
-                         data-voice-id="${voice.id}">
-                        <div class="voice-name">${voice.name} (${voice.accent})</div>
-                        <div class="voice-details">${voice.description}</div>
-                        <button class="voice-sample-btn" onclick="playVoiceSample('${voice.id}', '${voice.name}')" title="Play sample">
-                            <span class="play-icon">▶</span> Sample
-                        </button>
-                    </div>
-                `;
-            });
-
-            grid.innerHTML = html;
-        }
 
         function setupEventListeners() {
             // Avatar selection
@@ -578,17 +483,7 @@
                     selectedAvatar = card.dataset.avatarId;
                 }
             });
-            
-            // Voice selection
-            document.getElementById('voiceGrid').addEventListener('click', (e) => {
-                const option = e.target.closest('.voice-option');
-                if (option) {
-                    document.querySelectorAll('.voice-option').forEach(o => o.classList.remove('selected'));
-                    option.classList.add('selected');
-                    selectedVoice = option.dataset.voiceId;
-                }
-            });
-            
+
             // Auto-generate script when product info changes
             document.getElementById('productName').addEventListener('input', generateScript);
             document.getElementById('productDescription').addEventListener('input', generateScript);
@@ -622,116 +517,6 @@
             }
         }
 
-        // Voice sampling functionality
-        let currentAudio = null;
-        let currentUtterance = null;
-
-        async function playVoiceSample(voiceId, voiceName) {
-            // Stop any currently playing audio
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio = null;
-            }
-            if (currentUtterance) {
-                window.speechSynthesis.cancel();
-                currentUtterance = null;
-            }
-
-            // Reset all buttons
-            document.querySelectorAll('.voice-sample-btn').forEach(btn => {
-                btn.innerHTML = '<span class="play-icon">▶</span> Sample';
-                btn.disabled = false;
-            });
-
-            const button = event.target.closest('.voice-sample-btn');
-            button.innerHTML = '<span class="loading-icon">⟳</span> Loading...';
-            button.disabled = true;
-
-            try {
-                // First try Azure TTS API
-                const sampleText = `Hello! I'm ${voiceName}. This is how I sound when presenting your product videos. I can speak clearly and professionally to help showcase your amazing products.`;
-
-                const response = await fetch('/api/generate-voice-sample', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        text: sampleText,
-                        voiceId: voiceId
-                    })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-
-                    if (data.audioUrl && !data.fallback) {
-                        currentAudio = new Audio(data.audioUrl);
-                        currentAudio.onended = () => {
-                            button.innerHTML = '<span class="play-icon">▶</span> Sample';
-                            button.disabled = false;
-                            currentAudio = null;
-                        };
-
-                        button.innerHTML = '<span class="stop-icon">⏸</span> Playing...';
-                        await currentAudio.play();
-                        return;
-                    }
-                }
-
-                // Fallback to browser's speech synthesis
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(sampleText);
-                    currentUtterance = utterance;
-
-                    // Try to match voice based on voiceId
-                    const voices = window.speechSynthesis.getVoices();
-                    const matchingVoice = voices.find(v =>
-                        v.name.toLowerCase().includes(voiceName.toLowerCase()) ||
-                        v.lang.includes(voiceId.split('-')[0])
-                    );
-
-                    if (matchingVoice) {
-                        utterance.voice = matchingVoice;
-                    }
-
-                    utterance.rate = 1.0;
-                    utterance.pitch = 1.0;
-                    utterance.volume = 1.0;
-
-                    utterance.onend = () => {
-                        button.innerHTML = '<span class="play-icon">▶</span> Sample';
-                        button.disabled = false;
-                        currentUtterance = null;
-                    };
-
-                    utterance.onerror = () => {
-                        button.innerHTML = '<span class="play-icon">▶</span> Sample';
-                        button.disabled = false;
-                        currentUtterance = null;
-                    };
-
-                    button.innerHTML = '<span class="stop-icon">⏸</span> Playing...';
-                    window.speechSynthesis.speak(utterance);
-                } else {
-                    throw new Error('Speech synthesis not supported');
-                }
-            } catch (error) {
-                console.error('Voice sample error:', error);
-                button.innerHTML = '<span class="play-icon">▶</span> Sample';
-                button.disabled = false;
-
-                // Show a more helpful error message
-                alert('Voice preview is temporarily unavailable. The selected voice will still work for video generation.');
-            }
-        }
-
-        // Preload voices for browser speech synthesis
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => {
-                window.speechSynthesis.getVoices();
-            };
-            // Initial load
-            window.speechSynthesis.getVoices();
-        }
 
         async function generateVideo() {
             const productName = document.getElementById('productName').value;
@@ -769,7 +554,6 @@
                         productDescription,
                         features: keyFeatures,
                         avatarId: selectedAvatar,
-                        voice: selectedVoice,
                         customScript: customScript || null
                     })
                 });
@@ -805,7 +589,6 @@
                                 <div class="video-info">
                                     <p><strong>Product:</strong> ${productName}</p>
                                     <p><strong>Avatar:</strong> ${avatarData[selectedAvatar]?.name}</p>
-                                    <p><strong>Voice:</strong> ${voiceData[selectedVoice]?.name}</p>
                                 </div>
                                 <a href="${data.videoUrl}" download="${productName}-video.mp4" class="download-button">
                                     Download Video
