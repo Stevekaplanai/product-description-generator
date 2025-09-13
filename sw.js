@@ -1,8 +1,16 @@
 // Service Worker for ProductDescriptions.io
 // Implements caching strategies for better performance
 
-const CACHE_NAME = 'productdescriptions-v1';
-const API_CACHE_NAME = 'productdescriptions-api-v1';
+const CACHE_NAME = 'productdescriptions-v2';
+const API_CACHE_NAME = 'productdescriptions-api-v2';
+const IMAGE_CACHE_NAME = 'productdescriptions-images-v1';
+
+// Cache expiration times
+const CACHE_EXPIRATION = {
+  api: 5 * 60 * 1000, // 5 minutes for API responses
+  images: 7 * 24 * 60 * 60 * 1000, // 7 days for images
+  static: 30 * 24 * 60 * 60 * 1000 // 30 days for static assets
+};
 
 // Files to cache on install
 const urlsToCache = [

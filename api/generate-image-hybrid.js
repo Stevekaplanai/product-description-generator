@@ -43,18 +43,26 @@ const PROMPT_TEMPLATES = {
  * @returns {Object|null} Generated image or null if failed
  */
 async function tryVertexAI(prompt, productName) {
-  if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    console.log('Vertex AI not configured (no credentials)');
+  // Check if we're in a Google Cloud environment or have ADC configured
+  // Vercel/serverless environments won't have local file paths
+  const hasCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+                        process.env.GOOGLE_CLOUD_PROJECT ||
+                        process.env.GCLOUD_PROJECT;
+
+  if (!hasCredentials) {
+    console.log('Vertex AI not configured (no Google Cloud project)');
     return null;
   }
   
   try {
     const { PredictionServiceClient } = require('@google-cloud/aiplatform').v1;
     const { helpers } = require('@google-cloud/aiplatform');
-    
+
     const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'rare-result-471417-k0';
     const location = process.env.GOOGLE_CLOUD_LOCATION || 'us-central1';
     const model = 'imagegeneration@006';
+
+    console.log(`Attempting Vertex AI with project: ${projectId}, location: ${location}`);
     
     const predictionServiceClient = new PredictionServiceClient({
       apiEndpoint: `${location}-aiplatform.googleapis.com`,

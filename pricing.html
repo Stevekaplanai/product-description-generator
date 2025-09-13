@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - ProductDescriptions.io</title>
+    <meta name="description" content="Choose the perfect plan for your business. Generate unlimited product descriptions with AI.">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #333;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .login-btn {
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .pricing-container {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 60px;
+            color: white;
+        }
+
+        .pricing-header h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .pricing-header p {
+            font-size: 20px;
+            opacity: 0.95;
+        }
+
+        .pricing-toggle {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .toggle-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px;
+            border-radius: 30px;
+        }
+
+        .toggle-option {
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-option.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .save-badge {
+            background: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .pricing-card.featured {
+            border: 3px solid #667eea;
+            transform: scale(1.05);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .plan-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .plan-description {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .plan-price {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .plan-price .currency {
+            font-size: 24px;
+        }
+
+        .plan-price .period {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .plan-price.annual-price {
+            display: none;
+        }
+
+        .features-list {
+            list-style: none;
+            margin: 30px 0;
+        }
+
+        .features-list li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .features-list .check {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .select-plan-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .select-plan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .enterprise-cta {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .enterprise-cta h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .contact-btn {
+            padding: 15px 40px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .contact-btn:hover {
+            background: #555;
+            transform: translateY(-2px);
+        }
+
+        .faq-section {
+            max-width: 800px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .faq-section h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .faq-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .faq-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .faq-question {
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-answer {
+            margin-top: 15px;
+            color: #666;
+            display: none;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        .footer {
+            background: rgba(0,0,0,0.1);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 80px;
+        }
+
+        @media (max-width: 768px) {
+            .pricing-header h1 {
+                font-size: 32px;
+            }
+
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: none;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <a href="/" class="logo">ProductDescriptions.io</a>
+            <nav class="nav-links">
+                <a href="/app.html">Generator</a>
+                <a href="/video-generator.html">Video Creator</a>
+                <a href="/pricing.html">Pricing</a>
+                <a href="/login.html" class="login-btn">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Pricing Section -->
+    <div class="pricing-container">
+        <div class="pricing-header">
+            <h1>Choose Your Plan</h1>
+            <p>Start free, upgrade when you need more</p>
+        </div>
+
+        <!-- Billing Toggle -->
+        <div class="pricing-toggle">
+            <div class="toggle-container">
+                <span class="toggle-option active" onclick="toggleBilling('monthly')">Monthly</span>
+                <span class="toggle-option" onclick="toggleBilling('annual')">
+                    Annual <span class="save-badge">Save 20%</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="pricing-cards">
+            <!-- Free Plan -->
+            <div class="pricing-card">
+                <h3 class="plan-name">Free</h3>
+                <p class="plan-description">Perfect for trying out our service</p>
+                <div class="plan-price monthly-price">
+                    <span class="currency">$</span>0
+                    <span class="period">/month</span>
+                </div>
+                <div class="plan-price annual-price">
+                    <span class="currency">$</span>0
+                    <span class="period">/year</span>
+                </div>
+                <ul class="features-list">
+                    <li><span class="check">✓</span> 3 product descriptions/month</li>
+                    <li><span class="check">✓</span> 1 image generation/month</li>
+                    <li><span class="check">✓</span> Basic templates</li>
+                    <li><span class="check">✓</span> Standard support</li>
+                    <li><span class="check">✓</span> History for 7 days</li>
+                </ul>
+                <button class="select-plan-btn" onclick="selectPlan('free')">Get Started</button>
+            </div>
+
+            <!-- Starter Plan -->
+            <div class="pricing-card featured">
+                <span class="popular-badge">Most Popular</span>
+                <h3 class="plan-name">Starter</h3>
+                <p class="plan-description">Great for small businesses</p>
+                <div class="plan-price monthly-price">
+                    <span class="currency">$</span>29
+                    <span class="period">/month</span>
+                </div>
+                <div class="plan-price annual-price">
+                    <span class="currency">$</span>279
+                    <span class="period">/year</span>
+                </div>
+                <ul class="features-list">
+                    <li><span class="check">✓</span> 100 product descriptions/month</li>
+                    <li><span class="check">✓</span> 50 AI images/month</li>
+                    <li><span class="check">✓</span> 10 AI videos/month</li>
+                    <li><span class="check">✓</span> All templates</li>
+                    <li><span class="check">✓</span> Bulk upload (up to 20)</li>
+                    <li><span class="check">✓</span> Priority support</li>
+                    <li><span class="check">✓</span> 30-day history</li>
+                    <li><span class="check">✓</span> Export to CSV/JSON</li>
+                </ul>
+                <button class="select-plan-btn" onclick="selectPlan('starter')">Start Free Trial</button>
+            </div>
+
+            <!-- Professional Plan -->
+            <div class="pricing-card">
+                <h3 class="plan-name">Professional</h3>
+                <p class="plan-description">For growing businesses</p>
+                <div class="plan-price monthly-price">
+                    <span class="currency">$</span>79
+                    <span class="period">/month</span>
+                </div>
+                <div class="plan-price annual-price">
+                    <span class="currency">$</span>759
+                    <span class="period">/year</span>
+                </div>
+                <ul class="features-list">
+                    <li><span class="check">✓</span> 500 product descriptions/month</li>
+                    <li><span class="check">✓</span> 200 AI images/month</li>
+                    <li><span class="check">✓</span> 50 AI videos/month</li>
+                    <li><span class="check">✓</span> Custom templates</li>
+                    <li><span class="check">✓</span> Bulk upload (up to 100)</li>
+                    <li><span class="check">✓</span> API access</li>
+                    <li><span class="check">✓</span> Priority support</li>
+                    <li><span class="check">✓</span> Unlimited history</li>
+                    <li><span class="check">✓</span> Team collaboration (3 users)</li>
+                </ul>
+                <button class="select-plan-btn" onclick="selectPlan('professional')">Start Free Trial</button>
+            </div>
+        </div>
+
+        <!-- Enterprise CTA -->
+        <div class="enterprise-cta">
+            <h2>Need More? Let's Talk Enterprise</h2>
+            <p>Unlimited generations, custom integrations, dedicated support, and more</p>
+            <ul style="list-style: none; display: flex; justify-content: center; gap: 30px; margin: 30px 0; flex-wrap: wrap;">
+                <li>✓ Unlimited everything</li>
+                <li>✓ Custom AI training</li>
+                <li>✓ API & Webhooks</li>
+                <li>✓ Dedicated account manager</li>
+                <li>✓ SLA guarantee</li>
+            </ul>
+            <a href="mailto:enterprise@productdescriptions.io" class="contact-btn">Contact Sales</a>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item" onclick="toggleFAQ(this)">
+            <div class="faq-question">
+                Can I change plans anytime?
+                <span>+</span>
+            </div>
+            <div class="faq-answer">
+                Yes! You can upgrade or downgrade your plan at any time. When upgrading, you'll be charged the prorated amount. When downgrading, the change takes effect at the next billing cycle.
+            </div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFAQ(this)">
+            <div class="faq-question">
+                Is there a free trial?
+                <span>+</span>
+            </div>
+            <div class="faq-answer">
+                Yes! All paid plans come with a 7-day free trial. No credit card required to start. You can also use our Free plan indefinitely with limited features.
+            </div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFAQ(this)">
+            <div class="faq-question">
+                What payment methods do you accept?
+                <span>+</span>
+            </div>
+            <div class="faq-answer">
+                We accept all major credit cards (Visa, Mastercard, American Express), PayPal, and wire transfers for Enterprise plans. All payments are processed securely through Stripe.
+            </div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFAQ(this)">
+            <div class="faq-question">
+                Can I cancel anytime?
+                <span>+</span>
+            </div>
+            <div class="faq-answer">
+                Absolutely! You can cancel your subscription at any time with no penalties. You'll continue to have access until the end of your current billing period.
+            </div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFAQ(this)">
+            <div class="faq-question">
+                Do unused credits roll over?
+                <span>+</span>
+            </div>
+            <div class="faq-answer">
+                Monthly credits do not roll over to the next month. However, with annual plans, you get a yearly allocation that you can use anytime during your subscription period.
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 ProductDescriptions.io. All rights reserved.</p>
+        <p>
+            <a href="/terms.html" style="color: white; margin: 0 10px;">Terms</a> |
+            <a href="/privacy.html" style="color: white; margin: 0 10px;">Privacy</a> |
+            <a href="/refund.html" style="color: white; margin: 0 10px;">Refund Policy</a>
+        </p>
+    </footer>
+
+    <script>
+        function toggleBilling(type) {
+            const monthlyPrices = document.querySelectorAll('.monthly-price');
+            const annualPrices = document.querySelectorAll('.annual-price');
+            const toggleOptions = document.querySelectorAll('.toggle-option');
+
+            if (type === 'monthly') {
+                monthlyPrices.forEach(el => el.style.display = 'block');
+                annualPrices.forEach(el => el.style.display = 'none');
+                toggleOptions[0].classList.add('active');
+                toggleOptions[1].classList.remove('active');
+            } else {
+                monthlyPrices.forEach(el => el.style.display = 'none');
+                annualPrices.forEach(el => el.style.display = 'block');
+                toggleOptions[0].classList.remove('active');
+                toggleOptions[1].classList.add('active');
+            }
+        }
+
+        async function selectPlan(plan) {
+            const isAnnual = document.querySelector('.toggle-option.active').textContent.includes('Annual');
+            const billingCycle = isAnnual ? 'annual' : 'monthly';
+
+            // Store selected plan in localStorage
+            localStorage.setItem('selectedPlan', plan);
+            localStorage.setItem('billingPeriod', billingCycle);
+
+            if (plan === 'free') {
+                // Handle free plan signup
+                window.location.href = '/signup.html?plan=free';
+            } else if (plan === 'enterprise') {
+                // Handle enterprise plan - contact sales
+                window.location.href = 'mailto:sales@productdescgen.com?subject=Enterprise%20Plan%20Inquiry';
+            } else {
+                // Handle paid plans with Stripe
+                // Show loading state
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Processing...';
+                button.disabled = true;
+
+                try {
+                    const response = await fetch('/api/create-checkout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            plan: plan,
+                            billingCycle: billingCycle,
+                            email: localStorage.getItem('user_email') || ''
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.checkoutUrl) {
+                        window.location.href = data.checkoutUrl;
+                    } else {
+                        console.error('No checkout URL received');
+                        alert('Unable to process payment. Please try again.');
+                        button.textContent = originalText;
+                        button.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Error creating checkout session:', error);
+                    alert('Unable to process payment. Please try again.');
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            }
+        }
+
+        function toggleFAQ(element) {
+            element.classList.toggle('active');
+            const span = element.querySelector('.faq-question span');
+            span.textContent = element.classList.contains('active') ? '−' : '+';
+        }
+
+        // Check if user is already logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = localStorage.getItem('user');
+            if (user) {
+                const loginBtn = document.querySelector('.login-btn');
+                loginBtn.textContent = 'Dashboard';
+                loginBtn.href = '/dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>

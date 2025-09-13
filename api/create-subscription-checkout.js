@@ -2,9 +2,9 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Subscription price IDs - these should be set in Vercel environment variables
 const SUBSCRIPTION_PRICES = {
-  starter: process.env.STRIPE_PRICE_STARTER || 'price_starter_test', // $49/month
-  professional: process.env.STRIPE_PRICE_PROFESSIONAL || 'price_professional_test', // $99/month
-  enterprise: process.env.STRIPE_PRICE_ENTERPRISE || 'price_enterprise_test' // $299/month
+  starter: process.env.STRIPE_PRICE_STARTER || 'price_starter_test', // $29/month
+  professional: process.env.STRIPE_PRICE_PROFESSIONAL || 'price_professional_test', // $79/month
+  enterprise: process.env.STRIPE_PRICE_ENTERPRISE || 'price_enterprise_test' // Custom pricing
 };
 
 module.exports = async (req, res) => {

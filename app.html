@@ -867,6 +867,12 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Video Generator Link */
+        .video-gen-link:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4) !important;
+        }
+
         /* Image Results */
         .images-grid {
             display: grid;
@@ -968,6 +974,17 @@
         <header class="header">
             <h1>Product Description Generator</h1>
             <p>Create compelling product descriptions in seconds</p>
+            <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                <a href="/pricing.html" class="pricing-link" style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; text-decoration: none; border-radius: 25px; font-weight: 600; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    💎 Upgrade Plan
+                </a>
+                <a href="/video-generator.html" class="video-gen-link" style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 25px; font-weight: 600; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    🎬 AI Video Generator
+                </a>
+                <a href="/dashboard.html" class="dashboard-link" style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; text-decoration: none; border-radius: 25px; font-weight: 600; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    📊 Dashboard
+                </a>
+            </div>
         </header>
 
         <!-- Progress Steps -->
@@ -1183,6 +1200,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=10"></script>
+    <script src="/js/upgrade-handler.js?v=1"></script>
 </body>
 </html>

@@ -48,66 +48,112 @@ const generateDescriptionHandler = async (req, res) => {
     if (imagesOnly) {
       console.log('Images-only request received');
       const images = [];
-      
-      // Generate images with Nano Banana (Gemini) if available
-      if (gemini) {
+
+      // Skip Gemini for image generation as it's a text-only model
+      // Go directly to DALL-E for actual image generation
+      console.log('Note: Gemini 2.0 Flash is a text-only model. Using DALL-E for image generation.');
+
+      // Use OpenAI DALL-E for image generation
+      if (openai) {
         try {
-          console.log('Generating image with Nano Banana for:', productName);
-          const model = gemini.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-          
-          // Professional product photography prompt using best practices
-          const imagePrompt = `Generate a photorealistic product photograph of ${productName}. 
-          ${keyFeatures ? `Product features: ${keyFeatures}.` : ''}
-          ${actualCategory ? `Product category: ${actualCategory}.` : ''}
-          
-          Shot type: Hero product shot with clean composition
-          Lighting: Professional studio lighting with soft shadows, creating depth and highlighting product details
-          Background: Clean, minimalist white or light gradient background for e-commerce
-          Camera: Shot with professional DSLR, 50mm lens, f/8 aperture for sharp product focus
-          Style: Commercial product photography, high-resolution, crisp details
-          Mood: Premium, trustworthy, and appealing to ${targetAudience || 'online shoppers'}
-          Format: Square aspect ratio (1:1) for versatile use across platforms
-          
-          The image should showcase the product's best features, materials, and quality in a way that makes customers want to purchase it immediately.`;
-          
-          const result = await model.generateContent(imagePrompt);
-          const response = await result.response;
-          
-          // Check if response contains image data
-          if (response.candidates && response.candidates[0]) {
-            const candidate = response.candidates[0];
-            if (candidate.content && candidate.content.parts) {
-              for (const part of candidate.content.parts) {
-                if (part.inlineData && part.inlineData.mimeType.startsWith('image/')) {
-                  // Convert base64 to data URL
-                  const imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-                  images.push({
-                    url: imageUrl,
-                    style: 'Nano Banana AI Generated',
-                    model: 'gemini-2.0-flash-exp'
-                  });
-                  console.log('Nano Banana image generated successfully');
-                } else if (part.fileData) {
-                  // Handle file-based response
-                  images.push({
-                    url: part.fileData.fileUri,
-                    style: 'Nano Banana AI Generated',
-                    model: 'gemini-2.0-flash-exp'
-                  });
-                }
-              }
+          console.log('Using DALL-E for image generation');
+          console.log('OpenAI API Key present:', !!process.env.OPENAI_API_KEY);
+
+          const imagePrompts = [
+            {
+              prompt: `Professional product photography of ${productName}. ${keyFeatures ? `Features: ${keyFeatures}.` : ''} Clean white background, studio lighting, hero shot, commercial e-commerce style, high resolution, photorealistic`,
+              style: 'hero',
+              size: '1024x1024'
+            },
+            {
+              prompt: `${productName} in a lifestyle setting being used. ${actualCategory ? `Category: ${actualCategory}.` : ''} Natural lighting, real-world context, appealing to ${targetAudience || 'consumers'}, photorealistic`,
+              style: 'lifestyle',
+              size: '1024x1024'
+            },
+            {
+              prompt: `Close-up detail shot of ${productName} showing quality and features. ${keyFeatures ? `Highlighting: ${keyFeatures}.` : ''} Macro photography, sharp focus, premium quality feel, photorealistic`,
+              style: 'detail',
+              size: '1024x1024'
             }
-          }
+          ];
+
+          // Generate images in parallel
+          const imageGenerationPromises = imagePrompts.map(async (imgPrompt) => {
+            try {
+              const response = await openai.images.generate({
+                model: "dall-e-3",
+                prompt: imgPrompt.prompt,
+                n: 1,
+                size: imgPrompt.size,
+                quality: "standard",
+                style: "natural"
+              });
+
+              if (response.data && response.data[0]) {
+                return {
+                  url: response.data[0].url,
+                  type: imgPrompt.style,
+                  model: 'dall-e-3'
+                };
+              }
+            } catch (error) {
+              console.error(`DALL-E generation error for ${imgPrompt.style}:`, error.message);
+              console.error('Full error details:', error);
+              // Check for specific error types
+              if (error.code === 'insufficient_quota') {
+                console.error('OpenAI API quota exceeded. Please check your billing.');
+              }
+              return null;
+            }
+          });
+
+          const generatedImages = await Promise.all(imageGenerationPromises);
+
+          // Filter out any failed generations
+          generatedImages.forEach(img => {
+            if (img) images.push(img);
+          });
+
+          console.log(`Generated ${images.length} images with DALL-E`);
+
         } catch (error) {
-          console.error('Nano Banana image generation error:', error.message);
-          // Fall back to text if image generation fails
-          console.log('Falling back to text-only generation');
+          console.error('DALL-E image generation error:', error.message);
         }
+      } else {
+        console.log('OpenAI client not initialized. API key missing or invalid.');
+        console.log('Environment check - OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
       }
-      
+
+      // Always return a properly structured response
+      if (images.length === 0) {
+        console.log('No images generated. Returning empty array with success false.');
+        console.log('OpenAI client initialized:', !!openai);
+        console.log('OpenAI API Key present:', !!process.env.OPENAI_API_KEY);
+
+        let errorMessage = 'Image generation is currently unavailable.';
+        if (!openai) {
+          errorMessage = 'OpenAI API key not configured. Please add OPENAI_API_KEY to environment variables.';
+        }
+
+        return res.status(200).json({
+          success: false,
+          error: errorMessage,
+          images: [], // Always return an array
+          imagesOnly: true
+        });
+      }
+
+      // Ensure images array is properly formatted
+      const formattedImages = images.map(img => ({
+        url: img.url || '',
+        type: img.type || 'product',
+        model: img.model || 'unknown'
+      }));
+
+      console.log(`Returning ${formattedImages.length} formatted images`);
       return res.status(200).json({
         success: true,
-        images: images,
+        images: formattedImages,
         imagesOnly: true
       });
     }
@@ -298,12 +344,19 @@ const generateDescriptionHandler = async (req, res) => {
       // Continue even if tracking fails
     }
     
+    // Ensure images array is always properly formatted
+    const formattedImages = (images || []).map(img => ({
+      url: img.url || '',
+      type: img.type || img.style || 'product',
+      model: img.model || 'unknown'
+    }));
+
     res.status(200).json({
       success: true,
       product: productName,
       descriptions: descriptions,
-      images: images,
-      generatedImages: images, // Include both keys for compatibility
+      images: formattedImages, // Always return a properly formatted array
+      generatedImages: formattedImages, // Include both keys for compatibility
       timestamp: new Date().toISOString()
     });
 

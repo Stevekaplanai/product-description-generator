@@ -624,25 +624,31 @@
 
         // Voice sampling functionality
         let currentAudio = null;
+        let currentUtterance = null;
 
         async function playVoiceSample(voiceId, voiceName) {
             // Stop any currently playing audio
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio = null;
-                // Reset all buttons
-                document.querySelectorAll('.voice-sample-btn').forEach(btn => {
-                    btn.innerHTML = '<span class="play-icon">▶</span> Sample';
-                    btn.disabled = false;
-                });
             }
+            if (currentUtterance) {
+                window.speechSynthesis.cancel();
+                currentUtterance = null;
+            }
+
+            // Reset all buttons
+            document.querySelectorAll('.voice-sample-btn').forEach(btn => {
+                btn.innerHTML = '<span class="play-icon">▶</span> Sample';
+                btn.disabled = false;
+            });
 
             const button = event.target.closest('.voice-sample-btn');
             button.innerHTML = '<span class="loading-icon">⟳</span> Loading...';
             button.disabled = true;
 
             try {
-                // Use Azure TTS API to generate sample
+                // First try Azure TTS API
                 const sampleText = `Hello! I'm ${voiceName}. This is how I sound when presenting your product videos. I can speak clearly and professionally to help showcase your amazing products.`;
 
                 const response = await fetch('/api/generate-voice-sample', {
@@ -654,31 +660,77 @@
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to generate voice sample');
+                if (response.ok) {
+                    const data = await response.json();
+
+                    if (data.audioUrl && !data.fallback) {
+                        currentAudio = new Audio(data.audioUrl);
+                        currentAudio.onended = () => {
+                            button.innerHTML = '<span class="play-icon">▶</span> Sample';
+                            button.disabled = false;
+                            currentAudio = null;
+                        };
+
+                        button.innerHTML = '<span class="stop-icon">⏸</span> Playing...';
+                        await currentAudio.play();
+                        return;
+                    }
                 }
 
-                const data = await response.json();
+                // Fallback to browser's speech synthesis
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(sampleText);
+                    currentUtterance = utterance;
 
-                if (data.audioUrl) {
-                    currentAudio = new Audio(data.audioUrl);
-                    currentAudio.onended = () => {
+                    // Try to match voice based on voiceId
+                    const voices = window.speechSynthesis.getVoices();
+                    const matchingVoice = voices.find(v =>
+                        v.name.toLowerCase().includes(voiceName.toLowerCase()) ||
+                        v.lang.includes(voiceId.split('-')[0])
+                    );
+
+                    if (matchingVoice) {
+                        utterance.voice = matchingVoice;
+                    }
+
+                    utterance.rate = 1.0;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1.0;
+
+                    utterance.onend = () => {
                         button.innerHTML = '<span class="play-icon">▶</span> Sample';
                         button.disabled = false;
-                        currentAudio = null;
+                        currentUtterance = null;
+                    };
+
+                    utterance.onerror = () => {
+                        button.innerHTML = '<span class="play-icon">▶</span> Sample';
+                        button.disabled = false;
+                        currentUtterance = null;
                     };
 
                     button.innerHTML = '<span class="stop-icon">⏸</span> Playing...';
-                    await currentAudio.play();
+                    window.speechSynthesis.speak(utterance);
                 } else {
-                    throw new Error('No audio URL received');
+                    throw new Error('Speech synthesis not supported');
                 }
             } catch (error) {
                 console.error('Voice sample error:', error);
                 button.innerHTML = '<span class="play-icon">▶</span> Sample';
                 button.disabled = false;
-                alert('Unable to play voice sample. Please try again.');
+
+                // Show a more helpful error message
+                alert('Voice preview is temporarily unavailable. The selected voice will still work for video generation.');
             }
+        }
+
+        // Preload voices for browser speech synthesis
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
+            // Initial load
+            window.speechSynthesis.getVoices();
         }
 
         async function generateVideo() {

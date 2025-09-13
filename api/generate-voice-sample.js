@@ -27,10 +27,11 @@ module.exports = async (req, res) => {
 
         if (!speechKey) {
             console.error('Azure Speech API key not configured');
-            // Return a mock response for testing
+            // Return fallback indicator
             return res.status(200).json({
-                success: true,
-                audioUrl: 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABkYXRhDgAAAAEA/v8CAP7/AgACAP7/AQA='
+                success: false,
+                fallback: true,
+                message: 'Azure TTS not configured, use browser fallback'
             });
         }
 
@@ -75,14 +76,12 @@ module.exports = async (req, res) => {
         }
     } catch (error) {
         console.error('Voice sample generation error:', error);
-        
-        // Return a simple beep sound as fallback for testing
-        const fallbackAudio = 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABkYXRhDgAAAAEA/v8CAP7/AgACAP7/AQA=';
-        
+
+        // Return fallback indicator so client can use browser speech synthesis
         res.status(200).json({
-            success: true,
-            audioUrl: fallbackAudio,
-            fallback: true
+            success: false,
+            fallback: true,
+            message: 'Azure TTS not available, use browser fallback'
         });
     }
 };

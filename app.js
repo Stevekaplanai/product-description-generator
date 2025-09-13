@@ -555,16 +555,26 @@
             .then(function(response) { return response.json(); })
             .then(function(result) {
                 self.hideLoadingModal();
-                if (result.success) {
-                    self.displayImageResults(result.images);
+
+                // Handle both 'images' and 'results' response formats
+                const imageData = result.images || result.results;
+
+                // Always try to display images if they exist, even if success is false
+                if (imageData && Array.isArray(imageData) && imageData.length > 0) {
+                    self.displayImageResults(imageData);
                     self.updateCredits(-1);
+                } else if (result.success === false && result.error) {
+                    // Show specific error message from server
+                    self.showError(result.error);
                 } else {
-                    throw new Error(result.error || 'Image generation failed');
+                    // Fallback error message
+                    self.showError('No images were generated. Please ensure API keys are configured in Vercel.');
                 }
             })
             .catch(function(error) {
                 self.hideLoadingModal();
-                self.showError('Failed to generate images: ' + error.message);
+                console.error('Image generation error:', error);
+                self.showError('Failed to generate images. Please check your connection and try again.');
             });
         },
         
@@ -730,17 +740,32 @@
             let html = '<div class="image-results-content">';
             html += '<button class="close-modal" onclick="this.parentElement.parentElement.remove()">×</button>';
             html += '<h2>Your Generated Images</h2>';
-            html += '<div class="images-grid">';
-            
-            images.forEach(function(img) {
-                html += '<div class="image-card">';
-                html += '<img src="' + img.url + '" alt="' + img.type + '">';
-                html += '<div class="image-actions">';
-                html += '<button onclick="window.open(\'' + img.url + '\', \'_blank\')">Download</button>';
-                html += '</div></div>';
-            });
-            
-            html += '</div></div>';
+
+            // Ensure images is always an array
+            const imageArray = Array.isArray(images) ? images : [];
+
+            // Check if we have valid images
+            if (imageArray.length > 0) {
+                html += '<div class="images-grid">';
+                imageArray.forEach(function(img) {
+                    // Validate each image object
+                    if (img && img.url) {
+                        html += '<div class="image-card">';
+                        html += '<img src="' + img.url + '" alt="' + (img.type || 'Product Image') + '">';
+                        html += '<div class="image-actions">';
+                        html += '<button onclick="window.open(\'' + img.url + '\', \'_blank\')">Download</button>';
+                        html += '</div></div>';
+                    }
+                });
+                html += '</div>';
+            } else {
+                html += '<div class="error-message">';
+                html += '<p>No images were generated. This might be due to API limitations or an error in the generation process.</p>';
+                html += '<p>Please try again or contact support if the issue persists.</p>';
+                html += '</div>';
+            }
+
+            html += '</div>';
             modal.innerHTML = html;
             document.body.appendChild(modal);
         },
