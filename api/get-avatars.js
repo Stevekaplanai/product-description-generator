@@ -4,56 +4,56 @@ const AVATAR_OPTIONS = {
   'professional-male': {
     id: 'professional-male',
     name: 'Alex',
-    imageUrl: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex&backgroundColor=b6e3f4',
     description: 'Professional male presenter',
     category: 'Professional'
   },
   'professional-female': {
     id: 'professional-female',
-    name: 'Sarah', 
-    imageUrl: 'https://cdn.pixabay.com/photo/2018/01/15/07/51/woman-3083383_640.jpg',
+    name: 'Sarah',
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah&backgroundColor=c0aede',
     description: 'Professional female presenter',
     category: 'Professional'
   },
   'casual-male': {
     id: 'casual-male',
     name: 'Mike',
-    imageUrl: 'https://cdn.pixabay.com/photo/2016/11/21/12/42/beard-1845166_640.jpg',
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike&backgroundColor=ffd5dc',
     description: 'Friendly casual male',
     category: 'Casual'
   },
   'casual-female': {
     id: 'casual-female',
     name: 'Emma',
-    imageUrl: 'https://cdn.pixabay.com/photo/2017/08/07/14/15/portrait-2604283_640.jpg', 
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma&backgroundColor=ffc9a9',
     description: 'Friendly casual female',
     category: 'Casual'
   },
   'young-male': {
     id: 'young-male',
     name: 'Tyler',
-    imageUrl: 'https://cdn.pixabay.com/photo/2018/04/27/03/50/portrait-3353699_640.jpg',
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Tyler&backgroundColor=a8e6cf',
     description: 'Young energetic male',
     category: 'Young & Energetic'
   },
   'young-female': {
     id: 'young-female',
     name: 'Zoe',
-    imageUrl: 'https://cdn.pixabay.com/photo/2016/01/19/17/48/woman-1149911_640.jpg',
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe&backgroundColor=ffd3b6',
     description: 'Young energetic female',
     category: 'Young & Energetic'
   },
   'mature-male': {
     id: 'mature-male',
     name: 'Robert',
-    imageUrl: 'https://cdn.pixabay.com/photo/2015/01/08/18/29/entrepreneur-593358_640.jpg',
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Robert&backgroundColor=d5d5d5',
     description: 'Mature professional male',
     category: 'Mature'
   },
   'mature-female': {
     id: 'mature-female',
     name: 'Diana',
-    imageUrl: 'https://cdn.pixabay.com/photo/2018/01/13/19/39/fashion-3080644_640.jpg',
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Diana&backgroundColor=ffaaa5',
     description: 'Mature professional female',
     category: 'Mature'
   }
