@@ -810,13 +810,15 @@
     <script src="/js/upgrade-handler.js?v=1"></script>
     <script>
         // Check if user has video access
-        async function checkVideoAccess() {
+        async function checkVideoAccess(showModal = true) {
             // Check if user is logged in and has appropriate plan
             const token = localStorage.getItem('token');
 
             if (!token) {
-                // Not logged in - show upgrade modal
-                UpgradeHandler.showVideoUpgrade();
+                // Not logged in - show upgrade modal only if requested
+                if (showModal) {
+                    UpgradeHandler.showVideoUpgrade();
+                }
                 return false;
             }
 
@@ -828,7 +830,9 @@
                 });
 
                 if (!response.ok) {
-                    UpgradeHandler.showVideoUpgrade();
+                    if (showModal) {
+                        UpgradeHandler.showVideoUpgrade();
+                    }
                     return false;
                 }
 
@@ -837,20 +841,26 @@
 
                 // Check if user has video access (Professional or Enterprise)
                 if (plan === 'free' || plan === 'starter') {
-                    UpgradeHandler.showVideoUpgrade();
+                    if (showModal) {
+                        UpgradeHandler.showVideoUpgrade();
+                    }
                     return false;
                 }
 
                 // Check if user has video credits
                 if (data.credits?.videos <= 0) {
-                    UpgradeHandler.showUpgradeModal('credits');
+                    if (showModal) {
+                        UpgradeHandler.showUpgradeModal('credits');
+                    }
                     return false;
                 }
 
                 return true;
             } catch (error) {
                 console.error('Access check error:', error);
-                UpgradeHandler.showVideoUpgrade();
+                if (showModal) {
+                    UpgradeHandler.showVideoUpgrade();
+                }
                 return false;
             }
         }
@@ -864,43 +874,62 @@
             }
         };
 
-        // Check access on page load for better UX
-        document.addEventListener('DOMContentLoaded', () => {
+        // Check access on page load for better UX - but don't show modal automatically
+        document.addEventListener('DOMContentLoaded', async () => {
             // Add upgrade notice if needed
             const generateBtn = document.getElementById('generateBtn');
             if (generateBtn) {
-                // Check access and update UI accordingly
-                checkVideoAccess().then(hasAccess => {
-                    if (!hasAccess) {
-                        // Add visual indicator
-                        const notice = document.createElement('div');
-                        notice.className = 'upgrade-notice';
-                        notice.style.cssText = `
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            color: white;
-                            padding: 15px;
-                            border-radius: 8px;
-                            margin-bottom: 20px;
-                            text-align: center;
-                            cursor: pointer;
-                        `;
-                        notice.innerHTML = `
-                            <p style="margin: 0; font-weight: 600;">
-                                🔒 Video generation requires Professional or Enterprise plan
-                            </p>
-                            <p style="margin: 5px 0 0 0; font-size: 14px;">
-                                Click here to view upgrade options
-                            </p>
-                        `;
-                        notice.onclick = () => UpgradeHandler.showVideoUpgrade();
+                // Check access silently
+                const token = localStorage.getItem('token');
+                let hasAccess = false;
 
-                        // Insert before the form
-                        const form = document.querySelector('.content');
-                        if (form) {
-                            form.insertBefore(notice, form.firstChild);
+                if (token) {
+                    try {
+                        const response = await fetch('/api/auth/credits', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            const plan = data.user?.plan || 'free';
+                            hasAccess = (plan === 'professional' || plan === 'enterprise');
                         }
+                    } catch (error) {
+                        console.error('Access check error:', error);
                     }
-                });
+                }
+
+                if (!hasAccess) {
+                    // Add visual indicator without showing modal
+                    const notice = document.createElement('div');
+                    notice.className = 'upgrade-notice';
+                    notice.style.cssText = `
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 15px;
+                        border-radius: 8px;
+                        margin-bottom: 20px;
+                        text-align: center;
+                        cursor: pointer;
+                    `;
+                    notice.innerHTML = `
+                        <p style="margin: 0; font-weight: 600;">
+                            🔒 Video generation requires Professional or Enterprise plan
+                        </p>
+                        <p style="margin: 5px 0 0 0; font-size: 14px;">
+                            Click here to view upgrade options
+                        </p>
+                    `;
+                    notice.onclick = () => UpgradeHandler.showVideoUpgrade();
+
+                    // Insert before the form
+                    const form = document.querySelector('.content');
+                    if (form) {
+                        form.insertBefore(notice, form.firstChild);
+                    }
+                }
             }
         });
     </script>
