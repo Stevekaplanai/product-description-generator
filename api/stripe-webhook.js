@@ -1,6 +1,7 @@
 const stripeConfig = require('./config/stripe');
 const stripe = require('stripe')(stripeConfig.secretKey, stripeConfig.options);
 const { sendEmail } = require('./send-email');
+const getRawBody = require('raw-body');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -11,11 +12,20 @@ module.exports = async (req, res) => {
   const webhookSecret = stripeConfig.webhookSecret;
 
   let event;
+  let rawBody;
 
   try {
-    // Verify webhook signature
+    // Get raw body for Stripe signature verification
+    rawBody = await getRawBody(req);
+  } catch (err) {
+    console.error('Error reading raw body:', err.message);
+    return res.status(400).send(`Webhook Error: Failed to read request body`);
+  }
+
+  try {
+    // Verify webhook signature with raw body
     event = stripe.webhooks.constructEvent(
-      req.body,
+      rawBody,
       sig,
       webhookSecret
     );
@@ -90,4 +100,11 @@ module.exports = async (req, res) => {
   }
 
   res.status(200).json({ received: true });
+};
+
+// Disable body parsing for Stripe webhook verification
+module.exports.config = {
+  api: {
+    bodyParser: false,
+  },
 };
