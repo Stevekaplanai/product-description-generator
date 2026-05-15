@@ -3,6 +3,8 @@
  * This handles all transactional emails for the application
  */
 
+const fetch = require('node-fetch');
+
 const ZAPIER_WEBHOOK_URL = process.env.ZAPIER_WEBHOOK_URL || '';
 const LOOPS_API_KEY = process.env.LOOPS_API_KEY || '';
 
